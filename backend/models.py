@@ -14,6 +14,16 @@ class CredentialIssueRequest(BaseModel):
     gender: str | None = None            # 남 / 여
     visa_type: str | None = None         # E-9 등
     visa_valid_until: str | None = None  # 체류 만료일
+    # 이직(사업장 변경)에 필요한 항목. 고용허가서·표준근로계약서에서 파생된다고 가정.
+    employer_name: str | None = None         # 직전 사업장명
+    employment_from: str | None = None       # YYYY-MM-DD
+    employment_to: str | None = None         # YYYY-MM-DD (근로계약 종료일)
+    job_category: str | None = None          # 제조업 등
+    job_change_used: int | None = None       # 사용한 사업장 변경 횟수
+    job_change_limit: int | None = None      # 한도 (초기 취업기간 3회)
+    job_change_excluded: int | None = None   # 사용자 귀책으로 횟수 미산입된 건수
+    health_check_date: str | None = None     # 건강진단 실시일 (내용은 공개하지 않는다)
+    topik_level: str | None = None           # 한국어능력시험 등급 (해당자)
 
 
 class PresentationRequest(BaseModel):

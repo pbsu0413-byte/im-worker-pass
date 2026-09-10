@@ -71,6 +71,15 @@ def _init_dummy_data():
             "gender": "남",
             "visa_type": "E-9",
             "visa_valid_until": "2029-03-14",
+            "employer_name": "A제조 (주)대구정밀",
+            "employment_from": "2024-04-01",
+            "employment_to": "2026-08-31",
+            "job_category": "제조업 (금속가공)",
+            "job_change_used": 1,
+            "job_change_limit": 3,
+            "job_change_excluded": 1,
+            "health_check_date": "2026-07-15",
+            "topik_level": "TOPIK 3급",
             "status": "valid",
             "created_at": datetime.now(timezone.utc).isoformat(),
         },
@@ -85,6 +94,15 @@ def _init_dummy_data():
             "gender": "여",
             "visa_type": "E-9",
             "visa_valid_until": "2028-11-30",
+            "employer_name": "B식품 (주)경산푸드",
+            "employment_from": "2023-12-01",
+            "employment_to": "2026-08-20",
+            "job_category": "제조업 (식품가공)",
+            "job_change_used": 2,
+            "job_change_limit": 3,
+            "job_change_excluded": 0,
+            "health_check_date": "2026-06-02",
+            "topik_level": "TOPIK 2급",
             "status": "valid",
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -127,6 +145,134 @@ def health():
 # ---------------------------------------------------------------------------
 # S1~S4 : 자격증 발급 — 개인정보는 지갑에, 블록체인에는 고유 ID 해시와 상태(Valid)만 기록
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# 이직(사업장 변경) 서류 대사표
+#
+# E-9 사업장 변경은 "고용센터 사업장변경 신청 → 구직·알선 → 새 사업장 고용허가서
+# → 출입국 근무처변경허가" 순으로 진행된다. 이 중 발급기관이 서명할 수 있고
+# 상태가 바뀌는 항목만 크리덴셜로 검증하고, 나머지는 원본 제출로 남긴다.
+#
+#   verified : 온체인 크리덴셜로 검증 완료 (수기 확인 불필요)
+#   attached : 지갑에 파일로 동봉 — 검증 대상이 아니므로 담당자가 눈으로 확인
+#   required : 크리덴셜로 대체 불가 — 실물 지참 또는 별도 발급 필요
+# ---------------------------------------------------------------------------
+_DEADLINE_DAYS = 30  # 근로계약 종료 후 1개월 이내 사업장 변경 신청
+
+
+def _fmt(v, dash="—"):
+    return v if v else dash
+
+
+def _days_left(date_str: str | None, days: int):
+    """근로계약 종료일 + days 까지 남은 일수. 계산 불가하면 None."""
+    if not date_str:
+        return None
+    try:
+        end = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except Exception:
+        return None
+    return (end + timedelta(days=days) - datetime.now(timezone.utc).date()).days
+
+
+def _build_job_change_dossier(cred: dict) -> dict:
+    used = cred.get("job_change_used")
+    limit = cred.get("job_change_limit") or 3
+    excluded = cred.get("job_change_excluded") or 0
+    deadline_left = _days_left(cred.get("employment_to"), _DEADLINE_DAYS)
+    search_left = _days_left(cred.get("employment_to"), 90)  # 구직기간 최대 3개월
+
+    verified = [
+        {
+            "name": "체류자격",
+            "value": f"{_fmt(cred.get('visa_type'), 'E-9')} · 만료 {_fmt(cred.get('visa_valid_until'))}",
+            "issuer": "출입국·외국인청",
+        },
+        {
+            "name": "사업장 변경 이력",
+            "value": (
+                f"{used}/{limit}회 사용"
+                + (f" (사용자 귀책 {excluded}건 미산입)" if excluded else "")
+                if used is not None else "이력 없음"
+            ),
+            "issuer": "고용노동부 고용센터",
+        },
+        {
+            "name": "고용·경력",
+            "value": (
+                f"{_fmt(cred.get('employer_name'))} · "
+                f"{_fmt(cred.get('employment_from'))}~{_fmt(cred.get('employment_to'))} · "
+                f"{_fmt(cred.get('job_category'))}"
+            ),
+            "issuer": "고용허가서 / 표준근로계약서",
+        },
+        {
+            "name": "급여계좌",
+            "value": f"{_fmt(cred.get('account_bank'))} {_fmt(cred.get('account_number'))}",
+            "issuer": "은행 실명확인",
+        },
+    ]
+
+    hc = cred.get("health_check_date")
+    if hc:
+        verified.append({
+            "name": "건강진단",
+            "value": f"{hc} 실시 · 유효 (진단 내용 비공개)",
+            "issuer": "지정 의료기관",
+        })
+    if cred.get("topik_level"):
+        verified.append({
+            "name": "어학",
+            "value": cred["topik_level"],
+            "issuer": "국립국제교육원",
+        })
+
+    # 이 화면은 "채용 사업장이 스캔하는 화면"이다. 따라서 근로자가 이 회사에
+    # 내거나 이 회사가 확인해야 하는 것만 서류로 세운다. 고용센터·출입국에
+    # 내는 서류(변경사유 확인서, 통합신청서 등)나 회사 자체 서류(사업자등록증)는
+    # 제출 대상이 아니므로 목록에서 빼고, 절차 진행 상태로만 참고 표시한다.
+    attached = [
+        {"name": "증명사진", "note": "인사기록카드용 · 검증 대상 아님"},
+    ]
+    required = [
+        {"name": "여권 · 외국인등록증", "note": "채용 시 실물 대조 (체류자격 확인 의무)"},
+        {"name": "표준근로계약서", "note": "본 사업장과 새로 체결 · 서명본"},
+    ]
+    # 서류가 아니라 절차다. 회사가 채용 전에 확인만 하면 되는 항목.
+    procedure = [
+        {"name": "고용센터 사업장변경 신청", "note": "근로자 본인 · 변경사유 확인서 제출"},
+        {"name": "출입국 근무처변경허가", "note": "근로자 본인 · 통합신청서(별지 제34호)"},
+        {"name": "고용허가서 발급", "note": "본 사업장이 고용센터에서 발급"},
+        {"name": "4대보험 취득신고 · 고용변동 신고", "note": "입사 후 본 사업장 처리"},
+    ]
+
+    notice = []
+    if deadline_left is not None:
+        notice.append(
+            f"사업장 변경 신청기한: 계약 종료({cred.get('employment_to')}) 후 1개월 이내 · "
+            + (f"D-{deadline_left}" if deadline_left >= 0 else f"{-deadline_left}일 경과")
+        )
+    if search_left is not None:
+        notice.append(
+            "구직기간 최대 3개월 · "
+            + (f"잔여 {search_left}일" if search_left >= 0 else f"{-search_left}일 경과")
+        )
+    if used is not None and used >= limit:
+        notice.append("사업장 변경 횟수 한도 소진 — 사용자 귀책 사유 확인 필요")
+
+    return {
+        "verified": verified,
+        "attached": attached,
+        "required": required,
+        "procedure": procedure,
+        "notice": notice,
+        "summary": {
+            "verified": len(verified),
+            "attached": len(attached),
+            "required": len(required),
+        },
+    }
+
+
 @app.post("/credentials")
 def issue_credential(req: CredentialIssueRequest):
     # A안: 이름과 계좌번호가 일치하는 근로자가 이미 존재하는지 중복 검사
@@ -173,6 +319,15 @@ def issue_credential(req: CredentialIssueRequest):
         "gender": req.gender,
         "visa_type": req.visa_type or "E-9",
         "visa_valid_until": req.visa_valid_until,
+        "employer_name": req.employer_name,
+        "employment_from": req.employment_from,
+        "employment_to": req.employment_to,
+        "job_category": req.job_category,
+        "job_change_used": req.job_change_used,
+        "job_change_limit": req.job_change_limit if req.job_change_limit is not None else 3,
+        "job_change_excluded": req.job_change_excluded,
+        "health_check_date": req.health_check_date,
+        "topik_level": req.topik_level,
         "status": "valid",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "credential_hash": bc_res["credential_hash"],
@@ -317,6 +472,9 @@ def consume_secure_presentation(req: VerifyRequest):
             "reg_no": cred.get("reg_no"),
             "account_bank": cred.get("account_bank"),
             "account_number": cred.get("account_number"),
+            "visa_type": cred.get("visa_type") or "E-9",
+            "visa_valid_until": cred.get("visa_valid_until"),
+            "dossier": _build_job_change_dossier(cred),
         })
     elif vid == "insurer_1":
         # 체류자격 + 본인명의 계좌 확인. 가입 사실을 기록해 두고 카드는 발급하지 않는다.

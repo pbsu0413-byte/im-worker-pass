@@ -94,7 +94,7 @@
   <div class="card">
     <label>이 스캐너는 누구인가요? (verifier_id)</label>
     <select id="verifierId" onchange="onVerifierChange()">
-      <option value="company_A">company_A (A제조공장 - 급여계좌 등록)</option>
+      <option value="company_A">company_A (A제조공장 - 이직 서류 대사 + 급여계좌 등록)</option>
       <option value="company_B">company_B (B제조공장 - 오배송 테스트용)</option>
       <option value="hospital_1">hospital_1 (거점 병원 - 신원+진료접수)</option>
       <option value="insurer_1">insurer_1 (제휴 보험사 - 무서류 가입)</option>
@@ -412,6 +412,68 @@
         </div>`;
     }
 
+    // 이직(사업장 변경) 서류 대사표.
+    // 검증된 것만 초록으로 그리지 않고, 크리덴셜로 대체할 수 없는 서류까지 같이 보여준다.
+    function renderCompanyPanel(data) {
+      const esc = (v) => String(v == null ? "—" : v);
+      const d = data.dossier;
+      const head = `
+        <div class="agency-card">
+          <div class="agency-title">🏢 사내 ERP 급여계좌 자동 연동 완료</div>
+          <div>• 근로자: <b>${esc(data.worker_name)}</b> (${esc(data.nationality)})</div>
+          <div>• 지급 계좌: <b>${esc(data.account_bank)} ${esc(data.account_number)}</b> (검증필)</div>
+          <div style="font-size:12px;color:#16a34a;margin-top:4px;">✓ 인사/회계 시스템 자동 등록 완료 (수기입력 0건)</div>
+        </div>`;
+      if (!d) return head;
+
+      const row = (left, right, color) => `
+        <div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #eef2f7;font-size:13px;">
+          <span style="color:#334155;white-space:nowrap;">${esc(left)}</span>
+          <span style="color:${color};text-align:right;">${esc(right)}</span>
+        </div>`;
+
+      const block = (title, badge, badgeColor, bg, items) => `
+        <div style="background:${bg};border-radius:8px;padding:10px 12px;margin-top:10px;">
+          <div style="font-weight:600;font-size:13px;margin-bottom:4px;">
+            ${esc(title)} <span style="color:${badgeColor};font-weight:500;">${esc(badge)}</span>
+          </div>
+          ${items}
+        </div>`;
+
+      const verified = d.verified.map(v =>
+        row(`✓ ${v.name}`, `${v.value}  ·  ${v.issuer}`, "#15803d")).join("");
+      const attached = d.attached.map(v =>
+        row(`📎 ${v.name}`, v.note, "#64748b")).join("");
+      const required = d.required.map(v =>
+        row(`○ ${v.name}`, v.note, "#b45309")).join("");
+      const procedure = (d.procedure || []).map(v =>
+        row(`▸ ${v.name}`, v.note, "#475569")).join("");
+
+      const notice = (d.notice && d.notice.length)
+        ? `<div style="margin-top:10px;font-size:12px;color:#b45309;line-height:1.6;">
+             ${d.notice.map(n => "⚠ " + esc(n)).join("<br/>")}
+           </div>`
+        : "";
+
+      return `
+        ${head}
+        <div class="agency-card" style="margin-top:10px;">
+          <div class="agency-title">📋 이직(사업장 변경) 서류 대사표</div>
+          <div style="font-size:12px;color:#64748b;">
+            본 사업장 기준 — 블록체인 검증 ${d.summary.verified}건 · 파일 동봉 ${d.summary.attached}건 · 별도 제출 ${d.summary.required}건
+          </div>
+          ${block("블록체인으로 검증됨", "(수기 확인 불필요)", "#15803d", "#f0fdf4", verified)}
+          ${block("지갑에 동봉된 파일", "(검증 대상 아님 · 담당자 확인)", "#64748b", "#f8fafc", attached)}
+          ${block("크리덴셜로 대체 불가", "(본 사업장 제출 · 실물 대조)", "#b45309", "#fffbeb", required)}
+          ${procedure ? block("행정 절차 (본 사업장 제출 대상 아님)", "(진행 여부만 확인)", "#475569", "#f1f5f9", procedure) : ""}
+          ${notice}
+          <div style="font-size:11.5px;color:#94a3b8;margin-top:8px;">
+            절차 근거: 고용센터 사업장변경 신청 → 구직·알선 → 고용허가서 발급 → 출입국 근무처변경허가.
+            횟수·기한 규정은 제도 개정에 따라 달라질 수 있습니다.
+          </div>
+        </div>`;
+    }
+
     function showResult(data, verifierId) {
       const box = document.getElementById("resultBox");
       // 서버가 pass라고 해도 온체인 상태가 VALID가 아니면 화면은 통과로 그리지 않는다.
@@ -429,14 +491,7 @@
         agencyHtml = renderHospitalPanel(data, isPass);
       } else if (isPass) {
         if (verifierId === "company_A") {
-          agencyHtml = `
-            <div class="agency-card">
-              <div class="agency-title">🏢 사내 ERP 급여계좌 자동 연동 완료</div>
-              <div>• 근로자: <b>${data.worker_name}</b> (${data.nationality})</div>
-              <div>• 지급 계좌: <b>${data.account_bank} ${data.account_number}</b> (검증필)</div>
-              <div style="font-size:12px;color:#16a34a;margin-top:4px;">✓ 인사/회계 시스템 자동 등록 완료 (수기입력 0건)</div>
-            </div>
-          `;
+          agencyHtml = renderCompanyPanel(data);
         } else if (verifierId === "insurer_1") {
           agencyHtml = `
             <div class="agency-card">
