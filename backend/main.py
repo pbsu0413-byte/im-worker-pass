@@ -116,9 +116,21 @@ def _init_dummy_data():
     for w in dummy_workers:
         _local_db[w["credential_id"]] = w
         try:
-            bc_res = bc.issue(w["credential_id"])
-            w["tx_hash"] = bc_res["tx_hash"]
-            w["explorer_url"] = bc_res["explorer_url"]
+            # 실제 체인에 붙으면 서버가 재시작될 때마다 같은 더미를 다시 등록하려 해서
+            # "Credential already exists"로 revert 되고, 가스만 쓰고 실패 트랜잭션이 남는다.
+            # 먼저 온체인 상태를 조회해 미등록(NONE)일 때만 등록한다.
+            status = bc.get_status(w["credential_id"])
+            w["credential_hash"] = status["credential_hash"]
+            if status["status_code"] == int(CredentialStatus.NONE):
+                bc_res = bc.issue(w["credential_id"])
+                w["tx_hash"] = bc_res["tx_hash"]
+                w["explorer_url"] = bc_res["explorer_url"]
+            else:
+                # 이미 체인에 있다. 상태를 체인 값으로 맞추고, 등록 트랜잭션은 이번에
+                # 발생하지 않았으므로 tx 링크를 만들지 않는다.
+                w["status"] = status["status_name"]
+                w["tx_hash"] = None
+                w["explorer_url"] = None
         except Exception:
             pass
 
@@ -329,6 +341,15 @@ def issue_credential(req: CredentialIssueRequest):
             res_data = dict(existing)
             res_data["is_existing"] = True
             res_data["message"] = "이미 발급된 근로자입니다. 기존 자격증이 조회되었습니다."
+            # 저장된 문자열이 아니라 체인에서 실제 상태를 읽어 온다 (AGENTS 규칙 16).
+            try:
+                chain = get_blockchain_client().get_status(existing["credential_id"])
+                res_data["status"] = chain["status_name"]
+                res_data["credential_hash"] = chain["credential_hash"]
+                res_data["onchain_proof"] = chain
+                res_data["chain_mode"] = chain["mode"]
+            except Exception:
+                pass
             return res_data
 
     cid = str(uuid.uuid4())
@@ -363,6 +384,7 @@ def issue_credential(req: CredentialIssueRequest):
         "tx_hash": bc_res["tx_hash"],
         "explorer_url": bc_res["explorer_url"],
         "is_existing": False,
+        "chain_mode": bc_res.get("mode"),
         "message": "신규 자격증 발급 및 블록체인 등록 완료"
     }
 

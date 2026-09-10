@@ -96,9 +96,9 @@
       const btn = event.target;
       const originalText = btn.textContent;
       btn.disabled = true;
-      btn.textContent = "⏳ 블록체인 등록 중...";
+      btn.textContent = "⏳ 처리 중...";
 
-      document.getElementById("issueResult").innerHTML = `<p style="color:#0969da;">⏳ 블록체인 스마트 컨트랙트에 트랜잭션을 전송 중입니다...</p>`;
+      document.getElementById("issueResult").innerHTML = `<p style="color:#0969da;">⏳ 기존 발급 내역을 확인하고 있습니다. 신규라면 블록체인 등록까지 진행됩니다...</p>`;
 
       try {
         const body = {
@@ -127,8 +127,13 @@
             • Credential ID: <code>${data.credential_id}</code><br/>
             • 온체인 상태: <b>${(data.status || 'valid').toUpperCase()}</b><br/>
             • On-Chain Hash: <code>${data.credential_hash || '-'}</code><br/>
-            • Tx Hash: <code>${data.tx_hash || '-'}</code><br/>
-            ${data.explorer_url ? `🔗 <a href="${data.explorer_url}" target="_blank">블록체인 탐색기에서 트랜잭션 확인</a>` : ''}
+            • 검증 네트워크: <b>${data.chain_mode === 'live_testnet' ? 'Polygon Amoy Testnet' : 'EVM 시뮬레이터 (컨트랙트 미배포)'}</b><br/>
+            ${data.tx_hash ? `• Tx Hash: <code>${data.tx_hash}</code><br/>` : ''}
+            ${(data.tx_hash && data.chain_mode === 'live_testnet')
+                ? `🔗 <a href="${data.explorer_url}" target="_blank">블록체인 탐색기에서 트랜잭션 확인</a>`
+                : `<span style="font-size:12px;color:#64748b;">${data.is_existing
+                    ? '이미 온체인에 등록되어 있어 이번에는 트랜잭션이 발생하지 않았습니다. 상태는 체인에서 조회한 값입니다.'
+                    : '시뮬레이터 모드입니다. 탐색기에 조회되는 트랜잭션이 아닙니다.'}</span>`}
           </div>
         `;
       } catch (err) {
