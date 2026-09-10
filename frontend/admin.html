@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM Worker Pass - 관리자 (체류자격 온체인 철회/복구)</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .notification {
+    display: none;
+    padding: 10px 14px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    font-size: 13px;
+    word-break: break-all;
+  }
+  .notify-success {
+    display: block;
+    background: #e6ffed;
+    color: #1a7f37;
+    border: 1px solid #2da44e;
+  }
+  .tx-cell {
+    font-size: 11px;
+    font-family: monospace;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tx-link {
+    color: #0969da;
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="issue.html">① 지갑(발급)</a>
+    <a href="scan.html">② 스캐너(검증)</a>
+    <a href="admin.html" class="active">③ 관리자</a>
+  </nav>
+
+  <h1>관리자 — 체류자격 온체인 상태 관리</h1>
+  <p style="font-size:13px;color:#666;">
+    여기서 상태를 <b>철회(revoked)</b>로 바꾸면 스마트 컨트랙트에 <code>revoke</code> 트랜잭션이 전송되며,<br/>
+    이미 발급된 QR을 다시 스캔해도 <b>회사·병원·보험 세 곳 모두 즉시 거부</b>됩니다. (S9 블록체인 연동 시연)
+  </p>
+
+  <div id="statusNotify" class="notification"></div>
+
+  <div style="margin-bottom: 12px;">
+    <button class="secondary" onclick="loadList()">목록 새로고침</button>
+  </div>
+
+  <table id="table">
+    <thead>
+      <tr>
+        <th>이름</th>
+        <th>국적</th>
+        <th>계좌</th>
+        <th>온체인 상태</th>
+        <th>최근 Tx Hash</th>
+        <th>동작</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <script src="config.js"></script>
+  <script>
+    function showNotification(msg, explorerUrl, isSuccess = true) {
+      const box = document.getElementById("statusNotify");
+      box.className = "notification " + (isSuccess ? "notify-success" : "");
+      let html = msg;
+      if (explorerUrl) {
+        html += `<br/>🔗 <a href="${explorerUrl}" target="_blank" class="tx-link">블록체인 탐색기에서 온체인 트랜잭션 조회</a>`;
+      }
+      box.innerHTML = html;
+      box.style.display = "block";
+    }
+
+    async function loadList() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/credentials`);
+        const rows = await res.json();
+        const tbody = document.getElementById("tbody");
+        tbody.innerHTML = rows.map(r => `
+          <tr>
+            <td><b>${r.worker_name}</b></td>
+            <td>${r.nationality}</td>
+            <td>${r.account_bank} ${r.account_number}</td>
+            <td><span class="badge ${r.status === "valid" ? "badge-valid" : "badge-revoked"}">${r.status.toUpperCase()}</span></td>
+            <td class="tx-cell" title="${r.last_tx_hash || r.tx_hash || '-'}">
+              ${r.explorer_url 
+                ? `<a href="${r.explorer_url}" target="_blank" class="tx-link">${(r.last_tx_hash || r.tx_hash || '').substring(0, 10)}...</a>`
+                : (r.last_tx_hash || r.tx_hash || '-')}
+            </td>
+            <td>
+              ${r.status === "valid"
+                ? `<button class="danger" onclick="revoke('${r.credential_id}', '${r.worker_name}')">온체인 철회</button>`
+                : `<button class="secondary" onclick="restore('${r.credential_id}', '${r.worker_name}')">온체인 복구</button>`}
+            </td>
+          </tr>
+        `).join("");
+      } catch (err) {
+        console.error("Failed to load list", err);
+      }
+    }
+
+    async function revoke(id, name) {
+      showNotification(`⏳ <b>${name}</b> 근로자의 체류자격 철회 트랜잭션을 블록체인에 전송 중...`, null);
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/credentials/${id}/revoke`, { method: "POST" });
+        const data = await res.json();
+        showNotification(`⚡ <b>${name}</b> 체류자격 철회 완료 (Tx: <code>${data.tx_hash}</code>)`, data.explorer_url);
+        loadList();
+      } catch (e) {
+        alert("철회 처리 중 오류가 발생했습니다.");
+      }
+    }
+
+    async function restore(id, name) {
+      showNotification(`⏳ <b>${name}</b> 근로자의 체류자격 복구 트랜잭션을 블록체인에 전송 중...`, null);
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/credentials/${id}/restore`, { method: "POST" });
+        const data = await res.json();
+        showNotification(`⚡ <b>${name}</b> 체류자격 복구 완료 (Tx: <code>${data.tx_hash}</code>)`, data.explorer_url);
+        loadList();
+      } catch (e) {
+        alert("복구 처리 중 오류가 발생했습니다.");
+      }
+    }
+
+    loadList();
+  </script>
+</body>
+</html>

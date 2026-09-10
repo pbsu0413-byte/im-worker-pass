@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM Worker Pass - 지갑 (발급/QR생성)</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .tx-box {
+    background: #f0f7ff;
+    border: 1px solid #cce3ff;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-size: 13px;
+    word-break: break-all;
+  }
+  .tx-box a {
+    color: #0366d6;
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="issue.html" class="active">① 지갑(발급)</a>
+    <a href="scan.html">② 스캐너(검증)</a>
+    <a href="admin.html">③ 관리자</a>
+  </nav>
+
+  <h1>근로자 지갑 — 자격증 발급 &amp; QR 생성</h1>
+
+  <div class="card">
+    <h3>1) 더미 자격증 발급 (S1~S4)</h3>
+    <p style="font-size:12px;color:#666;">
+      발급 시 개인정보(이름/계좌)는 암호화 서명되어 단말에 저장되고, 
+      <b>블록체인 스마트 컨트랙트</b>에는 고유 해시와 상태(Valid)만 기록됩니다.
+    </p>
+    <label>근로자 이름</label>
+    <input id="workerName" placeholder="NGUYEN VAN A" value="NGUYEN VAN A" />
+    <label>국적</label>
+    <input id="nationality" placeholder="베트남" value="베트남" />
+    <label>은행</label>
+    <input id="accountBank" placeholder="iM뱅크" value="iM뱅크" />
+    <label>계좌번호</label>
+    <input id="accountNumber" placeholder="512-123456-01" value="512-123456-01" />
+    <button onclick="issueCredential()">발급 &amp; 블록체인 등록</button>
+    <div id="issueResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>2) 제출용 QR 생성 (S5)</h3>
+    <label>credential_id</label>
+    <input id="credentialId" placeholder="발급하면 자동으로 채워집니다" />
+    <label>제출 대상 (target_id)</label>
+    <select id="targetId">
+      <option value="company_A">company_A (A제조공장 - 급여계좌 등록용)</option>
+      <option value="company_B">company_B (B제조공장 - 오배송 시연용)</option>
+      <option value="hospital_1">hospital_1 (거점 병원 - 신분+진료접수용)</option>
+      <option value="insurer_1">insurer_1 (제휴 보험사 - 무서류 보험가입용)</option>
+    </select>
+    <button onclick="createPresentation()">QR 생성</button>
+
+    <div style="text-align: center; margin-top: 15px;">
+      <img id="qrImg" style="display:none; margin: 0 auto; max-width: 220px;" />
+    </div>
+
+    <p style="font-size:12px;color:#888; margin-top: 15px;">
+      아래 payload를 복사해서 <b>scan.html</b>의 붙여넣기 창에 넣으면 카메라 없이도 검증을 테스트할 수 있습니다.<br/>
+      계좌번호 한 글자만 바꿔서 붙여넣으면 "위변조" 시연이 됩니다.
+    </p>
+    <pre id="payloadBox"></pre>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    async function issueCredential() {
+      const body = {
+        worker_name: document.getElementById("workerName").value,
+        nationality: document.getElementById("nationality").value,
+        account_bank: document.getElementById("accountBank").value,
+        account_number: document.getElementById("accountNumber").value,
+      };
+      const res = await fetch(`${API_BASE_URL}/credentials`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        document.getElementById("issueResult").innerHTML = `<p style="color:red">오류: ${JSON.stringify(data)}</p>`;
+        return;
+      }
+      document.getElementById("credentialId").value = data.credential_id;
+      document.getElementById("issueResult").innerHTML = `
+        <div class="tx-box">
+          <b>✅ 발급 및 블록체인 등록 완료</b><br/>
+          • 대상자: <b>${data.worker_name}</b> (${data.nationality})<br/>
+          • Credential ID: <code>${data.credential_id}</code><br/>
+          • On-Chain Hash: <code>${data.credential_hash || '-'}</code><br/>
+          • Tx Hash: <code>${data.tx_hash || '-'}</code><br/>
+          ${data.explorer_url ? `🔗 <a href="${data.explorer_url}" target="_blank">블록체인 탐색기에서 트랜잭션 확인</a>` : ''}
+        </div>
+      `;
+    }
+
+    async function createPresentation() {
+      const body = {
+        credential_id: document.getElementById("credentialId").value,
+        target_id: document.getElementById("targetId").value,
+      };
+      const res = await fetch(`${API_BASE_URL}/presentations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        document.getElementById("payloadBox").textContent = "오류: " + JSON.stringify(data);
+        return;
+      }
+      const img = document.getElementById("qrImg");
+      img.src = data.qr_image_base64;
+      img.style.display = "block";
+      document.getElementById("payloadBox").textContent = JSON.stringify(data.payload, null, 2);
+    }
+  </script>
+</body>
+</html>

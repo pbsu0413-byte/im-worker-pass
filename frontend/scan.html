@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM Worker Pass - 스캐너 (회사/병원/보험)</title>
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+  .onchain-badge {
+    display: inline-block;
+    background: #e6ffed;
+    color: #1a7f37;
+    border: 1px solid #2da44e;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .onchain-fail-badge {
+    display: inline-block;
+    background: #ffebe9;
+    color: #cf222e;
+    border: 1px solid #ff8182;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .proof-box {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0,0,0,0.03);
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    word-break: break-all;
+  }
+  .agency-card {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+  }
+  .agency-title {
+    font-weight: bold;
+    color: #1e293b;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="issue.html">① 지갑(발급)</a>
+    <a href="scan.html" class="active">② 스캐너(검증)</a>
+    <a href="admin.html">③ 관리자</a>
+  </nav>
+
+  <h1>사업장 / 병원 / 보험사 스캐너</h1>
+
+  <div class="card">
+    <label>이 스캐너는 누구인가요? (verifier_id)</label>
+    <select id="verifierId" onchange="onVerifierChange()">
+      <option value="company_A">company_A (A제조공장 - 급여계좌 등록)</option>
+      <option value="company_B">company_B (B제조공장 - 오배송 테스트용)</option>
+      <option value="hospital_1">hospital_1 (거점 병원 - 신원+진료접수)</option>
+      <option value="insurer_1">insurer_1 (제휴 보험사 - 무서류 가입)</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h3>방법 1) 카메라로 QR 스캔</h3>
+    <div id="reader" style="width:100%"></div>
+    <div style="margin-top: 10px;">
+      <button class="secondary" onclick="startScan()">카메라 스캔 시작</button>
+      <button class="secondary" onclick="stopScan()">중지</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>방법 2) payload 직접 붙여넣기 (발표/테스트용)</h3>
+    <textarea id="pastedPayload" rows="5" placeholder='issue.html에서 복사한 payload JSON을 여기에 붙여넣으세요'></textarea>
+    <button onclick="verifyPasted()">온체인 검증 실행</button>
+  </div>
+
+  <div id="resultBox"></div>
+
+  <script src="config.js"></script>
+  <script>
+    let html5QrCode;
+
+    function onVerifierChange() {
+      document.getElementById("resultBox").innerHTML = "";
+    }
+
+    function startScan() {
+      html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 220 },
+        (decodedText) => {
+          stopScan();
+          try {
+            const payload = JSON.parse(decodedText);
+            runVerify(payload);
+          } catch (e) {
+            showResult({ result: "fail", message: "QR 내용을 JSON으로 해석할 수 없습니다." });
+          }
+        },
+        () => {}
+      );
+    }
+
+    function stopScan() {
+      if (html5QrCode) {
+        html5QrCode.stop().catch(() => {});
+      }
+    }
+
+    function verifyPasted() {
+      try {
+        const val = document.getElementById("pastedPayload").value.trim();
+        if (!val) {
+          alert("payload JSON을 입력해주세요.");
+          return;
+        }
+        const payload = JSON.parse(val);
+        runVerify(payload);
+      } catch (e) {
+        showResult({ result: "fail", message: "붙여넣은 내용이 올바른 JSON 형식이 아닙니다." });
+      }
+    }
+
+    async function runVerify(payload) {
+      const verifierId = document.getElementById("verifierId").value;
+      const res = await fetch(`${API_BASE_URL}/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload, verifier_id: verifierId }),
+      });
+      const data = await res.json();
+      showResult(data, verifierId);
+    }
+
+    function showResult(data, verifierId) {
+      const box = document.getElementById("resultBox");
+      const isPass = data.result === "pass";
+
+      let agencyHtml = "";
+      if (isPass) {
+        if (verifierId === "company_A") {
+          agencyHtml = `
+            <div class="agency-card">
+              <div class="agency-title">🏢 사내 ERP 급여계좌 자동 연동 완료</div>
+              <div>• 근로자: <b>${data.worker_name}</b> (${data.nationality})</div>
+              <div>• 지급 계좌: <b>${data.account_bank} ${data.account_number}</b> (검증필)</div>
+              <div style="font-size:12px;color:#16a34a;margin-top:4px;">✓ 인사/회계 시스템 자동 등록 완료 (수기입력 0건)</div>
+            </div>
+          `;
+        } else if (verifierId === "insurer_1") {
+          agencyHtml = `
+            <div class="agency-card">
+              <div class="agency-title">🛡️ 외국인 근로자 전용 상해보험 무서류 가입 승인</div>
+              <div>• 피보험자: <b>${data.worker_name}</b> (체류 신분 온체인 검증 완료)</div>
+              <div>• 납부 계좌: <b>${data.account_bank} ${data.account_number}</b></div>
+              <div style="font-size:12px;color:#2563eb;margin-top:4px;">✓ 신규 [보험가입 카드]가 근로자 모바일 지갑에 즉시 전송되었습니다.</div>
+            </div>
+          `;
+        } else if (verifierId === "hospital_1") {
+          agencyHtml = `
+            <div class="agency-card">
+              <div class="agency-title">🏥 의료기관 진료 접수 완료 (접수번호: 104번)</div>
+              <div>• 환자 성명: <b>${data.worker_name}</b> (${data.nationality})</div>
+              <div>• 신원 확인: 법무부 체류자격 및 연계 보험 자동 조회 완료</div>
+              <div style="font-size:12px;color:#0284c7;margin-top:4px;">✓ 1층 내과 2번 진료실 대기실로 이동해주세요.</div>
+            </div>
+          `;
+        }
+      }
+
+      const proofHtml = data.onchain_proof ? `
+        <div class="proof-box">
+          <b>🔗 블록체인 온체인 증명 (On-Chain Proof)</b><br/>
+          • 상태: <b>${data.onchain_proof.status_name.toUpperCase()} (코드: ${data.onchain_proof.status_code})</b><br/>
+          • 식별 해시: <code>${data.onchain_proof.credential_hash}</code><br/>
+          • 검증 네트워크: ${data.onchain_proof.mode === 'live_testnet' ? 'Polygon Amoy Testnet' : 'EVM On-Chain Simulator'}<br/>
+        </div>
+      ` : '';
+
+      box.innerHTML = `
+        <div class="${isPass ? "result-pass" : "result-fail"}">
+          <span class="${isPass ? 'onchain-badge' : 'onchain-fail-badge'}">
+            ${isPass ? '✓ 스마트 컨트랙트 원장 검증됨' : '⚠ 블록체인 검증 실패'}
+          </span><br/>
+          <b>${isPass ? "✅ 검사 통과" : "❌ 검사 실패"}</b><br/>
+          <span>${data.message || ""} ${data.reason ? `[${data.reason}]` : ""}</span>
+          ${agencyHtml}
+          ${proofHtml}
+        </div>`;
+    }
+  </script>
+</body>
+</html>
