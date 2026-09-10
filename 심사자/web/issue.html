@@ -134,7 +134,7 @@
         credential_id: document.getElementById("credentialId").value,
         target_id: document.getElementById("targetId").value,
       };
-      const res = await fetch(`${API_BASE_URL}/presentations`, {
+      const res = await fetch(`${API_BASE_URL}/presentations/secure`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -147,7 +147,7 @@
       const img = document.getElementById("qrImg");
       img.src = data.qr_image_base64;
       img.style.display = "block";
-      document.getElementById("payloadBox").textContent = JSON.stringify(data.payload, null, 2);
+      document.getElementById("payloadBox").textContent = JSON.stringify(data.qr_payload, null, 2) + "\n\nExpires: " + data.expires_at;
     }
   </script>
 </body>

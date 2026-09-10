@@ -140,12 +140,16 @@
 
     async function runVerify(payload) {
       const verifierId = document.getElementById("verifierId").value;
-      const res = await fetch(`${API_BASE_URL}/verify`, {
+      const res = await fetch(`${API_BASE_URL}/presentations/secure/consume`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ payload, verifier_id: verifierId }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        showResult({ result: "fail", reason: data.detail || `HTTP_${res.status}`, message: data.detail || "검증에 실패했습니다." }, verifierId);
+        return;
+      }
       showResult(data, verifierId);
     }
 
