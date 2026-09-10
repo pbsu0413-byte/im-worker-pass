@@ -8,6 +8,12 @@ class CredentialIssueRequest(BaseModel):
     nationality: str
     account_bank: str
     account_number: str
+    # 병원 접수에 필요한 신원 항목 (출입국 증명 가정). 없으면 화면에 "—"로 표시된다.
+    reg_no: str | None = None            # 외국인등록번호
+    birth_date: str | None = None        # YYYY-MM-DD
+    gender: str | None = None            # 남 / 여
+    visa_type: str | None = None         # E-9 등
+    visa_valid_until: str | None = None  # 체류 만료일
 
 
 class PresentationRequest(BaseModel):
@@ -16,6 +22,8 @@ class PresentationRequest(BaseModel):
     credential_id: str
     target_id: str  # 예: "company_A", "hospital_1", "insurer_1"
     symptom: str | None = None  # hospital only; fixed catalogue statement
+    symptom_original: str | None = None  # 모국어 원문 (번역 대조용)
+    symptom_locale: str | None = None    # vi / ko 등
 
 
 class VerifyRequest(BaseModel):

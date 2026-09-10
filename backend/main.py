@@ -50,6 +50,9 @@ _frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "f
 # 로컬/시연용 인메모리 저장소 (Supabase 미설정 시에도 즉시 무중단 구동)
 _local_db = {}
 _presentation_sessions = {}
+# 자리 3(보험)에서 가입한 사실을 기록한다.
+# 카드를 지갑에 발급하지 않고, 자리 2(병원) 제출 시 여기를 조회해 보험 상태를 만든다.
+_insurance_db = {}
 
 def _token_hash(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
@@ -63,6 +66,11 @@ def _init_dummy_data():
             "nationality": "베트남",
             "account_bank": "iM뱅크",
             "account_number": "512-123456-01",
+            "reg_no": "980312-5123456",
+            "birth_date": "1998-03-12",
+            "gender": "남",
+            "visa_type": "E-9",
+            "visa_valid_until": "2029-03-14",
             "status": "valid",
             "created_at": datetime.now(timezone.utc).isoformat(),
         },
@@ -72,6 +80,11 @@ def _init_dummy_data():
             "nationality": "인도네시아",
             "account_bank": "iM뱅크",
             "account_number": "512-987654-02",
+            "reg_no": "010725-6234567",
+            "birth_date": "2001-07-25",
+            "gender": "여",
+            "visa_type": "E-9",
+            "visa_valid_until": "2028-11-30",
             "status": "valid",
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -155,6 +168,11 @@ def issue_credential(req: CredentialIssueRequest):
         "nationality": req.nationality,
         "account_bank": req.account_bank,
         "account_number": req.account_number,
+        "reg_no": req.reg_no,
+        "birth_date": req.birth_date,
+        "gender": req.gender,
+        "visa_type": req.visa_type or "E-9",
+        "visa_valid_until": req.visa_valid_until,
         "status": "valid",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "credential_hash": bc_res["credential_hash"],
@@ -253,6 +271,8 @@ def create_secure_presentation(req: PresentationRequest):
         "credential_id": req.credential_id,
         "target_id": req.target_id,
         "symptom": req.symptom if req.target_id == "hospital_1" else None,
+        "symptom_original": req.symptom_original if req.target_id == "hospital_1" else None,
+        "symptom_locale": req.symptom_locale if req.target_id == "hospital_1" else None,
         "expires_at": expires_at,
         "status": "created",
     }
@@ -281,8 +301,63 @@ def consume_secure_presentation(req: VerifyRequest):
         raise HTTPException(status_code=404, detail="credential not found")
     status = get_blockchain_client().get_status(session["credential_id"])
     if not status["is_valid"]:
-        return {"result":"fail","reason":"REVOKED","onchain_proof":status}
-    return {"result":"pass","worker_name":cred["worker_name"],"nationality":cred["nationality"],"account_bank":cred["account_bank"],"account_number":cred["account_number"],"symptom":session.get("symptom"),"onchain_proof":status}
+        return {"result": "fail", "reason": "REVOKED", "onchain_proof": status}
+
+    cid = session["credential_id"]
+    vid = req.verifier_id
+    out = {"result": "pass", "onchain_proof": status}
+
+    # ── 수령처마다 열리는 칸이 다르다 (v0.5 §3 · 수치값 최소 제공) ─────────
+    # 같은 증명서라도 목적에 필요한 항목만 내보낸다.
+    if vid.startswith("company"):
+        # 급여계좌 등록에 필요한 항목
+        out.update({
+            "worker_name": cred["worker_name"],
+            "nationality": cred.get("nationality"),
+            "reg_no": cred.get("reg_no"),
+            "account_bank": cred.get("account_bank"),
+            "account_number": cred.get("account_number"),
+        })
+    elif vid == "insurer_1":
+        # 체류자격 + 본인명의 계좌 확인. 가입 사실을 기록해 두고 카드는 발급하지 않는다.
+        out.update({
+            "worker_name": cred["worker_name"],
+            "nationality": cred.get("nationality"),
+            "visa_type": cred.get("visa_type") or "E-9",
+            "account_bank": cred.get("account_bank"),
+            "account_number": cred.get("account_number"),
+        })
+        _insurance_db[cid] = {
+            "product": "일상 상해보험",
+            "company": "○○손해보험",
+            "enrolled_at": datetime.now(timezone.utc).isoformat(),
+        }
+    elif vid == "hospital_1":
+        # 접수 등록에 필요한 신원 항목 + 증상. 계좌 정보는 보내지 않는다.
+        out.update({
+            "worker_name": cred["worker_name"],
+            "nationality": cred.get("nationality"),
+            "reg_no": cred.get("reg_no"),
+            "birth_date": cred.get("birth_date"),
+            "gender": cred.get("gender"),
+            "visa_type": cred.get("visa_type") or "E-9",
+            "visa_valid_until": cred.get("visa_valid_until"),
+            "symptom": session.get("symptom"),
+            "symptom_original": session.get("symptom_original"),
+            "symptom_locale": session.get("symptom_locale"),
+        })
+        # 자리 3에서 가입했으면 그 사실이 여기서 자동으로 조회된다 (카드 보관 없음).
+        ins = _insurance_db.get(cid)
+        if ins:
+            out.update({
+                "insurance_active": True,
+                "insurance_product": ins["product"],
+                "insurance_company": ins["company"],
+            })
+    else:
+        out.update({"worker_name": cred["worker_name"], "nationality": cred.get("nationality")})
+
+    return out
 
 
 # ---------------------------------------------------------------------------

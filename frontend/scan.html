@@ -53,6 +53,32 @@
     align-items: center;
     gap: 6px;
   }
+
+  /* ── 병원 접수 패널: 4블록 고정 ── */
+  .rx-panel { margin-top: 12px; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; background: #fff; }
+  .rx-head { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+             padding: 8px 12px; background: #1e293b; color: #fff; font-size: 13px; font-weight: 600; }
+  .rx-block { border-top: 1px solid #e2e8f0; padding: 12px; }
+  .rx-block:first-of-type { border-top: none; }
+  .rx-btitle { display: flex; justify-content: space-between; align-items: center;
+               font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 8px; }
+  /* 환자 진술 = 기관 증명이 아님 → 배경색으로 시각 분리 */
+  .rx-selfdecl { background: #fffbeb; border-left: 4px solid #f59e0b; }
+  .rx-insurance { background: #f8fafc; }
+  .rx-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 13px; }
+  .rx-label { flex: 0 0 116px; color: #64748b; }
+  .rx-val { flex: 1; font-weight: 600; color: #0f172a; word-break: break-all; }
+  .rx-note { font-size: 11.5px; color: #64748b; margin-top: 8px; line-height: 1.5; }
+  .rx-warn { font-size: 11.5px; color: #b45309; margin-top: 6px; }
+  .rx-mini { border: 1px solid #cbd5e1; background: #fff; border-radius: 5px;
+             font-size: 11px; padding: 2px 7px; cursor: pointer; color: #334155; }
+  .rx-mini:hover { background: #f1f5f9; }
+  .rx-foot { padding: 9px 12px; background: #f8fafc; border-top: 1px solid #e2e8f0;
+             font-size: 11.5px; color: #64748b; line-height: 1.5; }
+  .rx-ok { color: #15803d; font-weight: 700; }
+  .rx-bad { color: #b91c1c; font-weight: 700; }
+  .rx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+  @media (max-width: 520px) { .rx-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -95,6 +121,56 @@
   <script src="config.js"></script>
   <script>
     let html5QrCode;
+    let _regNoFull = "", _regNoShown = false, _regNoTimer = null;
+
+    function esc(v) {
+      return String(v == null ? "" : v).replace(/[&<>"']/g,
+        c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+    }
+    function val(v, fallback) { return (v === undefined || v === null || v === "") ? (fallback || "—") : v; }
+
+    function rxCopy(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const old = btn.textContent; btn.textContent = "복사됨";
+        setTimeout(() => { btn.textContent = old; }, 1200);
+      }).catch(() => alert("복사에 실패했습니다: " + text));
+    }
+
+    // 등록번호는 기본 마스킹. [보기]로 20초만 노출 후 자동 재마스킹.
+    function rxMask(no) {
+      if (!no || no === "—") return "—";
+      return no.length <= 8 ? no : no.slice(0, 8) + "●".repeat(no.length - 8);
+    }
+    function rxToggleReg(btn) {
+      const el = document.getElementById("rxRegNo");
+      if (!el || !_regNoFull || _regNoFull === "—") return;
+      _regNoShown = !_regNoShown;
+      el.textContent = _regNoShown ? _regNoFull : rxMask(_regNoFull);
+      btn.textContent = _regNoShown ? "가리기" : "보기";
+      clearTimeout(_regNoTimer);
+      if (_regNoShown) {
+        _regNoTimer = setTimeout(() => {
+          _regNoShown = false;
+          el.textContent = rxMask(_regNoFull);
+          btn.textContent = "보기";
+        }, 20000);
+      }
+    }
+
+    function rxCopyAll(btn) {
+      // 병원 전산에 그대로 붙여넣도록 탭 구분 한 줄
+      navigator.clipboard.writeText(window._rxBasicTsv || "").then(() => {
+        const old = btn.textContent; btn.textContent = "전체 복사됨";
+        setTimeout(() => { btn.textContent = old; }, 1400);
+      }).catch(() => alert("복사에 실패했습니다."));
+    }
+
+    function rxRow(label, value, copyable) {
+      const v = esc(val(value));
+      const btn = copyable && v !== "—"
+        ? `<button class="rx-mini" onclick="rxCopy('${v.replace(/'/g, "\\'")}', this)">복사</button>` : "";
+      return `<div class="rx-row"><span class="rx-label">${esc(label)}</span><span class="rx-val">${v}</span>${btn}</div>`;
+    }
 
     function onVerifierChange() {
       document.getElementById("resultBox").innerHTML = "";
@@ -153,12 +229,205 @@
       showResult(data, verifierId);
     }
 
+
+    // ─────────────────────────────────────────────────────────────
+    // 병원 접수 결과 패널 — 4블록 고정 (How_to_Create.md §7.9)
+    //   ① 환자 기본정보  (출입국 증명 · 접수 전산에 옮겨 칠 항목)
+    //   ② 환자 진술      (기관 증명 아님 · 배경색 분리)
+    //   ③ 보험 확인      (손보사 자동조회 · 지급보증 아님)
+    //   ④ 검증 상태      (기본 접힘 · 실패 시 자동 펼침)
+    // 순서와 블록명을 바꾸지 말 것. 진료과 배정·진단명은 절대 표시하지 않는다.
+    // ─────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────
+    // 병원 접수 결과 패널 — 4블록 고정 (How_to_Create.md §7.9)
+    //   ① 환자 기본정보  (출입국 증명 · 접수 전산에 옮겨 칠 항목)
+    //   ② 환자 진술      (기관 증명 아님 · 배경색 분리)
+    //   ③ 보험 확인      (손보사 자동조회 · 지급보증 아님)
+    //   ④ 검증 상태      (통과 시 접힘 · 실패 시 자동 펼침)
+    // 순서와 블록명을 바꾸지 말 것. 진료과 배정·진단명은 절대 표시하지 않는다.
+    // 검증 실패에도 같은 패널 모양을 유지한다 — 통과 화면과 나란히 비교되어야
+    // "무엇이 바뀌어서 막혔는지"가 한눈에 보이기 때문이다(철회 시연).
+    // ─────────────────────────────────────────────────────────────
+    function renderHospitalPanel(data, isPass) {
+      const p = data.onchain_proof || {};
+      const chainName = String(p.status_name || "").toUpperCase();
+      const okChain = chainName === "VALID";
+      const reason = data.reason || data.detail || "";
+
+      // 검증 실패 시에는 환자 정보를 표시하지 않는다.
+      // 통과 화면과 같은 모양을 유지할 이유가 없고, 실패한 증명서의 개인정보를
+      // 접수 화면에 띄우면 담당자가 그대로 입력할 위험이 있다.
+      if (!isPass) {
+        const REASON_MSG = {
+          REVOKED: "발급기관이 이 증명서를 철회했습니다.",
+          HTTP_403: "이 기관으로 제출된 QR이 아닙니다.",
+          HTTP_409: "이미 사용된 QR입니다.",
+          HTTP_410: "QR이 만료되었습니다."
+        };
+        const reason = data.reason || data.detail || "VERIFY_FAILED";
+        return `
+        <div class="rx-panel">
+          <div class="rx-head">
+            <span>🏥 대구 ○○의원 · iM 제휴병원 ✓ · HOSP-001</span>
+            <span>${new Date().toLocaleTimeString('ko-KR')}</span>
+          </div>
+          <div class="rx-block" style="background:#fef2f2;border-left:4px solid #dc2626;">
+            <div class="rx-btitle">
+              <span class="rx-bad">접수 진행 불가</span><span class="rx-bad">${esc(reason)}</span>
+            </div>
+            <div class="rx-row"><span class="rx-val">${esc(REASON_MSG[reason] || "증명서 검증에 실패했습니다.")}</span></div>
+            <div class="rx-note">검증에 실패하여 환자 정보를 표시하지 않습니다. 환자에게 QR을 다시 생성하도록 안내하십시오.</div>
+          </div>
+          <div class="rx-block">
+            <details open>
+              <summary class="rx-btitle" style="cursor:pointer;">
+                <span>[검증 상태]</span><span class="rx-bad">실패 ✗</span>
+              </summary>
+              <div style="margin-top:8px;" class="rx-grid">
+                ${rxRow("온체인 상태", val(chainName, "조회 안 됨"), false)}
+                ${rxRow("실패 사유", reason, false)}
+                ${rxRow("검증 네트워크", p.mode === "live_testnet" ? "Polygon Amoy Testnet" : "EVM On-Chain Simulator", false)}
+                ${rxRow("수령처 대조", "HOSP-001", false)}
+              </div>
+            </details>
+          </div>
+          <div class="rx-foot">
+            접수 보조용 화면입니다. 병원 전산 입력·진료과 배정·진단은 담당자와 의료진의 판단입니다.
+          </div>
+        </div>`;
+      }
+
+
+
+      const name    = val(data.worker_name);
+      const regNo   = val(data.reg_no || data.registration_no);
+      const birth   = val(data.birth_date);
+      const gender  = val(data.gender);
+      const nat     = val(data.nationality);
+      const visa    = val(data.visa_type, "E-9");
+      const visaEnd = val(data.visa_valid_until);
+
+      _regNoFull = regNo; _regNoShown = false; clearTimeout(_regNoTimer);
+      window._rxBasicTsv = [name, regNo, birth, gender, nat].join("\t");
+
+      const regBtns = (regNo === "—" || !isPass) ? "" :
+        '<button class="rx-mini" onclick="rxToggleReg(this)">보기</button>' +
+        '<button class="rx-mini" onclick="rxCopy(\'' + esc(regNo) + '\', this)">복사</button>';
+
+      const banner = isPass ? "" : `
+          <div class="rx-block" style="background:#fef2f2;border-left:4px solid #dc2626;">
+            <div class="rx-btitle">
+              <span class="rx-bad">접수 진행 불가</span>
+              <span class="rx-bad">${esc(reason || "VERIFY_FAILED")}</span>
+            </div>
+            <div class="rx-row"><span class="rx-val">${esc(REASON_MSG[reason] || "증명서 검증에 실패했습니다.")}</span></div>
+            <div class="rx-note">아래 정보를 접수에 사용하지 마십시오. 환자에게 QR을 다시 생성하도록 안내하십시오.</div>
+          </div>`;
+
+      // ② 환자 진술
+      const sym = data.symptom;
+      const symBody = sym
+        ? rxRow("호소 내용", sym, isPass) +
+          (data.symptom_original
+            ? rxRow("환자 원문", data.symptom_original + (data.symptom_locale ? " (" + data.symptom_locale + ")" : ""), false)
+            : "")
+        : '<div class="rx-row"><span class="rx-val" style="color:#94a3b8;font-weight:500;">환자가 선택한 증상이 없습니다</span></div>';
+
+      // ③ 보험 확인
+      const insActive = data.insurance_active === true || !!data.insurance_product;
+      const insBody = insActive
+        ? rxRow("가입 상태", val(data.insurance_product, "일상 상해보험") + " 가입 유효 ✓", false) +
+          rxRow("보험사", val(data.insurance_company, "제휴 손해보험사"), false)
+        : '<div class="rx-row"><span class="rx-val" style="color:#94a3b8;font-weight:500;">가입 정보 없음 — 접수는 그대로 진행됩니다</span></div>';
+
+      const dim = isPass ? "" : ' style="opacity:.55;"';
+
+      return `
+        <div class="rx-panel">
+          <div class="rx-head">
+            <span>🏥 대구 ○○의원 · iM 제휴병원 ✓ · HOSP-001</span>
+            <span>${new Date().toLocaleTimeString('ko-KR')} · 초진</span>
+          </div>
+          ${banner}
+
+          <div class="rx-block"${dim}>
+            <div class="rx-btitle">
+              <span>[환자 기본정보]</span>
+              ${isPass ? '<button class="rx-mini" onclick="rxCopyAll(this)">전체 복사</button>' : ""}
+            </div>
+            ${rxRow("성명", name, isPass)}
+            <div class="rx-row">
+              <span class="rx-label">외국인등록번호</span>
+              <span class="rx-val" id="rxRegNo">${esc(rxMask(regNo))}</span>
+              ${regBtns}
+            </div>
+            ${rxRow("생년월일 / 성별", (birth === "—" && gender === "—") ? "—" : (birth + " / " + gender), isPass)}
+            ${rxRow("국적", nat, isPass)}
+            <div class="rx-row">
+              <span class="rx-label">체류자격 확인</span>
+              <span class="rx-val">
+                <span class="${isPass ? "rx-ok" : "rx-bad"}">${esc(visa)} ${isPass ? "✓" : "✗"}</span>${visaEnd === "—" ? "" : " · 만료 " + esc(visaEnd)}
+              </span>
+            </div>
+            <div class="rx-note">※ 건강보험 자격은 병원 시스템에서 조회하십시오. 이 화면은 조회에 필요한 인적사항만 제공합니다.</div>
+          </div>
+
+          <div class="rx-block rx-selfdecl"${dim}>
+            <div class="rx-btitle">
+              <span>[환자 진술]</span>
+              ${(sym && isPass) ? '<button class="rx-mini" onclick="rxCopy(\'' + esc(String(sym)).replace(/'/g, "\\'") + '\', this)">증상 복사</button>' : ""}
+            </div>
+            <div class="rx-warn">※ 환자 본인의 진술이며 진단이 아닙니다. 기관이 증명한 내용이 아닙니다.</div>
+            ${symBody}
+          </div>
+
+          <div class="rx-block rx-insurance"${dim}>
+            <div class="rx-btitle"><span>[보험 확인]</span></div>
+            ${insBody}
+            <div class="rx-note">※ 가입 사실 확인이며 병원에 대한 지급보증이 아닙니다.</div>
+          </div>
+
+          <div class="rx-block">
+            <details ${(okChain && isPass) ? "" : "open"}>
+              <summary class="rx-btitle" style="cursor:pointer;">
+                <span>[검증 상태]</span>
+                <span class="${(okChain && isPass) ? "rx-ok" : "rx-bad"}">${(okChain && isPass) ? "통과 ✓" : "실패 ✗"}</span>
+              </summary>
+              <div style="margin-top:8px;">
+                <div class="rx-grid">
+                  ${rxRow("온체인 상태", val(chainName, "조회 안 됨") + (p.status_code !== undefined ? " (코드 " + p.status_code + ")" : ""), false)}
+                  ${rxRow("QR 소비", isPass ? "1회 소비됨 ✓" : val(reason, "—"), false)}
+                  ${rxRow("검증 네트워크", p.mode === "live_testnet" ? "Polygon Amoy Testnet" : "EVM On-Chain Simulator", false)}
+                  ${rxRow("수령처 대조", isPass ? "HOSP-001 일치 ✓" : "HOSP-001", false)}
+                </div>
+                ${p.credential_hash ? rxRow("식별 해시", p.credential_hash, true) : ""}
+              </div>
+            </details>
+          </div>
+
+          <div class="rx-foot">
+            접수 보조용 화면입니다. 병원 전산 입력·진료과 배정·진단은 담당자와 의료진의 판단입니다.
+          </div>
+        </div>`;
+    }
+
     function showResult(data, verifierId) {
       const box = document.getElementById("resultBox");
-      const isPass = data.result === "pass";
+      // 서버가 pass라고 해도 온체인 상태가 VALID가 아니면 화면은 통과로 그리지 않는다.
+      // (AGENTS.md 규칙 3 — 판정은 수령처 화면이 한다. 완전한 브라우저 검증은 별도 작업)
+      const chainName = String(data.onchain_proof?.status_name || "").toUpperCase();
+      const chainOk = !data.onchain_proof || chainName === "VALID";
+      const isPass = data.result === "pass" && chainOk;
+      if (data.result === "pass" && !chainOk) {
+        data = { ...data, reason: data.reason || `ONCHAIN_${chainName}` };
+      }
 
       let agencyHtml = "";
-      if (isPass) {
+      // 병원은 실패해도 패널을 그린다 — 왜 막혔는지 보여줘야 하기 때문.
+      if (verifierId === "hospital_1") {
+        agencyHtml = renderHospitalPanel(data, isPass);
+      } else if (isPass) {
         if (verifierId === "company_A") {
           agencyHtml = `
             <div class="agency-card">
@@ -174,24 +443,14 @@
               <div class="agency-title">🛡️ 외국인 근로자 전용 상해보험 무서류 가입 승인</div>
               <div>• 피보험자: <b>${data.worker_name}</b> (체류 신분 온체인 검증 완료)</div>
               <div>• 납부 계좌: <b>${data.account_bank} ${data.account_number}</b></div>
-              <div style="font-size:12px;color:#2563eb;margin-top:4px;">✓ 신규 [보험가입 카드]가 근로자 모바일 지갑에 즉시 전송되었습니다.</div>
-            </div>
-          `;
-        } else if (verifierId === "hospital_1") {
-          agencyHtml = `
-            <div class="agency-card">
-              <div class="agency-title">🏥 의료기관 진료 접수 완료 (접수번호: 104번)</div>
-              <div>• 환자 성명: <b>${data.worker_name}</b> (${data.nationality})</div>
-              <div>• 환자 진술 증상: <b>${data.symptom || '선택 없음'}</b></div>
-              <div style="font-size:12px;color:#64748b;">환자 본인의 진술이며 진단이 아닙니다.</div>
-              <div>• 신원 확인: 법무부 체류자격 및 연계 보험 자동 조회 완료</div>
-              <div style="font-size:12px;color:#0284c7;margin-top:4px;">✓ 1층 내과 2번 진료실 대기실로 이동해주세요.</div>
+              <div style="font-size:12px;color:#2563eb;margin-top:4px;">✓ 추가 서류 0건 · 추가 본인확인 0회로 가입이 완료되었습니다.</div>
+              <div style="font-size:11.5px;color:#64748b;margin-top:2px;">가입 사실은 보험사에 기록되며, 병원 접수 시 자동 조회됩니다. (지갑에 카드를 따로 보관하지 않습니다)</div>
             </div>
           `;
         }
       }
 
-      const proofHtml = data.onchain_proof ? `
+      const proofHtml = (data.onchain_proof && verifierId !== "hospital_1") ? `
         <div class="proof-box">
           <b>🔗 블록체인 온체인 증명 (On-Chain Proof)</b><br/>
           • 상태: <b>${data.onchain_proof.status_name.toUpperCase()} (코드: ${data.onchain_proof.status_code})</b><br/>
