@@ -252,6 +252,7 @@ def create_secure_presentation(req: PresentationRequest):
     _presentation_sessions[_token_hash(token)] = {
         "credential_id": req.credential_id,
         "target_id": req.target_id,
+        "symptom": req.symptom if req.target_id == "hospital_1" else None,
         "expires_at": expires_at,
         "status": "created",
     }
@@ -281,22 +282,7 @@ def consume_secure_presentation(req: VerifyRequest):
     status = get_blockchain_client().get_status(session["credential_id"])
     if not status["is_valid"]:
         return {"result":"fail","reason":"REVOKED","onchain_proof":status}
-    return {"result":"pass","worker_name":cred["worker_name"],"nationality":cred["nationality"],"account_bank":cred["account_bank"],"account_number":cred["account_number"],"onchain_proof":status}
-
-
-@app.post("/insurance/enroll")
-def insurance_enroll(req: dict):
-    """QR-free insurer demo: verify the selected credential on-chain, then record enrollment."""
-    cid = req.get("credential_id")
-    if not isinstance(cid, str):
-        raise HTTPException(status_code=400, detail="credential_id required")
-    cred = _local_db.get(cid)
-    if not cred:
-        raise HTTPException(status_code=404, detail="credential not found")
-    status = get_blockchain_client().get_status(cid)
-    if not status["is_valid"]:
-        raise HTTPException(status_code=409, detail="credential revoked")
-    return {"result":"pass","insurer_id":"insurer_1","worker_name":cred["worker_name"],"additional_documents":0,"additional_identity_checks":0,"qr_used":0,"onchain_proof":status}
+    return {"result":"pass","worker_name":cred["worker_name"],"nationality":cred["nationality"],"account_bank":cred["account_bank"],"account_number":cred["account_number"],"symptom":session.get("symptom"),"onchain_proof":status}
 
 
 # ---------------------------------------------------------------------------

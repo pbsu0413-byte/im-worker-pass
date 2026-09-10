@@ -15,6 +15,7 @@ class PresentationRequest(BaseModel):
 
     credential_id: str
     target_id: str  # 예: "company_A", "hospital_1", "insurer_1"
+    symptom: str | None = None  # hospital only; fixed catalogue statement
 
 
 class VerifyRequest(BaseModel):

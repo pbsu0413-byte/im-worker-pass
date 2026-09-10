@@ -54,12 +54,23 @@
     <label>credential_id</label>
     <input id="credentialId" placeholder="발급하면 자동으로 채워집니다" />
     <label>제출 대상 (target_id)</label>
-    <select id="targetId">
+    <select id="targetId" onchange="toggleSymptom()">
       <option value="company_A">company_A (A제조공장 - 급여계좌 등록용)</option>
       <option value="company_B">company_B (B제조공장 - 오배송 시연용)</option>
       <option value="hospital_1">hospital_1 (거점 병원 - 신분+진료접수용)</option>
       <option value="insurer_1">insurer_1 (제휴 보험사 - 무서류 보험가입용)</option>
     </select>
+    <div id="symptomBox" style="display:none;margin-top:12px;">
+      <label>병원에 전달할 증상</label>
+      <select id="symptom">
+        <option value="기침이 있어요">기침이 있어요</option>
+        <option value="허리가 아파요">허리가 아파요</option>
+        <option value="열이 나는 것 같아요">열이 나는 것 같아요</option>
+        <option value="속이 불편해요">속이 불편해요</option>
+        <option value="피부가 가려워요">피부가 가려워요</option>
+      </select>
+      <small>환자 본인의 진술이며 진단이 아닙니다.</small>
+    </div>
     <button onclick="createPresentation()">QR 생성</button>
 
     <div style="text-align: center; margin-top: 15px;">
@@ -132,12 +143,14 @@
     }
 
     let countdownTimer;
+    function toggleSymptom() { document.getElementById("symptomBox").style.display = document.getElementById("targetId").value === "hospital_1" ? "block" : "none"; }
     async function createPresentation() {
       clearInterval(countdownTimer);
       document.getElementById("renewBtn").style.display = "none";
       const body = {
         credential_id: document.getElementById("credentialId").value,
         target_id: document.getElementById("targetId").value,
+        symptom: document.getElementById("targetId").value === "hospital_1" ? document.getElementById("symptom").value : null,
       };
       const res = await fetch(`${API_BASE_URL}/presentations/secure`, {
         method: "POST",
