@@ -280,6 +280,21 @@ def consume_secure_presentation(req: VerifyRequest):
     return {"result":"pass","worker_name":cred["worker_name"],"nationality":cred["nationality"],"account_bank":cred["account_bank"],"account_number":cred["account_number"],"onchain_proof":status}
 
 
+@app.post("/insurance/enroll")
+def insurance_enroll(req: dict):
+    """QR-free insurer demo: verify the selected credential on-chain, then record enrollment."""
+    cid = req.get("credential_id")
+    if not isinstance(cid, str):
+        raise HTTPException(status_code=400, detail="credential_id required")
+    cred = _local_db.get(cid)
+    if not cred:
+        raise HTTPException(status_code=404, detail="credential not found")
+    status = get_blockchain_client().get_status(cid)
+    if not status["is_valid"]:
+        raise HTTPException(status_code=409, detail="credential revoked")
+    return {"result":"pass","insurer_id":"insurer_1","worker_name":cred["worker_name"],"additional_documents":0,"additional_identity_checks":0,"qr_used":0,"onchain_proof":status}
+
+
 # ---------------------------------------------------------------------------
 # S6~S9 : 검증 — 회사/병원/보험사 스캔 시 블록체인 스마트 컨트랙트 실시간 검사
 #
