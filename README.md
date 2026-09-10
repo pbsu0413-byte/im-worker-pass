@@ -37,7 +37,7 @@ im-worker-pass/
 
 ```bash
 # 8개 단위 테스트 및 통합 테스트 실행
-python -m pytest 기관서버/server/tests/ -v
+python -m pytest backend/tests/ -v
 ```
 
 테스트 항목:
@@ -55,7 +55,7 @@ python -m pytest 기관서버/server/tests/ -v
 ## 2. 백엔드 실행
 
 ```bash
-cd 기관서버/server
+cd backend
 python -m pip install -r requirements.txt
 python -m uvicorn main:app --reload
 ```
@@ -70,7 +70,7 @@ python -m uvicorn main:app --reload
 ## 3. 프론트엔드 실행
 
 ```bash
-cd 심사자/web
+cd frontend
 python -m http.server 5500
 ```
 
