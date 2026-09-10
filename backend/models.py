@@ -41,3 +41,18 @@ class VerifyRequest(BaseModel):
 
     payload: Dict[str, Any]
     verifier_id: str
+
+
+class InsuranceSubmitRequest(BaseModel):
+    """보험 자리는 QR을 쓰지 않는다. 상품을 고르는 순간 수령처(INS-001)가 확정된다."""
+
+    credential_id: str
+    product_id: str
+
+
+class InsuranceDecisionRequest(BaseModel):
+    """보험사 담당자의 수동 처리. 자동 승인하지 않는다."""
+
+    decision: str  # approve / reject
+    officer: str | None = None
+    reason: str | None = None

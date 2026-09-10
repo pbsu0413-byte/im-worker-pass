@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM Worker Pass - 보험사 접수함</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .sub { border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:10px; background:#fff; }
+  .sub-head { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .sub-head b { font-size:14px; }
+  .rows { margin-top:8px; }
+  .rows .row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid #eef2f7; font-size:13px; }
+  .rows .row span:first-child { color:#475569; white-space:nowrap; }
+  .rows .row span:last-child { text-align:right; }
+  .chk { font-size:12.5px; color:#15803d; margin-top:8px; }
+  .chk.bad { color:#a92c22; }
+  .btns { display:flex; gap:8px; }
+  .btns button { margin-top:10px; padding:8px 14px; font-size:13px; }
+  .meta { font-size:12px; color:#94a3b8; }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">🏠 홈</a>
+    <a href="issue.html">① 지갑(발급)</a>
+    <a href="scan.html">② 스캐너(검증)</a>
+    <a href="insurance.html">③ 보험 가입</a>
+    <a href="insurer.html" class="active">④ 보험사</a>
+    <a href="admin.html">⑤ 관리자</a>
+  </nav>
+
+  <h1>○○손해보험 — 행정 처리 (INS-001)</h1>
+  <p style="font-size:13px;color:#64748b;margin-top:-6px;">
+    QR 스캐너가 아니라 접수함입니다. 근로자가 앱에서 전송한 건이 여기에 쌓이고, 담당자가 직접 승인합니다.
+  </p>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h3 style="margin:0;">접수 목록</h3>
+      <button class="secondary" style="margin:0;padding:7px 12px;font-size:13px;" onclick="load()">새로고침</button>
+    </div>
+    <label>담당자</label>
+    <input id="officer" value="심사팀 김OO" />
+    <div id="list"></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const esc = (v) => String(v == null || v === "" ? "—" : v);
+    const LABELS = { submitted: "심사 대기", approved: "승인 완료", rejected: "거절" };
+
+    async function load() {
+      const res = await fetch(`${API_BASE_URL}/insurance/submissions`);
+      const data = await res.json();
+      const rows = data.submissions || [];
+      const box = document.getElementById("list");
+      if (!rows.length) {
+        box.innerHTML = `<p style="font-size:13px;color:#94a3b8;">접수된 건이 없습니다. 보험 가입 화면에서 전송해 보세요.</p>`;
+        return;
+      }
+      box.innerHTML = rows.map(render).join("");
+    }
+
+    function render(d) {
+      const chain = String(d.onchain_proof?.status_name || "").toUpperCase();
+      const ok = d.verified && chain === "VALID";
+      const badge = d.status === "approved" ? "badge-valid" : d.status === "rejected" ? "badge-revoked" : "";
+      const fields = d.disclosure_labels.map(f => `
+        <div class="row"><span>${esc(f.label)}</span><span>${esc(d.disclosure[f.key])}</span></div>`).join("");
+      const actions = d.status === "submitted" ? `
+        <div class="btns">
+          <button onclick="decide('${d.submission_id}','approve')">승인</button>
+          <button class="danger" onclick="decide('${d.submission_id}','reject')">거절</button>
+        </div>` : `
+        <div class="meta" style="margin-top:8px;">
+          처리 ${esc(d.decided_at)} · ${esc(d.decided_by)}
+          ${d.policy_no ? " · 증권번호 " + esc(d.policy_no) : ""}
+          ${d.reason ? " · 사유 " + esc(d.reason) : ""}
+        </div>`;
+
+      return `
+        <div class="sub">
+          <div class="sub-head">
+            <b>${esc(d.submission_id)} · ${esc(d.product.name)}</b>
+            <span class="badge ${badge}">${esc(LABELS[d.status] || d.status)}</span>
+          </div>
+          <div class="meta">접수 ${esc(d.submitted_at)} · 수령처 ${esc(d.audience)}</div>
+          <div class="rows">${fields}</div>
+          <div class="chk ${ok ? "" : "bad"}">
+            ${ok ? "✓" : "✗"} 온체인 상태 ${esc(chain)} ·
+            수령처 대조 ${d.audience === "INS-001" ? "일치" : "불일치"} ·
+            서류 접수 0건
+          </div>
+          ${actions}
+        </div>`;
+    }
+
+    async function decide(id, decision) {
+      const officer = document.getElementById("officer").value.trim();
+      const body = { decision, officer };
+      if (decision === "reject") {
+        const reason = prompt("거절 사유를 입력하세요.", "심사 기준 미충족");
+        if (reason === null) return;
+        body.reason = reason;
+      }
+      const res = await fetch(`${API_BASE_URL}/insurance/submissions/${id}/decide`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert("오류: " + JSON.stringify(data)); }
+      load();
+    }
+
+    load();
+    setInterval(load, 5000);
+  </script>
+</body>
+</html>

@@ -24,7 +24,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from crypto_utils import sign_payload, verify_signature
-from models import CredentialIssueRequest, PresentationRequest, VerifyRequest
+from models import (
+    CredentialIssueRequest,
+    InsuranceDecisionRequest,
+    InsuranceSubmitRequest,
+    PresentationRequest,
+    VerifyRequest,
+)
 from blockchain_client import get_blockchain_client, CredentialStatus
 
 load_dotenv()
@@ -273,6 +279,29 @@ def _build_job_change_dossier(cred: dict) -> dict:
     }
 
 
+# 발급기관(출입국·고용센터·지정 의료기관) 조회 시뮬레이션.
+# 이 값들은 근로자가 지갑에서 입력하는 값이 아니라 기관이 서명해 내려주는 값이므로,
+# 발급 요청에 없으면 기관 조회 결과를 가져온 것으로 보고 채운다.
+_AGENCY_DEFAULTS = {
+    "visa_type": "E-9",
+    "visa_valid_until": "2029-03-14",
+    "employer_name": "A제조 (주)대구정밀",
+    "employment_from": "2024-04-01",
+    "employment_to": "2026-08-31",
+    "job_category": "제조업 (금속가공)",
+    "job_change_used": 1,
+    "job_change_limit": 3,
+    "job_change_excluded": 1,
+    "health_check_date": "2026-07-15",
+    "topik_level": "TOPIK 3급",
+}
+
+
+def _agency_value(req, field):
+    v = getattr(req, field, None)
+    return _AGENCY_DEFAULTS[field] if v in (None, "") else v
+
+
 @app.post("/credentials")
 def issue_credential(req: CredentialIssueRequest):
     # A안: 이름과 계좌번호가 일치하는 근로자가 이미 존재하는지 중복 검사
@@ -317,17 +346,17 @@ def issue_credential(req: CredentialIssueRequest):
         "reg_no": req.reg_no,
         "birth_date": req.birth_date,
         "gender": req.gender,
-        "visa_type": req.visa_type or "E-9",
-        "visa_valid_until": req.visa_valid_until,
-        "employer_name": req.employer_name,
-        "employment_from": req.employment_from,
-        "employment_to": req.employment_to,
-        "job_category": req.job_category,
-        "job_change_used": req.job_change_used,
-        "job_change_limit": req.job_change_limit if req.job_change_limit is not None else 3,
-        "job_change_excluded": req.job_change_excluded,
-        "health_check_date": req.health_check_date,
-        "topik_level": req.topik_level,
+        "visa_type": _agency_value(req, "visa_type"),
+        "visa_valid_until": _agency_value(req, "visa_valid_until"),
+        "employer_name": _agency_value(req, "employer_name"),
+        "employment_from": _agency_value(req, "employment_from"),
+        "employment_to": _agency_value(req, "employment_to"),
+        "job_category": _agency_value(req, "job_category"),
+        "job_change_used": _agency_value(req, "job_change_used"),
+        "job_change_limit": _agency_value(req, "job_change_limit"),
+        "job_change_excluded": _agency_value(req, "job_change_excluded"),
+        "health_check_date": _agency_value(req, "health_check_date"),
+        "topik_level": _agency_value(req, "topik_level"),
         "status": "valid",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "credential_hash": bc_res["credential_hash"],
@@ -516,6 +545,180 @@ def consume_secure_presentation(req: VerifyRequest):
         out.update({"worker_name": cred["worker_name"], "nationality": cred.get("nationality")})
 
     return out
+
+
+# ---------------------------------------------------------------------------
+# S7 : 보험 — QR 없는 자리
+#
+# 보험사는 눈앞의 다른 기기가 아니라 앱 안에서 접수한다. QR은 "이 제출을 누가
+# 받을지 정하는 일회용 번호표"이므로 여기서는 필요 없다. 대신 상품을 고르는
+# 시점에 audience=INS-001 이 확정되고, 그 값이 제출 인증에 박힌다.
+# 가상 스캐너를 만들지 않는다 (설계 축 1).
+#
+# 카드는 지갑에 쌓지 않는다 (설계 축 3). 여기서 만들어지는 것은 이번 전송에만
+# 쓰이는 1회용 제출 인증이고, 전송되면 소멸한다. 승인 결과는 보험사 원천 기록
+# (_insurance_db)에만 남고, 병원 접수 시 그쪽을 조회해 쓴다.
+# ---------------------------------------------------------------------------
+INSURER_AUDIENCE = "INS-001"
+
+_INSURANCE_PRODUCTS = [
+    {
+        "product_id": "ins-accident-basic",
+        "name": "일상 상해보험 (기본형)",
+        "company": "○○손해보험",
+        "premium": "월 9,900원",
+        "summary": "업무 외 상해 치료비 보장 · 가입기간 1년",
+    },
+    {
+        "product_id": "ins-accident-plus",
+        "name": "일상 상해보험 (확장형)",
+        "company": "○○손해보험",
+        "premium": "월 14,500원",
+        "summary": "상해 치료비 + 입원 일당 · 가입기간 1년",
+    },
+    {
+        "product_id": "ins-liability",
+        "name": "생활 배상책임보험",
+        "company": "○○손해보험",
+        "premium": "월 4,200원",
+        "summary": "일상생활 중 타인 신체·재물 손해 배상 · 가입기간 1년",
+    },
+]
+
+# 제출 인증에 실리는 항목. 화면에서 전송 전에 그대로 펼쳐 보여준다.
+# 소득 정보·진단 정보·사본 이미지는 스키마에서 제외한다.
+_INSURANCE_DISCLOSURE = [
+    ("worker_name", "성명"),
+    ("birth_date", "생년월일"),
+    ("reg_no", "외국인등록번호"),
+    ("visa_status", "체류자격 유효 여부"),
+    ("job_category", "직종 (위험등급 산정용)"),
+    ("account", "납부 계좌"),
+]
+
+_insurance_submissions = {}
+
+
+def _find_product(product_id: str):
+    for p in _INSURANCE_PRODUCTS:
+        if p["product_id"] == product_id:
+            return p
+    return None
+
+
+def _disclosure_from(cred: dict) -> dict:
+    """이 보험사에 나가는 항목만 뽑는다. 여기 없는 값은 전송되지 않는다."""
+    visa_ok = bool(cred.get("visa_valid_until"))
+    return {
+        "worker_name": cred.get("worker_name"),
+        "birth_date": cred.get("birth_date"),
+        "reg_no": cred.get("reg_no"),
+        "visa_status": (
+            f"{cred.get('visa_type') or 'E-9'} 유효 (만료 {cred.get('visa_valid_until')})"
+            if visa_ok else "확인 불가"
+        ),
+        "job_category": cred.get("job_category"),
+        "account": f"{cred.get('account_bank')} {cred.get('account_number')}",
+    }
+
+
+@app.get("/insurance/products")
+def insurance_products():
+    """고정 3종. 비교·추천을 하지 않는다 (모집 행위로 읽히지 않도록)."""
+    return {"audience": INSURER_AUDIENCE, "products": _INSURANCE_PRODUCTS}
+
+
+@app.post("/insurance/submissions")
+def submit_insurance(req: InsuranceSubmitRequest):
+    cred = _local_db.get(req.credential_id)
+    if not cred:
+        raise HTTPException(status_code=404, detail="credential not found")
+    product = _find_product(req.product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="product not found")
+
+    # 상품을 고른 시점에 수령처가 확정된다. 이 값이 제출 인증에 박히므로
+    # 다른 수령처에 그대로 내면 audience 불일치로 거부된다.
+    status = get_blockchain_client().get_status(req.credential_id)
+    disclosure = _disclosure_from(cred)
+
+    sub_id = "SUB-" + secrets.token_hex(4).upper()
+    row = {
+        "submission_id": sub_id,
+        "credential_id": req.credential_id,
+        "audience": INSURER_AUDIENCE,
+        "product": product,
+        "disclosure": disclosure,
+        "disclosure_labels": [{"key": k, "label": l} for k, l in _INSURANCE_DISCLOSURE],
+        "onchain_proof": status,
+        "verified": bool(status.get("is_valid")),
+        "status": "submitted" if status.get("is_valid") else "rejected",
+        "reason": None if status.get("is_valid") else "REVOKED",
+        "submitted_at": datetime.now(timezone.utc).isoformat(),
+        "decided_at": None,
+        "decided_by": None,
+        "policy_no": None,
+    }
+    _insurance_submissions[sub_id] = row
+    return row
+
+
+@app.get("/insurance/submissions")
+def list_insurance_submissions():
+    """보험사 접수함. 최근 건이 위로."""
+    rows = sorted(
+        _insurance_submissions.values(),
+        key=lambda r: r["submitted_at"],
+        reverse=True,
+    )
+    return {"submissions": rows}
+
+
+@app.get("/insurance/submissions/{submission_id}")
+def get_insurance_submission(submission_id: str):
+    row = _insurance_submissions.get(submission_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="submission not found")
+    return row
+
+
+@app.post("/insurance/submissions/{submission_id}/decide")
+def decide_insurance_submission(submission_id: str, req: InsuranceDecisionRequest):
+    """보험사 담당자의 수동 처리. 자동 승인하지 않는다."""
+    row = _insurance_submissions.get(submission_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="submission not found")
+    if row["status"] != "submitted":
+        raise HTTPException(status_code=409, detail=f"already {row['status']}")
+
+    # 담당자가 누르는 순간 온체인 상태를 다시 본다.
+    # 접수 후 철회된 건은 승인되지 않아야 한다.
+    status = get_blockchain_client().get_status(row["credential_id"])
+    row["onchain_proof"] = status
+    if not status.get("is_valid"):
+        row["status"] = "rejected"
+        row["reason"] = "REVOKED"
+        row["decided_at"] = datetime.now(timezone.utc).isoformat()
+        row["decided_by"] = req.officer or "보험사 담당자"
+        return row
+
+    if req.decision == "approve":
+        row["status"] = "approved"
+        row["policy_no"] = "POL-" + secrets.token_hex(3).upper()
+        # 가입 사실은 보험사 원천 기록에만 남는다. 지갑에 카드를 발급하지 않는다.
+        _insurance_db[row["credential_id"]] = {
+            "product": row["product"]["name"],
+            "company": row["product"]["company"],
+            "policy_no": row["policy_no"],
+            "enrolled_at": datetime.now(timezone.utc).isoformat(),
+        }
+    else:
+        row["status"] = "rejected"
+        row["reason"] = req.reason or "심사 거절"
+
+    row["decided_at"] = datetime.now(timezone.utc).isoformat()
+    row["decided_by"] = req.officer or "보험사 담당자"
+    return row
 
 
 # ---------------------------------------------------------------------------

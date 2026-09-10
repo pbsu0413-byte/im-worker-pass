@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM Worker Pass - 보험 가입</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .product { border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:10px; cursor:pointer; background:#fff; }
+  .product.sel { border-color:#1a1a1a; background:#f8fafc; }
+  .product h4 { margin:0 0 4px; font-size:15px; }
+  .product .meta { font-size:12.5px; color:#64748b; }
+  .product .premium { font-weight:600; font-size:13px; margin-top:4px; }
+  .sheet { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:14px; }
+  .sheet .row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid #eef2f7; font-size:13px; }
+  .sheet .row span:first-child { color:#475569; white-space:nowrap; }
+  .sheet .row span:last-child { text-align:right; }
+  .muted { font-size:12px; color:#94a3b8; margin-top:8px; line-height:1.6; }
+  .state { padding:12px 14px; border-radius:10px; margin-top:14px; font-size:14px; }
+  .st-wait { background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; }
+  .st-ok   { background:#e6f7ee; border:1px solid #2ecc71; color:#1e7e45; }
+  .st-no   { background:#fdecea; border:1px solid #e74c3c; color:#a92c22; }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">🏠 홈</a>
+    <a href="issue.html">① 지갑(발급)</a>
+    <a href="scan.html">② 스캐너(검증)</a>
+    <a href="insurance.html" class="active">③ 보험 가입</a>
+    <a href="insurer.html">④ 보험사</a>
+    <a href="admin.html">⑤ 관리자</a>
+  </nav>
+
+  <h1>보험 가입 — QR 없이 앱 안에서</h1>
+
+  <div class="card">
+    <h3>1) 가입할 근로자</h3>
+    <label>credential_id</label>
+    <input id="credentialId" placeholder="지갑에서 발급한 credential_id" />
+    <small style="color:#64748b;">지갑(발급) 화면에서 발급한 뒤 그 값을 붙여넣으세요.</small>
+  </div>
+
+  <div class="card">
+    <h3>2) 상품 선택</h3>
+    <p style="font-size:12px;color:#666;margin-top:0;">
+      제휴 손해보험사 ○○손해보험의 고정 3종입니다. 비교·추천이 아니라 가입 절차 시연입니다.
+    </p>
+    <div id="productList"></div>
+    <div class="muted">
+      상품을 고르는 순간 수령처가 <b>INS-001</b>로 확정되어 제출 인증에 포함됩니다.
+      그래서 이 인증은 다른 곳에 내면 수령처 불일치로 거부됩니다. QR이 필요 없는 이유입니다.
+    </div>
+    <button id="prepareBtn" onclick="prepare()" disabled>제출 인증 생성</button>
+  </div>
+
+  <div class="card" id="confirmCard" style="display:none;">
+    <h3>3) 전송 확인</h3>
+    <p style="font-size:13px;margin-top:0;">아래 항목만 <b id="confirmTarget"></b>에 전송됩니다.</p>
+    <div class="sheet" id="disclosureBox"></div>
+    <div class="muted">
+      소득 정보, 진단·건강 정보, 신분증 사본은 전송 항목에 없습니다.<br/>
+      이 인증은 이번 전송에만 쓰이는 1회용이며, 지갑에 카드로 남지 않습니다.
+    </div>
+    <button onclick="send()">바로 전송하기</button>
+    <button class="secondary" onclick="cancelSend()">취소</button>
+  </div>
+
+  <div class="card" id="stateCard" style="display:none;">
+    <h3>4) 처리 상태</h3>
+    <div id="stateBox"></div>
+    <div class="muted">보험사 담당자가 접수함에서 직접 승인해야 완료됩니다. 자동 승인되지 않습니다.</div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    let products = [], selected = null, pending = null, submissionId = null, poller = null;
+    const esc = (v) => String(v == null || v === "" ? "—" : v);
+
+    async function loadProducts() {
+      const res = await fetch(`${API_BASE_URL}/insurance/products`);
+      const data = await res.json();
+      products = data.products;
+      document.getElementById("productList").innerHTML = products.map((p, i) => `
+        <div class="product" id="p${i}" onclick="pick(${i})">
+          <h4>${esc(p.name)}</h4>
+          <div class="meta">${esc(p.company)} · ${esc(p.summary)}</div>
+          <div class="premium">${esc(p.premium)}</div>
+        </div>`).join("");
+    }
+
+    function pick(i) {
+      selected = products[i];
+      products.forEach((_, j) => document.getElementById("p" + j).classList.toggle("sel", i === j));
+      document.getElementById("prepareBtn").disabled = false;
+    }
+
+    async function prepare() {
+      const cid = document.getElementById("credentialId").value.trim();
+      if (!cid) { alert("credential_id를 입력하세요."); return; }
+      const res = await fetch(`${API_BASE_URL}/insurance/submissions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential_id: cid, product_id: selected.product_id }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert("오류: " + JSON.stringify(data)); return; }
+      pending = data;
+      document.getElementById("confirmTarget").textContent = `${data.product.company} (${data.audience})`;
+      document.getElementById("disclosureBox").innerHTML = data.disclosure_labels.map(f => `
+        <div class="row"><span>${esc(f.label)}</span><span>${esc(data.disclosure[f.key])}</span></div>`).join("");
+      document.getElementById("confirmCard").style.display = "block";
+      document.getElementById("confirmCard").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function cancelSend() {
+      pending = null;
+      document.getElementById("confirmCard").style.display = "none";
+    }
+
+    // 서버에는 이미 접수되어 있다. 여기서는 "동의 시점"을 명시하고 상태 추적을 시작한다.
+    function send() {
+      if (!pending) return;
+      submissionId = pending.submission_id;
+      document.getElementById("confirmCard").style.display = "none";
+      document.getElementById("stateCard").style.display = "block";
+      renderState(pending);
+      clearInterval(poller);
+      poller = setInterval(poll, 2000);
+      document.getElementById("stateCard").scrollIntoView({ behavior: "smooth" });
+    }
+
+    async function poll() {
+      if (!submissionId) return;
+      const res = await fetch(`${API_BASE_URL}/insurance/submissions/${submissionId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      renderState(data);
+      if (data.status !== "submitted") clearInterval(poller);
+    }
+
+    function renderState(d) {
+      const box = document.getElementById("stateBox");
+      if (d.status === "submitted") {
+        box.innerHTML = `
+          <div class="state st-wait">
+            <b>⏳ 접수 완료 · 보험사 심사 대기</b><br/>
+            접수번호 <code>${esc(d.submission_id)}</code> · 수령처 ${esc(d.audience)}<br/>
+            <span style="font-size:12.5px;">온체인 검증 통과. 담당자 승인을 기다리는 중입니다.</span>
+          </div>`;
+      } else if (d.status === "approved") {
+        box.innerHTML = `
+          <div class="state st-ok">
+            <b>✅ 가입 승인 완료</b><br/>
+            증권번호 <code>${esc(d.policy_no)}</code> · 처리자 ${esc(d.decided_by)}<br/>
+            <span style="font-size:12.5px;">
+              가입 사실은 보험사에 기록되며, 병원 접수 시 자동 조회됩니다.
+              지갑에 카드를 따로 보관하지 않습니다.
+            </span>
+          </div>`;
+      } else {
+        box.innerHTML = `
+          <div class="state st-no">
+            <b>❌ 처리 거절</b><br/>
+            사유: ${esc(d.reason)} · 처리자 ${esc(d.decided_by)}
+          </div>`;
+      }
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
