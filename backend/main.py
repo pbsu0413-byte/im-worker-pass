@@ -96,6 +96,14 @@ def health():
         "blockchain": {
             "mode": "live_testnet" if bc.is_live_network else "simulator",
             "explorer_base_url": bc.explorer_base_url
+        },
+        "debug_env_check": {
+            "RPC_URL_set": bool(bc.rpc_url),
+            "RPC_URL_length": len(bc.rpc_url),
+            "CONTRACT_ADDRESS_set": bool(bc.contract_address),
+            "CONTRACT_ADDRESS_length": len(bc.contract_address),
+            "ADMIN_PRIVATE_KEY_set": bool(bc.admin_private_key),
+            "ADMIN_PRIVATE_KEY_length": len(bc.admin_private_key)
         }
     }
 
