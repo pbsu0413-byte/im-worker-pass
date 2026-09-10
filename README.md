@@ -6,19 +6,22 @@
 im-worker-pass/
 ├─ contracts/                  # Solidity 스마트 컨트랙트 (S1)
 │  └─ CredentialRegistry.sol   # W3C DID 자격증 상태(발급/철회) 레지스트리
-├─ backend/                    # FastAPI + Web3 (S1~S10)
-│  ├─ main.py
-│  ├─ blockchain_client.py    # Web3 / EVM 스마트 컨트랙트 연동 클라이언트
-│  ├─ crypto_utils.py         # W3C DID HMAC 전자서명/위변조 검증 로직
-│  ├─ models.py
-│  ├─ supabase_client.py
-│  ├─ schema.sql              # Supabase DB 스키마 (하이브리드 동기화용)
-│  ├─ requirements.txt
-│  ├─ .env.example
-│  └─ tests/
+├─ 기관서버/                  # 기관 발급·체인 등록 서버
+│  ├─ contracts/              # Solidity 레지스트리
+│  └─ server/                 # FastAPI + Web3 기관 API
+│     ├─ main.py
+│     ├─ blockchain_client.py
+│     ├─ crypto_utils.py
+│     ├─ models.py
+│     ├─ supabase_client.py
+│     ├─ schema.sql
+│     ├─ requirements.txt
+│     ├─ .env.example
+│     └─ tests/
 │     ├─ test_blockchain_registry.py  # S1 로드맵 테스트 8개 (All Pass)
 │     └─ test_api_flow.py             # 전체 E2E 통합 테스트
-└─ frontend/                   # 정적 HTML/JS (Vercel 등에 배포)
+└─ 심사자/                     # 제출·검증 화면
+   └─ web/                     # 정적 HTML/JS (Vercel 등에 배포)
    ├─ issue.html   # ① 근로자 지갑: 온체인 발급 + 서명된 QR 생성
    ├─ scan.html    # ② 회사/병원/보험 스캐너: 온체인 실시간 검증 & 기관별 특화 UI
    ├─ admin.html   # ③ 관리자: 온체인 철회/복구 트랜잭션 전송 (S9 시연)
@@ -34,7 +37,7 @@ im-worker-pass/
 
 ```bash
 # 8개 단위 테스트 및 통합 테스트 실행
-python -m pytest backend/tests/ -v
+python -m pytest 기관서버/server/tests/ -v
 ```
 
 테스트 항목:
@@ -52,7 +55,7 @@ python -m pytest backend/tests/ -v
 ## 2. 백엔드 실행
 
 ```bash
-cd backend
+cd 기관서버/server
 python -m pip install -r requirements.txt
 python -m uvicorn main:app --reload
 ```
@@ -67,7 +70,7 @@ python -m uvicorn main:app --reload
 ## 3. 프론트엔드 실행
 
 ```bash
-cd frontend
+cd 심사자/web
 python -m http.server 5500
 ```
 
