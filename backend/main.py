@@ -11,6 +11,9 @@ import base64
 import json
 import os
 import uuid
+import hashlib
+import secrets
+from datetime import timedelta
 from datetime import datetime, timezone
 from io import BytesIO
 
@@ -42,6 +45,10 @@ app.add_middleware(
 
 # 로컬/시연용 인메모리 저장소 (Supabase 미설정 시에도 즉시 무중단 구동)
 _local_db = {}
+_presentation_sessions = {}
+
+def _token_hash(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 def _init_dummy_data():
     bc = get_blockchain_client()
@@ -225,6 +232,52 @@ def _make_qr_base64(payload: dict) -> str:
     buf = BytesIO()
     img.save(buf, format="PNG")
     return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
+
+
+# ---------------------------------------------------------------------------
+# S5 secure demo flow: QR contains only a random one-time token.
+# Legacy /presentations remains for backwards-compatible tests.
+# ---------------------------------------------------------------------------
+@app.post("/presentations/secure")
+def create_secure_presentation(req: PresentationRequest):
+    cred = _local_db.get(req.credential_id)
+    if not cred:
+        raise HTTPException(status_code=404, detail="credential not found")
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(timezone.utc) + timedelta(seconds=60)
+    _presentation_sessions[_token_hash(token)] = {
+        "credential_id": req.credential_id,
+        "target_id": req.target_id,
+        "expires_at": expires_at,
+        "status": "created",
+    }
+    payload = {"v": 1, "t": token}
+    return {"qr_payload": payload, "qr_image_base64": _make_qr_base64(payload), "expires_at": expires_at.isoformat()}
+
+
+@app.post("/presentations/secure/consume")
+def consume_secure_presentation(req: VerifyRequest):
+    raw = req.payload
+    token = raw.get("t") if isinstance(raw, dict) else None
+    if not isinstance(token, str):
+        raise HTTPException(status_code=400, detail="token payload required")
+    session = _presentation_sessions.get(_token_hash(token))
+    if not session:
+        raise HTTPException(status_code=404, detail="session not found")
+    if session["expires_at"] <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=410, detail="session expired")
+    if session["status"] != "created":
+        raise HTTPException(status_code=409, detail="session already consumed")
+    if session["target_id"] != req.verifier_id:
+        raise HTTPException(status_code=403, detail="target mismatch")
+    session["status"] = "consumed"
+    cred = _local_db.get(session["credential_id"])
+    if not cred:
+        raise HTTPException(status_code=404, detail="credential not found")
+    status = get_blockchain_client().get_status(session["credential_id"])
+    if not status["is_valid"]:
+        return {"result":"fail","reason":"REVOKED","onchain_proof":status}
+    return {"result":"pass","worker_name":cred["worker_name"],"nationality":cred["nationality"],"account_bank":cred["account_bank"],"account_number":cred["account_number"],"onchain_proof":status}
 
 
 # ---------------------------------------------------------------------------
