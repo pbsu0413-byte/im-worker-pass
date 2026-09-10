@@ -21,6 +21,7 @@ import qrcode
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from crypto_utils import sign_payload, verify_signature
 from models import CredentialIssueRequest, PresentationRequest, VerifyRequest
@@ -42,6 +43,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve the reviewer HTML from the same FastAPI process for the local demo.
+_frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
 
 # 로컬/시연용 인메모리 저장소 (Supabase 미설정 시에도 즉시 무중단 구동)
 _local_db = {}
@@ -413,3 +417,7 @@ def restore(credential_id: str):
         "explorer_url": bc_res["explorer_url"],
         "message": "블록체인에 체류자격 복구 트랜잭션이 기록되었습니다."
     }
+
+
+if os.path.isdir(_frontend_dir):
+    app.mount("/", StaticFiles(directory=_frontend_dir, html=True), name="frontend")
