@@ -70,6 +70,8 @@
       아래 payload를 복사해서 <b>scan.html</b>의 붙여넣기 창에 넣으면 카메라 없이도 검증을 테스트할 수 있습니다.<br/>
       계좌번호 한 글자만 바꿔서 붙여넣으면 "위변조" 시연이 됩니다.
     </p>
+    <div id="countdown" style="font-weight:bold;color:#2563eb;margin-top:10px;"></div>
+    <button id="renewBtn" class="secondary" style="display:none" onclick="createPresentation()">QR 다시 생성</button>
     <pre id="payloadBox"></pre>
   </div>
 
@@ -129,7 +131,10 @@
       }
     }
 
+    let countdownTimer;
     async function createPresentation() {
+      clearInterval(countdownTimer);
+      document.getElementById("renewBtn").style.display = "none";
       const body = {
         credential_id: document.getElementById("credentialId").value,
         target_id: document.getElementById("targetId").value,
@@ -147,7 +152,19 @@
       const img = document.getElementById("qrImg");
       img.src = data.qr_image_base64;
       img.style.display = "block";
-      document.getElementById("payloadBox").textContent = JSON.stringify(data.qr_payload, null, 2) + "\n\nExpires: " + data.expires_at;
+      document.getElementById("payloadBox").textContent = JSON.stringify(data.qr_payload, null, 2);
+      const expires = new Date(data.expires_at).getTime();
+      const tick = () => {
+        const left = Math.max(0, Math.ceil((expires - Date.now()) / 1000));
+        document.getElementById("countdown").textContent = left > 0 ? `QR 유효시간: ${left}초` : "QR 만료됨";
+        if (left <= 0) {
+          clearInterval(countdownTimer);
+          document.getElementById("qrImg").style.display = "none";
+          document.getElementById("payloadBox").textContent = "만료된 QR은 사용할 수 없습니다.";
+          document.getElementById("renewBtn").style.display = "inline-block";
+        }
+      };
+      tick(); countdownTimer = setInterval(tick, 1000);
     }
   </script>
 </body>
