@@ -75,33 +75,57 @@
   <script src="config.js"></script>
   <script>
     async function issueCredential() {
-      const body = {
-        worker_name: document.getElementById("workerName").value,
-        nationality: document.getElementById("nationality").value,
-        account_bank: document.getElementById("accountBank").value,
-        account_number: document.getElementById("accountNumber").value,
-      };
-      const res = await fetch(`${API_BASE_URL}/credentials`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        document.getElementById("issueResult").innerHTML = `<p style="color:red">오류: ${JSON.stringify(data)}</p>`;
-        return;
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "⏳ 블록체인 등록 중...";
+
+      document.getElementById("issueResult").innerHTML = `<p style="color:#0969da;">⏳ 블록체인 스마트 컨트랙트에 트랜잭션을 전송 중입니다...</p>`;
+
+      try {
+        const body = {
+          worker_name: document.getElementById("workerName").value,
+          nationality: document.getElementById("nationality").value,
+          account_bank: document.getElementById("accountBank").value,
+          account_number: document.getElementById("accountNumber").value,
+        };
+        const res = await fetch(`${API_BASE_URL}/credentials`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          document.getElementById("issueResult").innerHTML = `<p style="color:red">오류: ${JSON.stringify(data)}</p>`;
+          return;
+        }
+        document.getElementById("credentialId").value = data.credential_id;
+        const isExisting = data.is_existing;
+        document.getElementById("issueResult").innerHTML = `
+          <div class="tx-box" style="${isExisting ? 'background:#fff8e6; border-color:#ffe082;' : ''}">
+            <b>${isExisting ? 'ℹ️ 기존 발급 내역 조회 완료 (중복 발급 방지)' : '✅ 신규 발급 및 블록체인 등록 완료'}</b><br/>
+            ${isExisting ? '<span style="color:#b45309;font-size:12px;">✓ 이미 동일한 근로자 정보가 등록되어 있어 기존 자격증을 불러왔습니다.</span><br/>' : ''}
+            • 대상자: <b>${data.worker_name}</b> (${data.nationality})<br/>
+            • Credential ID: <code>${data.credential_id}</code><br/>
+            • 온체인 상태: <b>${(data.status || 'valid').toUpperCase()}</b><br/>
+            • On-Chain Hash: <code>${data.credential_hash || '-'}</code><br/>
+            • Tx Hash: <code>${data.tx_hash || '-'}</code><br/>
+            ${data.explorer_url ? `🔗 <a href="${data.explorer_url}" target="_blank">블록체인 탐색기에서 트랜잭션 확인</a>` : ''}
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById("issueResult").innerHTML = `
+          <div style="background:#ffebe9; color:#cf222e; padding:10px; border-radius:6px; margin-top:10px;">
+            <b>❌ 백엔드 연결 실패</b><br/>
+            현재 연결 주소: <code>${API_BASE_URL}</code><br/>
+            원인: ${err.message}<br/>
+            <small>F12 콘솔에서 <code>localStorage.setItem("API_BASE_URL", "https://im-worker-pass.onrender.com")</code> 실행 후 새로고침해주세요.</small>
+          </div>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
       }
-      document.getElementById("credentialId").value = data.credential_id;
-      document.getElementById("issueResult").innerHTML = `
-        <div class="tx-box">
-          <b>✅ 발급 및 블록체인 등록 완료</b><br/>
-          • 대상자: <b>${data.worker_name}</b> (${data.nationality})<br/>
-          • Credential ID: <code>${data.credential_id}</code><br/>
-          • On-Chain Hash: <code>${data.credential_hash || '-'}</code><br/>
-          • Tx Hash: <code>${data.tx_hash || '-'}</code><br/>
-          ${data.explorer_url ? `🔗 <a href="${data.explorer_url}" target="_blank">블록체인 탐색기에서 트랜잭션 확인</a>` : ''}
-        </div>
-      `;
     }
 
     async function createPresentation() {

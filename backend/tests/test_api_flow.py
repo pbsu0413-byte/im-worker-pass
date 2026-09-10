@@ -98,3 +98,15 @@ def test_full_scenario_flow(client):
         "verifier_id": "company_A"
     })
     assert reverify_pass_resp.json()["result"] == "pass"
+
+    # 8. 중복 발급 방지 (A안): 동일 근로자명 + 계좌번호 입력 시 기존 자격증 반환
+    dup_resp = client.post("/credentials", json={
+        "worker_name": "TEST WORKER",
+        "nationality": "베트남",
+        "account_bank": "iM뱅크",
+        "account_number": "512-999999-01"
+    })
+    assert dup_resp.status_code == 200
+    dup_data = dup_resp.json()
+    assert dup_data["is_existing"] is True
+    assert dup_data["credential_id"] == cid

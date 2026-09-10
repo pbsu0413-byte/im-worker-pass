@@ -14,7 +14,8 @@ msg.sender 개념이 없어 "비소유자가 발급을 시도하면 차단되는
 import os
 
 import pytest
-import solcx
+solcx = pytest.importorskip("solcx", reason="solcx not installed (optional on-chain compilation test)")
+eth_tester = pytest.importorskip("eth_tester", reason="eth_tester not installed")
 from eth_tester import EthereumTester, PyEVMBackend
 from web3 import Web3
 from eth_tester.exceptions import TransactionFailed

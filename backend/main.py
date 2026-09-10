@@ -105,6 +105,33 @@ def health():
 # ---------------------------------------------------------------------------
 @app.post("/credentials")
 def issue_credential(req: CredentialIssueRequest):
+    # A안: 이름과 계좌번호가 일치하는 근로자가 이미 존재하는지 중복 검사
+    sb = _get_supabase_safe()
+    if sb:
+        try:
+            res = (
+                sb.table("credentials")
+                .select("*")
+                .eq("worker_name", req.worker_name)
+                .eq("account_number", req.account_number)
+                .limit(1)
+                .execute()
+            )
+            if res.data:
+                existing = dict(res.data[0])
+                existing["is_existing"] = True
+                existing["message"] = "이미 발급된 근로자입니다. 기존 자격증이 조회되었습니다."
+                return existing
+        except Exception:
+            pass
+
+    for existing in _local_db.values():
+        if existing.get("worker_name") == req.worker_name and existing.get("account_number") == req.account_number:
+            res_data = dict(existing)
+            res_data["is_existing"] = True
+            res_data["message"] = "이미 발급된 근로자입니다. 기존 자격증이 조회되었습니다."
+            return res_data
+
     cid = str(uuid.uuid4())
     bc = get_blockchain_client()
 
@@ -122,10 +149,11 @@ def issue_credential(req: CredentialIssueRequest):
         "credential_hash": bc_res["credential_hash"],
         "tx_hash": bc_res["tx_hash"],
         "explorer_url": bc_res["explorer_url"],
+        "is_existing": False,
+        "message": "신규 자격증 발급 및 블록체인 등록 완료"
     }
 
     # Supabase 또는 로컬 DB 저장
-    sb = _get_supabase_safe()
     if sb:
         try:
             sb.table("credentials").insert(row).execute()
