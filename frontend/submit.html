@@ -39,6 +39,7 @@
   </div>
 
   <div id="main" style="display:none;">
+    <div id="whoBox" style="margin-bottom:12px;"></div>
     <div class="card">
       <h3>1) 어디에 낼지 고르기</h3>
       <label>credential_id</label>
@@ -95,7 +96,7 @@
   <script src="config.js"></script>
   <script>
     const esc = (v) => String(v == null || v === "" ? "—" : v);
-    const KEY_STORE = "imwp_holder_key";
+    const keyStore = (cid) => `imwp_holder_key:${cid}`;
     const CID_STORE = "imwp_credential_id";
     let countdownTimer;
 
@@ -147,7 +148,10 @@
     // 개인키는 이 브라우저 밖으로 나가지 않는다.
     async function signRequest(cid, targetId, signedAt) {
       let jwk = null;
-      try { jwk = JSON.parse(localStorage.getItem(KEY_STORE) || "null"); } catch (e) {}
+      try {
+        jwk = JSON.parse(localStorage.getItem(keyStore(cid))
+                         || localStorage.getItem("imwp_holder_key") || "null");
+      } catch (e) {}
       if (!jwk) return null;
       const key = await crypto.subtle.importKey(
         "jwk", jwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
@@ -238,6 +242,17 @@
       if (!cid) { document.getElementById("noWallet").style.display = "block"; return; }
       document.getElementById("credentialId").value = cid;
       document.getElementById("main").style.display = "block";
+      // 어느 인물의 지갑인지 화면에 띄운다 — 심사에서 인물을 바꿔가며 보기 때문.
+      fetch(`${API_BASE_URL}/wallet/${cid}`).then(r => r.ok && r.json()).then(w => {
+        if (!w) return;
+        const el = document.getElementById("whoBox");
+        if (el) el.innerHTML = `
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;
+                      padding:10px 12px;font-size:13px;">
+            현재 지갑: <b>${esc(w.worker_name)}</b> · ${esc(w.nationality)} · ${esc(w.visa_type)}
+            <a href="wallet.html" style="float:right;font-size:12px;">다른 인물로 바꾸기</a>
+          </div>`;
+      }).catch(() => {});
     })();
   </script>
 </body>

@@ -110,7 +110,9 @@
   <script src="config.js"></script>
   <script>
     const esc = (v) => String(v == null || v === "" ? "—" : v);
-    const KEY_STORE = "imwp_holder_key";
+    // 단말 키는 **지갑별로** 따로 보관한다. 심사에서 인물을 바꿔가며 보므로,
+    // 키가 하나뿐이면 다른 사람 지갑에 그 사람 키로 서명하게 되어 제출이 거부된다.
+    const keyStore = (cid) => `imwp_holder_key:${cid}`;
     const CID_STORE = "imwp_credential_id";
     let verification = null;
 
@@ -178,12 +180,13 @@
       document.getElementById("registerCard").scrollIntoView({ behavior: "smooth" });
     }
 
+    let pendingPrivateKey = null;   // 등록이 끝나 credential_id를 받은 뒤 그 이름으로 저장한다
+
     async function createHolderKey() {
       const pair = await crypto.subtle.generateKey(
         { name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
-      const priv = await crypto.subtle.exportKey("jwk", pair.privateKey);
+      pendingPrivateKey = await crypto.subtle.exportKey("jwk", pair.privateKey);
       const pub = await crypto.subtle.exportKey("jwk", pair.publicKey);
-      try { localStorage.setItem(KEY_STORE, JSON.stringify(priv)); } catch (e) {}
       return { kty: pub.kty, crv: pub.crv, x: pub.x, y: pub.y };
     }
 
@@ -217,7 +220,13 @@
           </div>`;
         return;
       }
-      try { localStorage.setItem(CID_STORE, data.credential_id); } catch (e) {}
+      try {
+        localStorage.setItem(CID_STORE, data.credential_id);
+        if (pendingPrivateKey) {
+          localStorage.setItem(keyStore(data.credential_id), JSON.stringify(pendingPrivateKey));
+        }
+      } catch (e) {}
+      pendingPrivateKey = null;
       box.innerHTML = "";
       loadWallet(data.credential_id);
     }
@@ -273,14 +282,58 @@
         </div>
 
         <div class="card">
+          <h3>심사·시연용 — 다른 인물 보기</h3>
+          <p style="font-size:12.5px;color:#64748b;margin-top:0;">
+            실제 서비스에서 근로자는 자기 지갑 하나만 갖습니다. 이 전환은 심사에서
+            여러 인물을 비교해 보기 위한 것입니다.
+          </p>
+          <label>발급된 지갑</label>
+          <select id="walletPicker" onchange="switchWallet(this.value)"></select>
+          <div id="keyWarn"></div>
           <button onclick="location.href='submit.html'">제출하러 가기 →</button>
-          <button class="secondary" onclick="resetWallet()">지갑 초기화 (시연용)</button>
+          <button class="secondary" onclick="newWallet()">새 인물 발급하기</button>
+        </div>`;
+
+      loadWalletList(w.credential_id);
+    }
+
+    async function loadWalletList(currentId) {
+      const res = await fetch(`${API_BASE_URL}/wallets`);
+      if (!res.ok) return;
+      const rows = (await res.json()).wallets || [];
+      const sel = document.getElementById("walletPicker");
+      if (!sel) return;
+      sel.innerHTML = rows.map(r => `
+        <option value="${r.credential_id}" ${r.credential_id === currentId ? "selected" : ""}>
+          ${esc(r.worker_name)} · ${esc(r.nationality)} · ${esc(r.visa_type)}${
+            r.holder_registered ? "" : " (이 브라우저에서 발급되지 않음)"}
+        </option>`).join("");
+
+      // 이 브라우저에 그 지갑의 단말 키가 없으면 제출 단계에서 서명이 안 된다.
+      let hasKey = false;
+      try { hasKey = !!localStorage.getItem(keyStore(currentId)); } catch (e) {}
+      document.getElementById("keyWarn").innerHTML = hasKey ? "" : `
+        <div style="background:#fffbeb;border:1px solid #fcd34d;color:#b45309;
+                    padding:10px 12px;border-radius:8px;margin-top:10px;font-size:12.5px;">
+          이 지갑의 단말 키가 이 브라우저에 없습니다. 조회는 되지만 제출은 거부됩니다.
+          제출까지 시연하려면 "새 인물 발급하기"에서 이 인물로 다시 발급하세요.
         </div>`;
     }
 
-    function resetWallet() {
-      try { localStorage.removeItem(CID_STORE); localStorage.removeItem(KEY_STORE); } catch (e) {}
-      location.reload();
+    function switchWallet(cid) {
+      try { localStorage.setItem(CID_STORE, cid); } catch (e) {}
+      loadWallet(cid);
+    }
+
+    function newWallet() {
+      try { localStorage.removeItem(CID_STORE); } catch (e) {}
+      verification = null;
+      document.getElementById("walletView").style.display = "none";
+      document.getElementById("setupView").style.display = "block";
+      document.getElementById("verifyBox").innerHTML = "";
+      document.getElementById("registerBox").innerHTML = "";
+      document.getElementById("registerCard").style.display = "none";
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     (function boot() {

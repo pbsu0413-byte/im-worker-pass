@@ -614,6 +614,28 @@ def wallet_register(req: WalletRegisterRequest):
     return row
 
 
+@app.get("/wallets")
+def list_wallets():
+    """
+    발급된 지갑 목록. **심사·시연에서 인물을 바꿔가며 보기 위한 것**이고,
+    실제 서비스에서 근로자는 자기 지갑 하나만 갖는다.
+    """
+    rows = []
+    for cid, cred in _local_db.items():
+        holder = wallet_svc.get_wallet(cid)
+        rows.append({
+            "credential_id": cid,
+            "worker_name": cred.get("worker_name"),
+            "nationality": cred.get("nationality"),
+            "visa_type": cred.get("visa_type"),
+            "visa_status": cred.get("visa_status"),
+            "employer_name": cred.get("employer_name"),
+            "holder_registered": bool(holder),
+        })
+    rows.sort(key=lambda r: r["worker_name"] or "")
+    return {"wallets": rows}
+
+
 @app.get("/wallet/{credential_id}")
 def wallet_status(credential_id: str):
     """내 지갑 상태. 저장된 문자열이 아니라 체인에서 읽어 온다."""
