@@ -3,191 +3,34 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>iM Worker Pass - 지갑 (발급/QR생성)</title>
+<title>iM Worker Pass - 화면이 나뉘었습니다</title>
 <link rel="stylesheet" href="style.css" />
-<style>
-  .tx-box {
-    background: #f0f7ff;
-    border: 1px solid #cce3ff;
-    border-radius: 6px;
-    padding: 10px 14px;
-    margin-top: 10px;
-    font-size: 13px;
-    word-break: break-all;
-  }
-  .tx-box a {
-    color: #0366d6;
-    text-decoration: underline;
-  }
-</style>
+<meta http-equiv="refresh" content="4; url=wallet.html" />
 </head>
 <body>
   <nav>
     <a href="index.html">🏠 홈</a>
-    <a href="issue.html" class="active">① 지갑(발급)</a>
-    <a href="scan.html">② 스캐너(검증)</a>
-    <a href="insurance.html">③ 보험 가입</a>
-    <a href="insurer.html">④ 보험사</a>
-    <a href="admin.html">⑤ 관리자</a>
+    <a href="wallet.html">① 지갑</a>
+    <a href="submit.html">② 제출</a>
+    <a href="scan.html">③ 스캐너</a>
+    <a href="attendance.html">④ 근태</a>
+    <a href="insurance.html">⑤ 보험</a>
+    <a href="insurer.html">⑥ 보험사</a>
+    <a href="admin.html">⑦ 관리자</a>
   </nav>
 
-  <h1>근로자 지갑 — 자격증 발급 &amp; QR 생성</h1>
-
+  <h1>화면이 둘로 나뉘었습니다</h1>
   <div class="card">
-    <h3>1) 더미 자격증 발급 (S1~S4)</h3>
-    <p style="font-size:12px;color:#666;">
-      발급 시 개인정보(이름/계좌)는 암호화 서명되어 단말에 저장되고, 
-      <b>블록체인 스마트 컨트랙트</b>에는 고유 해시와 상태(Valid)만 기록됩니다.<br/>
-      체류자격·사업장 변경 이력·건강진단 등은 <b>발급기관(출입국·고용센터·의료기관)이 서명해 내려주는 값</b>이므로
-      근로자가 지갑에서 입력하지 않습니다. 시연에서는 더미 근로자 2인에 고정되어 있습니다.
+    <p style="font-size:14px;line-height:1.8;">
+      성격이 다른 두 가지가 한 화면에 있어서 갈랐습니다.
     </p>
-    <label>근로자 이름</label>
-    <input id="workerName" placeholder="NGUYEN VAN A" value="NGUYEN VAN A" />
-    <label>국적</label>
-    <input id="nationality" placeholder="베트남" value="베트남" />
-    <label>은행</label>
-    <input id="accountBank" placeholder="iM뱅크" value="iM뱅크" />
-    <label>계좌번호</label>
-    <input id="accountNumber" placeholder="512-123456-01" value="512-123456-01" />
-
-    <button onclick="issueCredential()">발급 &amp; 블록체인 등록</button>
-    <div id="issueResult"></div>
-  </div>
-
-  <div class="card">
-    <h3>2) 제출용 QR 생성 (S5)</h3>
-    <label>credential_id</label>
-    <input id="credentialId" placeholder="발급하면 자동으로 채워집니다" />
-    <label>제출 대상 (target_id)</label>
-    <select id="targetId" onchange="toggleSymptom()">
-      <option value="company_A">company_A (A제조공장 - 이직 서류 대사 + 급여계좌 등록)</option>
-      <option value="company_B">company_B (B제조공장 - 오배송 시연용)</option>
-      <option value="hospital_1">hospital_1 (거점 병원 - 신분+진료접수용)</option>
-    </select>
-    <div id="symptomBox" style="display:none;margin-top:12px;">
-      <label>병원에 전달할 증상</label>
-      <select id="symptom">
-        <option value="기침이 있어요">기침이 있어요</option>
-        <option value="허리가 아파요">허리가 아파요</option>
-        <option value="열이 나는 것 같아요">열이 나는 것 같아요</option>
-        <option value="속이 불편해요">속이 불편해요</option>
-        <option value="피부가 가려워요">피부가 가려워요</option>
-      </select>
-      <small>환자 본인의 진술이며 진단이 아닙니다.</small>
-    </div>
-    <button onclick="createPresentation()">QR 생성</button>
-
-    <div style="text-align: center; margin-top: 15px;">
-      <img id="qrImg" style="display:none; margin: 0 auto; max-width: 220px;" />
-    </div>
-
-    <p style="font-size:12px;color:#888; margin-top: 15px;">
-      아래 payload를 복사해서 <b>scan.html</b>의 붙여넣기 창에 넣으면 카메라 없이도 검증을 테스트할 수 있습니다.<br/>
-      계좌번호 한 글자만 바꿔서 붙여넣으면 "위변조" 시연이 됩니다.
+    <p style="font-size:14px;line-height:1.8;">
+      <b>① 지갑</b> — 발급은 최초 1회입니다. 은행 본인확인, 단말 키 생성, 기관 조회, 블록체인 등록.<br/>
+      <b>② 제출</b> — 낼 때마다 합니다. 기관 재조회와 QR 생성. 체인에는 쓰지 않습니다.
     </p>
-    <div id="countdown" style="font-weight:bold;color:#2563eb;margin-top:10px;"></div>
-    <button id="renewBtn" class="secondary" style="display:none" onclick="createPresentation()">QR 다시 생성</button>
-    <pre id="payloadBox"></pre>
+    <p style="font-size:13px;color:#64748b;">4초 후 지갑 화면으로 이동합니다.</p>
+    <button onclick="location.href='wallet.html'">지갑으로 가기 →</button>
+    <button class="secondary" onclick="location.href='submit.html'">제출로 가기 →</button>
   </div>
-
-  <script src="config.js"></script>
-  <script>
-    async function issueCredential() {
-      const btn = event.target;
-      const originalText = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = "⏳ 처리 중...";
-
-      document.getElementById("issueResult").innerHTML = `<p style="color:#0969da;">⏳ 기존 발급 내역을 확인하고 있습니다. 신규라면 블록체인 등록까지 진행됩니다...</p>`;
-
-      try {
-        const body = {
-          worker_name: document.getElementById("workerName").value,
-          nationality: document.getElementById("nationality").value,
-          account_bank: document.getElementById("accountBank").value,
-          account_number: document.getElementById("accountNumber").value,
-        };
-        const res = await fetch(`${API_BASE_URL}/credentials`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          document.getElementById("issueResult").innerHTML = `<p style="color:red">오류: ${JSON.stringify(data)}</p>`;
-          return;
-        }
-        document.getElementById("credentialId").value = data.credential_id;
-        const isExisting = data.is_existing;
-        document.getElementById("issueResult").innerHTML = `
-          <div class="tx-box" style="${isExisting ? 'background:#fff8e6; border-color:#ffe082;' : ''}">
-            <b>${isExisting ? 'ℹ️ 기존 발급 내역 조회 완료 (중복 발급 방지)' : '✅ 신규 발급 및 블록체인 등록 완료'}</b><br/>
-            ${isExisting ? '<span style="color:#b45309;font-size:12px;">✓ 이미 동일한 근로자 정보가 등록되어 있어 기존 자격증을 불러왔습니다.</span><br/>' : ''}
-            • 대상자: <b>${data.worker_name}</b> (${data.nationality})<br/>
-            • Credential ID: <code>${data.credential_id}</code><br/>
-            • 온체인 상태: <b>${(data.status || 'valid').toUpperCase()}</b><br/>
-            • On-Chain Hash: <code>${data.credential_hash || '-'}</code><br/>
-            • 검증 네트워크: <b>${data.chain_mode === 'live_testnet' ? 'Polygon Amoy Testnet' : 'EVM 시뮬레이터 (컨트랙트 미배포)'}</b><br/>
-            ${data.tx_hash ? `• Tx Hash: <code>${data.tx_hash}</code><br/>` : ''}
-            ${(data.tx_hash && data.chain_mode === 'live_testnet')
-                ? `🔗 <a href="${data.explorer_url}" target="_blank">블록체인 탐색기에서 트랜잭션 확인</a>`
-                : `<span style="font-size:12px;color:#64748b;">${data.is_existing
-                    ? '이미 온체인에 등록되어 있어 이번에는 트랜잭션이 발생하지 않았습니다. 상태는 체인에서 조회한 값입니다.'
-                    : '시뮬레이터 모드입니다. 탐색기에 조회되는 트랜잭션이 아닙니다.'}</span>`}
-          </div>
-        `;
-      } catch (err) {
-        document.getElementById("issueResult").innerHTML = `
-          <div style="background:#ffebe9; color:#cf222e; padding:10px; border-radius:6px; margin-top:10px;">
-            <b>❌ 백엔드 연결 실패</b><br/>
-            현재 연결 주소: <code>${API_BASE_URL}</code><br/>
-            원인: ${err.message}<br/>
-            <small>F12 콘솔에서 <code>localStorage.setItem("API_BASE_URL", "https://im-worker-pass.onrender.com")</code> 실행 후 새로고침해주세요.</small>
-          </div>
-        `;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = originalText;
-      }
-    }
-
-    let countdownTimer;
-    function toggleSymptom() { document.getElementById("symptomBox").style.display = document.getElementById("targetId").value === "hospital_1" ? "block" : "none"; }
-    async function createPresentation() {
-      clearInterval(countdownTimer);
-      document.getElementById("renewBtn").style.display = "none";
-      const body = {
-        credential_id: document.getElementById("credentialId").value,
-        target_id: document.getElementById("targetId").value,
-        symptom: document.getElementById("targetId").value === "hospital_1" ? document.getElementById("symptom").value : null,
-      };
-      const res = await fetch(`${API_BASE_URL}/presentations/secure`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        document.getElementById("payloadBox").textContent = "오류: " + JSON.stringify(data);
-        return;
-      }
-      const img = document.getElementById("qrImg");
-      img.src = data.qr_image_base64;
-      img.style.display = "block";
-      document.getElementById("payloadBox").textContent = JSON.stringify(data.qr_payload, null, 2);
-      const expires = new Date(data.expires_at).getTime();
-      const tick = () => {
-        const left = Math.max(0, Math.ceil((expires - Date.now()) / 1000));
-        document.getElementById("countdown").textContent = left > 0 ? `QR 유효시간: ${left}초` : "QR 만료됨";
-        if (left <= 0) {
-          clearInterval(countdownTimer);
-          document.getElementById("qrImg").style.display = "none";
-          document.getElementById("payloadBox").textContent = "만료된 QR은 사용할 수 없습니다.";
-          document.getElementById("renewBtn").style.display = "inline-block";
-        }
-      };
-      tick(); countdownTimer = setInterval(tick, 1000);
-    }
-  </script>
 </body>
 </html>

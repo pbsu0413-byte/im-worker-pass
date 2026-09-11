@@ -34,6 +34,9 @@ class PresentationRequest(BaseModel):
     symptom: str | None = None  # hospital only; fixed catalogue statement
     symptom_original: str | None = None  # 모국어 원문 (번역 대조용)
     symptom_locale: str | None = None    # vi / ko 등
+    # 홀더 서명 — 단말이 "credential_id|target_id|signed_at"에 서명한다.
+    holder_signature: str | None = None
+    signed_at: str | None = None
 
 
 class VerifyRequest(BaseModel):
@@ -56,3 +59,27 @@ class InsuranceDecisionRequest(BaseModel):
     decision: str  # approve / reject
     officer: str | None = None
     reason: str | None = None
+
+
+class BankVerifyRequest(BaseModel):
+    """은행 창구 실명확인 (지갑 발급 1단계)."""
+
+    worker_name: str
+    nationality: str
+    account_bank: str
+    account_number: str
+
+
+class WalletRegisterRequest(BaseModel):
+    """지갑 등록 (2단계). 단말이 만든 공개키만 올라오고 개인키는 오지 않는다."""
+
+    verification_token: str
+    public_key: Dict[str, Any]      # ECDSA P-256 공개키 (JWK)
+    device_label: str | None = None
+
+
+class AttendanceScanRequest(BaseModel):
+    """사업장 스캐너가 출퇴근 QR을 읽었을 때."""
+
+    payload: Dict[str, Any]
+    scanner_id: str

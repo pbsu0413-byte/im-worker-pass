@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM Worker Pass - 제출</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .rows .row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid #eef2f7; font-size:13px; }
+  .rows .row span:first-child { color:#475569; white-space:nowrap; }
+  .badge-real { background:#dcfce7; color:#15803d; padding:1px 7px; border-radius:999px; font-size:11px; }
+  .badge-mock { background:#f1f5f9; color:#64748b; padding:1px 7px; border-radius:999px; font-size:11px; }
+  .muted { font-size:11.5px; color:#94a3b8; margin-top:8px; line-height:1.6; }
+  .err { background:#fdecea; border:1px solid #e74c3c; color:#a92c22; padding:12px; border-radius:10px; margin-top:12px; font-size:13px; }
+  .sigline { font-size:12.5px; color:#15803d; margin-top:8px; }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">🏠 홈</a>
+    <a href="wallet.html">① 지갑</a>
+    <a href="submit.html" class="active">② 제출</a>
+    <a href="scan.html">③ 스캐너</a>
+    <a href="attendance.html">④ 근태</a>
+    <a href="insurance.html">⑤ 보험</a>
+    <a href="insurer.html">⑥ 보험사</a>
+    <a href="admin.html">⑦ 관리자</a>
+  </nav>
+
+  <h1>제출 — QR 생성</h1>
+  <p style="font-size:13px;color:#64748b;margin-top:-6px;">
+    제출은 낼 때마다 합니다. 체인에는 아무것도 쓰지 않고, 기관에 다시 물어 최신 값으로 만듭니다.
+  </p>
+
+  <div id="noWallet" class="card" style="display:none;">
+    <h3>지갑이 없습니다</h3>
+    <p style="font-size:13px;color:#64748b;">먼저 지갑을 발급받아야 합니다. 발급은 최초 1회입니다.</p>
+    <button onclick="location.href='wallet.html'">지갑 발급하러 가기 →</button>
+  </div>
+
+  <div id="main" style="display:none;">
+    <div class="card">
+      <h3>1) 어디에 낼지 고르기</h3>
+      <label>credential_id</label>
+      <input id="credentialId" readonly />
+      <label>제출 대상</label>
+      <select id="targetId" onchange="toggleSymptom()">
+        <option value="company_A">company_A (A제조공장 — 이직 서류 대사 + 급여계좌 등록)</option>
+        <option value="company_B">company_B (B제조공장 — 오배송 시연용)</option>
+        <option value="hospital_1">hospital_1 (거점 병원 — 신분 + 진료접수)</option>
+        <option value="site_A">site_A (A제조 출입 스캐너 — 출퇴근)</option>
+        <option value="site_B">site_B (B제조 출입 스캐너 — 출퇴근)</option>
+      </select>
+      <div id="symptomBox" style="display:none;margin-top:12px;">
+        <label>병원에 전달할 증상</label>
+        <select id="symptom">
+          <option value="기침이 있어요">기침이 있어요</option>
+          <option value="허리가 아파요">허리가 아파요</option>
+          <option value="열이 나는 것 같아요">열이 나는 것 같아요</option>
+          <option value="속이 불편해요">속이 불편해요</option>
+          <option value="피부가 가려워요">피부가 가려워요</option>
+        </select>
+        <small>환자 본인의 진술이며 진단이 아닙니다.</small>
+      </div>
+      <div id="attendHint" style="display:none;" class="muted">
+        출퇴근은 기관 재조회를 하지 않습니다. 매일 두 번 물어볼 일이 아니고, 필요한 것은
+        체류자격이 살아 있는지뿐이며 그것은 스캔 시 체인 조회로 확인됩니다.
+        <b>시각은 회사 스캐너가 읽는 순간 회사 근태 시스템이 찍습니다.</b>
+      </div>
+      <div class="muted">
+        보험은 상품 선택이 곧 수령처 선택이라 QR이 필요 없습니다 — <a href="insurance.html">④ 보험</a> 화면에서 진행합니다.
+      </div>
+      <button onclick="createPresentation()">단말 서명 &amp; QR 생성</button>
+      <div id="errBox"></div>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none;">
+      <h3>2) 제출용 QR</h3>
+      <div style="text-align:center;">
+        <img id="qrImg" style="display:none;margin:0 auto;max-width:220px;" />
+      </div>
+      <div id="countdown" style="font-weight:bold;color:#2563eb;margin-top:10px;text-align:center;"></div>
+      <button id="renewBtn" class="secondary" style="display:none;" onclick="createPresentation()">QR 다시 생성</button>
+      <div id="sigBox"></div>
+      <div id="attendBox"></div>
+      <div id="refreshBox"></div>
+      <p class="muted">
+        아래 payload를 복사해 <b>③ 스캐너</b>의 붙여넣기 창에 넣으면 카메라 없이도 검증을 테스트할 수 있습니다.
+        계좌번호를 한 글자 바꿔 넣으면 위변조 시연이 됩니다.
+      </p>
+      <pre id="payloadBox"></pre>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const esc = (v) => String(v == null || v === "" ? "—" : v);
+    const KEY_STORE = "imwp_holder_key";
+    const CID_STORE = "imwp_credential_id";
+    let countdownTimer;
+
+    const FIELD_LABELS = {
+      reg_no: "외국인등록번호", birth_date: "생년월일", gender: "성별",
+      visa_type: "체류자격", visa_valid_until: "체류 만료일",
+      employer_name: "직전 사업장", employment_from: "근무 시작",
+      employment_to: "계약 종료", job_category: "직종",
+      job_change_used: "변경 횟수", job_change_limit: "변경 한도",
+      job_change_excluded: "귀책 미산입", health_check_date: "건강진단일",
+      topik_level: "어학", account_verified: "계좌 실명확인",
+    };
+
+    const SITE_TARGETS = ["site_A", "site_B"];
+
+    function toggleSymptom() {
+      const v = document.getElementById("targetId").value;
+      document.getElementById("symptomBox").style.display = v === "hospital_1" ? "block" : "none";
+      document.getElementById("attendHint").style.display = SITE_TARGETS.includes(v) ? "block" : "none";
+    }
+
+    // 출퇴근은 스캐너가 읽는 순간 회사가 시각을 찍는다. 폰은 그 결과를 받아 표시만 한다.
+    let attendTimer;
+    function watchAttendance(cid, since) {
+      clearInterval(attendTimer);
+      attendTimer = setInterval(async () => {
+        const res = await fetch(`${API_BASE_URL}/attendance/worker/${cid}`);
+        if (!res.ok) return;
+        const last = (await res.json()).last;
+        if (!last || last.server_time <= since) return;
+        clearInterval(attendTimer);
+        const t = new Date(last.server_time).toLocaleString("ko-KR", { hour12: false });
+        document.getElementById("attendBox").innerHTML = `
+          <div style="background:#e6f7ee;border:1px solid #2ecc71;color:#1e7e45;padding:12px;border-radius:10px;margin-top:10px;">
+            <b>✅ ${last.check_type === "in" ? "출근" : "퇴근"} ${t}</b><br/>
+            <span style="font-size:12.5px;">${esc(last.site_name)} · 회사 스캐너 기준 시각으로 기록되었습니다.</span>
+            ${last.worked_minutes != null
+              ? `<br/><span style="font-size:12.5px;">근무 ${Math.floor(last.worked_minutes/60)}시간 ${last.worked_minutes%60}분</span>` : ""}
+          </div>`;
+      }, 2000);
+    }
+
+    function b64u(buf) {
+      return btoa(String.fromCharCode(...new Uint8Array(buf)))
+        .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    }
+
+    // 단말 개인키로 "credential_id|target_id|signed_at"에 서명한다.
+    // 개인키는 이 브라우저 밖으로 나가지 않는다.
+    async function signRequest(cid, targetId, signedAt) {
+      let jwk = null;
+      try { jwk = JSON.parse(localStorage.getItem(KEY_STORE) || "null"); } catch (e) {}
+      if (!jwk) return null;
+      const key = await crypto.subtle.importKey(
+        "jwk", jwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
+      const msg = new TextEncoder().encode(`${cid}|${targetId}|${signedAt}`);
+      const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, msg);
+      return b64u(sig);
+    }
+
+    async function createPresentation() {
+      clearInterval(countdownTimer);
+      document.getElementById("renewBtn").style.display = "none";
+      document.getElementById("errBox").innerHTML = "";
+
+      const cid = document.getElementById("credentialId").value;
+      const targetId = document.getElementById("targetId").value;
+      const signedAt = new Date().toISOString();
+      const signature = await signRequest(cid, targetId, signedAt);
+
+      const res = await fetch(`${API_BASE_URL}/presentations/secure`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          credential_id: cid,
+          target_id: targetId,
+          symptom: targetId === "hospital_1" ? document.getElementById("symptom").value : null,
+          holder_signature: signature,
+          signed_at: signedAt,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        document.getElementById("errBox").innerHTML =
+          `<div class="err"><b>제출이 거부되었습니다.</b><br/>${esc(data.detail)}</div>`;
+        return;
+      }
+
+      document.getElementById("resultCard").style.display = "block";
+      const img = document.getElementById("qrImg");
+      img.src = data.qr_image_base64;
+      img.style.display = "block";
+      document.getElementById("payloadBox").textContent = JSON.stringify(data.qr_payload, null, 2);
+
+      document.getElementById("sigBox").innerHTML = data.holder_verified
+        ? `<div class="sigline">✓ 단말 서명 검증 통과 — 이 지갑의 주인이 보낸 요청입니다.</div>`
+        : `<div class="muted">단말 키가 등록되지 않은 지갑입니다. 서명 검증을 건너뛰었습니다.</div>`;
+
+      document.getElementById("attendBox").innerHTML = "";
+      if (SITE_TARGETS.includes(targetId)) {
+        document.getElementById("attendBox").innerHTML =
+          `<div class="muted">사업장 스캐너가 이 QR을 읽으면 결과가 여기에 표시됩니다.</div>`;
+        watchAttendance(cid, new Date().toISOString());
+      }
+
+      const log = data.agency_lookups || [];
+      document.getElementById("refreshBox").innerHTML = !log.length ? "" : `
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-top:10px;">
+          <div style="font-weight:600;font-size:13px;">🔄 제출 시점 재조회 ${log.length}건</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:4px;">${esc(data.refreshed_at)}</div>
+          ${log.map(l => `
+            <div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12.5px;">
+              <span>${l.status === 'ok' ? '✓' : '—'} ${esc(l.agency)}</span>
+              <span class="${l.authority === 'real' ? 'badge-real' : 'badge-mock'}">
+                ${l.authority === 'real' ? '실제 발급기관' : '모의 API'}</span>
+            </div>`).join("")}
+          <div class="muted">
+            카드를 미리 받아 보관하지 않고 낼 때마다 다시 물으므로, 낡은 버전이라는 것이 존재하지 않습니다.
+            목적에 필요 없는 기관에는 묻지 않습니다.
+          </div>
+        </div>`;
+
+      const expires = new Date(data.expires_at).getTime();
+      const tick = () => {
+        const left = Math.max(0, Math.ceil((expires - Date.now()) / 1000));
+        document.getElementById("countdown").textContent = left > 0 ? `QR 유효시간: ${left}초` : "QR 만료됨";
+        if (left <= 0) {
+          clearInterval(countdownTimer);
+          img.style.display = "none";
+          document.getElementById("payloadBox").textContent = "만료된 QR은 사용할 수 없습니다.";
+          document.getElementById("renewBtn").style.display = "inline-block";
+        }
+      };
+      tick();
+      countdownTimer = setInterval(tick, 1000);
+    }
+
+    (function boot() {
+      let cid = null;
+      try { cid = localStorage.getItem(CID_STORE); } catch (e) {}
+      if (!cid) { document.getElementById("noWallet").style.display = "block"; return; }
+      document.getElementById("credentialId").value = cid;
+      document.getElementById("main").style.display = "block";
+    })();
+  </script>
+</body>
+</html>

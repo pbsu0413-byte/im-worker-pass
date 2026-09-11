@@ -25,11 +25,13 @@
 <body>
   <nav>
     <a href="index.html">🏠 홈</a>
-    <a href="issue.html">① 지갑(발급)</a>
-    <a href="scan.html">② 스캐너(검증)</a>
-    <a href="insurance.html" class="active">③ 보험 가입</a>
-    <a href="insurer.html">④ 보험사</a>
-    <a href="admin.html">⑤ 관리자</a>
+    <a href="wallet.html">① 지갑</a>
+    <a href="submit.html">② 제출</a>
+    <a href="scan.html">③ 스캐너</a>
+    <a href="attendance.html">④ 근태</a>
+    <a href="insurance.html" class="active">⑤ 보험</a>
+    <a href="insurer.html">⑥ 보험사</a>
+    <a href="admin.html">⑦ 관리자</a>
   </nav>
 
   <h1>보험 가입 — QR 없이 앱 안에서</h1>
@@ -166,6 +168,12 @@
           </div>`;
       }
     }
+
+    // 지갑 화면에서 발급한 credential_id 를 자동으로 채운다.
+    try {
+      const cid = localStorage.getItem("imwp_credential_id");
+      if (cid) document.getElementById("credentialId").value = cid;
+    } catch (e) {}
 
     loadProducts();
   </script>
