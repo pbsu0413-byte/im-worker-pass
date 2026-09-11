@@ -1,0 +1,92 @@
+{
+  "_agency": "iM뱅크",
+  "_agency_id": "im_bank",
+  "_authority": "real",
+  "_note": "창구 실명확인을 마친 급여계좌. 자기 은행 계좌이므로 실제 발급 권한이 있다. 여기에 없으면 지갑 발급 1단계에서 대기한다 (OLGA TSOY — 아직 계좌 개설 전).",
+  "records": [
+    {
+      "worker_name": "NGUYEN VAN A",
+      "account_bank": "iM뱅크",
+      "account_number": "512-123456-01",
+      "passport_no": "P0000001",
+      "kyc_date": "2024-03-28"
+    },
+    {
+      "worker_name": "SITI RAHAYU",
+      "account_bank": "iM뱅크",
+      "account_number": "512-987654-02",
+      "passport_no": "P0000002",
+      "kyc_date": "2023-11-20"
+    },
+    {
+      "worker_name": "BOLORMAA BAT",
+      "account_bank": "iM뱅크",
+      "account_number": "512-333333-03",
+      "passport_no": "P0000003",
+      "kyc_date": "2026-06-15"
+    },
+    {
+      "worker_name": "RAMESH THAPA",
+      "account_bank": "iM뱅크",
+      "account_number": "512-444444-04",
+      "passport_no": "P0000004",
+      "kyc_date": "2022-08-09"
+    },
+    {
+      "worker_name": "SOMCHAI PRASERT",
+      "account_bank": "iM뱅크",
+      "account_number": "512-555555-05",
+      "passport_no": "P0000005",
+      "kyc_date": "2024-01-22"
+    },
+    {
+      "worker_name": "MARIA SANTOS",
+      "account_bank": "iM뱅크",
+      "account_number": "512-666666-06",
+      "passport_no": "P0000006",
+      "kyc_date": "2025-02-14"
+    },
+    {
+      "worker_name": "NGUYEN THI E",
+      "account_bank": "iM뱅크",
+      "account_number": "512-777777-07",
+      "passport_no": "P0000007",
+      "kyc_date": "2023-07-03"
+    },
+    {
+      "worker_name": "SERGEY KIM",
+      "account_bank": "iM뱅크",
+      "account_number": "512-111222-08",
+      "passport_no": "P0000008",
+      "kyc_date": "2021-05-11"
+    },
+    {
+      "worker_name": "LI CHUNHUA",
+      "account_bank": "iM뱅크",
+      "account_number": "512-222333-09",
+      "passport_no": "P0000009",
+      "kyc_date": "2022-03-17"
+    },
+    {
+      "worker_name": "HTET AUNG",
+      "account_bank": "iM뱅크",
+      "account_number": "512-333444-11",
+      "passport_no": "P0000010",
+      "kyc_date": "2021-09-02"
+    },
+    {
+      "worker_name": "DILSHOD KARIMOV",
+      "account_bank": "iM뱅크",
+      "account_number": "512-444555-12",
+      "passport_no": "P0000011",
+      "kyc_date": "2022-12-01"
+    },
+    {
+      "worker_name": "ANNA PETROVA",
+      "account_bank": "iM뱅크",
+      "account_number": "512-555666-13",
+      "passport_no": "P0000012",
+      "kyc_date": "2023-02-20"
+    }
+  ]
+}

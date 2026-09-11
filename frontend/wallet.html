@@ -47,13 +47,34 @@
         은행이 보증하는 것은 <b>"이 지갑이 이 사람의 것"</b> 하나뿐입니다.
       </p>
       <label>근로자 이름</label>
-      <input id="workerName" value="NGUYEN VAN A" />
-      <label>국적</label>
-      <input id="nationality" value="베트남" />
-      <label>은행</label>
-      <input id="accountBank" value="iM뱅크" />
-      <label>계좌번호</label>
-      <input id="accountNumber" value="512-123456-01" />
+      <select id="workerName">
+        <optgroup label="E-9 비전문취업 (고용허가제)">
+          <option value="NGUYEN VAN A">NGUYEN VAN A · 베트남 · 제조(금속가공) — 표준</option>
+          <option value="SITI RAHAYU">SITI RAHAYU · 인도네시아 · 제조(식품) — 표준 2</option>
+          <option value="BOLORMAA BAT">BOLORMAA BAT · 몽골 · 건설(형틀) — 신규 입국</option>
+          <option value="RAMESH THAPA">RAMESH THAPA · 네팔 · 조선(용접) — 변경 3/3 소진</option>
+          <option value="SOMCHAI PRASERT">SOMCHAI PRASERT · 태국 · 농축산 — 건강진단 기한 경과</option>
+          <option value="MARIA SANTOS">MARIA SANTOS · 필리핀 · 호텔·음식점 — 최소 정보</option>
+          <option value="NGUYEN THI E">NGUYEN THI E · 베트남 · 제조(전자) — 체류자격 말소 ⛔</option>
+        </optgroup>
+        <optgroup label="H-2 방문취업 (동포 특례고용)">
+          <option value="SERGEY KIM">SERGEY KIM · 러시아 · 제조(자동차부품)</option>
+          <option value="LI CHUNHUA">LI CHUNHUA · 중국 · 음식점 — 체류 만료 임박</option>
+          <option value="OLGA TSOY">OLGA TSOY · 카자흐스탄 · 건설 — 계좌 개설 전 ⛔</option>
+        </optgroup>
+        <optgroup label="E-7-4 숙련기능인력 (점수제)">
+          <option value="HTET AUNG">HTET AUNG · 미얀마 · 제조(정밀가공) — E-9에서 전환</option>
+          <option value="DILSHOD KARIMOV">DILSHOD KARIMOV · 우즈베키스탄 · 조선</option>
+        </optgroup>
+        <optgroup label="F-6 결혼이민">
+          <option value="ANNA PETROVA">ANNA PETROVA · 러시아 · 제조 — 취업 제한 없음</option>
+        </optgroup>
+      </select>
+      <small>
+        계좌번호는 입력하지 않습니다. 은행이 자기 명단에서 찾아 돌려주는 값입니다.
+        체류자격마다 이직 규정이 다르고, 요구되는 한국어 시험과 교육도 다릅니다.
+        ⛔ 표시된 두 사람은 각각 다른 단계에서 막힙니다.
+      </small>
       <button onclick="bankVerify()">창구 실명확인</button>
       <div id="verifyBox"></div>
     </div>
@@ -123,17 +144,24 @@
     }
 
     async function bankVerify() {
-      const body = {
-        worker_name: document.getElementById("workerName").value.trim(),
-        nationality: document.getElementById("nationality").value.trim(),
-        account_bank: document.getElementById("accountBank").value.trim(),
-        account_number: document.getElementById("accountNumber").value.trim(),
-      };
       const res = await fetch(`${API_BASE_URL}/wallet/bank-verify`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ worker_name: document.getElementById("workerName").value }),
       });
       const data = await res.json();
-      if (!res.ok) { document.getElementById("verifyBox").innerHTML = `<div class="err">${esc(JSON.stringify(data))}</div>`; return; }
+      if (!res.ok) {
+        document.getElementById("registerCard").style.display = "none";
+        document.getElementById("verifyBox").innerHTML = `
+          <div class="err">
+            <b>⏳ 1단계 대기 — 아직 급여계좌가 없습니다</b><br/>
+            ${esc(data.detail)}<br/>
+            <span style="font-size:12px;">
+              출입국에 체류 기록이 있어도 은행 창구 실명확인을 거치지 않으면 지갑이 만들어지지 않습니다.
+              결격이 아니라 아직 계좌를 만들지 않은 상태입니다.
+            </span>
+          </div>`;
+        return;
+      }
       verification = data;
       document.getElementById("verifyBox").innerHTML = `
         <div class="step done" style="margin-top:12px;">
@@ -141,7 +169,8 @@
           <div class="rows">
             <div class="row"><span>확인 기관</span><span>${esc(data.bank_name)} (${esc(data.verified_by)})</span></div>
             <div class="row"><span>확인 방법</span><span>${esc(data.id_document)}</span></div>
-            <div class="row"><span>확인 시각</span><span>${esc(data.verified_at)}</span></div>
+            <div class="row"><span>급여계좌</span><span>${esc(data.bank_name)} ${esc(data.account_number)}</span></div>
+            <div class="row"><span>최초 실명확인</span><span>${esc(data.kyc_date)}</span></div>
           </div>
           <div class="muted">이 확인은 30분간 유효하며 지갑 등록에 1회만 사용됩니다.</div>
         </div>`;
@@ -177,7 +206,15 @@
       });
       const data = await res.json();
       if (!res.ok) {
-        box.innerHTML = `<div class="err"><b>지갑 발급이 거부되었습니다.</b><br/>${esc(data.detail)}</div>`;
+        box.innerHTML = `
+          <div class="err">
+            <b>⛔ 2단계 차단 — 출입국 확인 실패</b><br/>
+            ${esc(data.detail)}<br/>
+            <span style="font-size:12px;">
+              은행 실명확인만으로는 잡히지 않는 체류자격 말소·기록 부재가 여기서 걸립니다.
+              두 관문이 각각 다른 일을 합니다.
+            </span>
+          </div>`;
         return;
       }
       try { localStorage.setItem(CID_STORE, data.credential_id); } catch (e) {}

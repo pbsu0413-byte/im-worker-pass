@@ -1,0 +1,29 @@
+{
+  "_agency": "Q-Net 국가기술자격",
+  "_agency_id": "qnet",
+  "_authority": "mock",
+  "_note": "국가기술자격 보유 현황. 자격증 번호는 스키마에서 제외한다 — 보유 사실과 등급만 제공한다.",
+  "records": [
+    {
+      "worker_name": "RAMESH THAPA",
+      "certificate_name": "용접기능사",
+      "certificate_grade": "기능사",
+      "certificate_date": "2025-06-20",
+      "issuer": "한국산업인력공단"
+    },
+    {
+      "worker_name": "HTET AUNG",
+      "certificate_name": "컴퓨터응용선반기능사",
+      "certificate_grade": "기능사",
+      "certificate_date": "2024-10-25",
+      "issuer": "한국산업인력공단"
+    },
+    {
+      "worker_name": "DILSHOD KARIMOV",
+      "certificate_name": "용접산업기사",
+      "certificate_grade": "산업기사",
+      "certificate_date": "2025-03-15",
+      "issuer": "한국산업인력공단"
+    }
+  ]
+}

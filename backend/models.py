@@ -62,12 +62,12 @@ class InsuranceDecisionRequest(BaseModel):
 
 
 class BankVerifyRequest(BaseModel):
-    """은행 창구 실명확인 (지갑 발급 1단계)."""
+    """
+    은행 창구 실명확인 (지갑 발급 1단계).
+    계좌는 근로자가 입력하는 값이 아니라 은행이 돌려주는 값이므로 성명만 받는다.
+    """
 
     worker_name: str
-    nationality: str
-    account_bank: str
-    account_number: str
 
 
 class WalletRegisterRequest(BaseModel):

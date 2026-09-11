@@ -1,0 +1,48 @@
+{
+  "_agency": "지정 의료기관",
+  "_agency_id": "clinic",
+  "_authority": "mock",
+  "_note": "건강진단 실시일과 유효기간만 제공한다. 진단 내용·소견은 어떤 경우에도 내보내지 않는다.",
+  "records": [
+    {
+      "worker_name": "NGUYEN VAN A",
+      "health_check_date": "2026-07-15",
+      "health_check_valid_until": "2027-07-14"
+    },
+    {
+      "worker_name": "SITI RAHAYU",
+      "health_check_date": "2026-06-02",
+      "health_check_valid_until": "2027-06-01"
+    },
+    {
+      "worker_name": "RAMESH THAPA",
+      "health_check_date": "2026-05-18",
+      "health_check_valid_until": "2027-05-17"
+    },
+    {
+      "worker_name": "SOMCHAI PRASERT",
+      "health_check_date": "2025-06-01",
+      "health_check_valid_until": "2026-05-31"
+    },
+    {
+      "worker_name": "NGUYEN THI E",
+      "health_check_date": "2026-03-11",
+      "health_check_valid_until": "2027-03-10"
+    },
+    {
+      "worker_name": "SERGEY KIM",
+      "health_check_date": "2026-08-03",
+      "health_check_valid_until": "2027-08-02"
+    },
+    {
+      "worker_name": "HTET AUNG",
+      "health_check_date": "2026-04-21",
+      "health_check_valid_until": "2027-04-20"
+    },
+    {
+      "worker_name": "ANNA PETROVA",
+      "health_check_date": "2026-02-09",
+      "health_check_valid_until": "2027-02-08"
+    }
+  ]
+}

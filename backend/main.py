@@ -37,7 +37,7 @@ from models import (
 import wallet as wallet_svc
 import attendance as att
 from blockchain_client import get_blockchain_client, CredentialStatus
-from agency_api import AGENCIES, PURPOSE_AGENCIES, run_lookups
+from agency_api import PURPOSE_AGENCIES, coverage as agency_coverage, run_lookups
 
 load_dotenv()
 
@@ -70,75 +70,44 @@ def _token_hash(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 def _init_dummy_data():
+    """
+    시연 편의를 위해 두 명은 서버 시작 시 미리 지갑을 만들어 둔다.
+    나머지 인물은 wallet.html에서 은행 확인 → 지갑 발급 흐름으로 직접 만든다.
+    값은 기관 시드에서 조회해 채운다 (하드코딩하지 않는다).
+    """
     bc = get_blockchain_client()
-    dummy_workers = [
-        {
-            "credential_id": "cred-vn-001",
-            "worker_name": "NGUYEN VAN A",
-            "nationality": "베트남",
-            "account_bank": "iM뱅크",
-            "account_number": "512-123456-01",
-            "reg_no": "980312-5123456",
-            "birth_date": "1998-03-12",
-            "gender": "남",
-            "visa_type": "E-9",
-            "visa_valid_until": "2029-03-14",
-            "employer_name": "A제조 (주)대구정밀",
-            "employment_from": "2024-04-01",
-            "employment_to": "2026-08-31",
-            "job_category": "제조업 (금속가공)",
-            "job_change_used": 1,
-            "job_change_limit": 3,
-            "job_change_excluded": 1,
-            "health_check_date": "2026-07-15",
-            "topik_level": "TOPIK 3급",
+    for cid, name in [("cred-vn-001", "NGUYEN VAN A"), ("cred-id-002", "SITI RAHAYU")]:
+        values, log = run_lookups({"worker_name": name}, purpose="employer")
+        row = {
+            "credential_id": cid,
+            "worker_name": name,
             "status": "valid",
             "created_at": datetime.now(timezone.utc).isoformat(),
-        },
-        {
-            "credential_id": "cred-id-002",
-            "worker_name": "SITI RAHAYU",
-            "nationality": "인도네시아",
-            "account_bank": "iM뱅크",
-            "account_number": "512-987654-02",
-            "reg_no": "010725-6234567",
-            "birth_date": "2001-07-25",
-            "gender": "여",
-            "visa_type": "E-9",
-            "visa_valid_until": "2028-11-30",
-            "employer_name": "B식품 (주)경산푸드",
-            "employment_from": "2023-12-01",
-            "employment_to": "2026-08-20",
-            "job_category": "제조업 (식품가공)",
-            "job_change_used": 2,
-            "job_change_limit": 3,
-            "job_change_excluded": 0,
-            "health_check_date": "2026-06-02",
-            "topik_level": "TOPIK 2급",
-            "status": "valid",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "agency_lookups": log,
+            "verified_by": "iM-BANK-001",
+            "id_document": "여권 + 외국인등록증 대조",
         }
-    ]
-    for w in dummy_workers:
-        _local_db[w["credential_id"]] = w
+        row.update(values)
+        row.pop("account_verified", None)
+        _local_db[cid] = row
         try:
-            # 실제 체인에 붙으면 서버가 재시작될 때마다 같은 더미를 다시 등록하려 해서
-            # "Credential already exists"로 revert 되고, 가스만 쓰고 실패 트랜잭션이 남는다.
-            # 먼저 온체인 상태를 조회해 미등록(NONE)일 때만 등록한다.
-            status = bc.get_status(w["credential_id"])
-            w["credential_hash"] = status["credential_hash"]
+            # 실제 체인에 붙으면 재시작 때마다 같은 더미를 다시 등록하려다
+            # "Credential already exists"로 revert 된다. 미등록일 때만 등록한다.
+            status = bc.get_status(cid)
+            row["credential_hash"] = status["credential_hash"]
             if status["status_code"] == int(CredentialStatus.NONE):
-                bc_res = bc.issue(w["credential_id"])
-                w["tx_hash"] = bc_res["tx_hash"]
-                w["explorer_url"] = bc_res["explorer_url"]
+                res = bc.issue(cid)
+                row["tx_hash"] = res["tx_hash"]
+                row["explorer_url"] = res["explorer_url"]
+                row["chain_mode"] = res.get("mode")
             else:
-                # 이미 체인에 있다. 상태를 체인 값으로 맞추고, 등록 트랜잭션은 이번에
-                # 발생하지 않았으므로 tx 링크를 만들지 않는다.
-                w["status"] = status["status_name"]
-                w["tx_hash"] = None
-                w["explorer_url"] = None
+                row["status"] = status["status_name"]
+                row["tx_hash"] = None
+                row["explorer_url"] = None
+                row["chain_mode"] = status["mode"]
         except Exception:
             pass
+
 
 _init_dummy_data()
 
@@ -198,123 +167,213 @@ def _days_left(date_str: str | None, days: int):
     return (end + timedelta(days=days) - datetime.now(timezone.utc).date()).days
 
 
+# 체류자격마다 이직 규정이 다르다. 이 표가 대사표의 분기 근거다.
+# 규정은 제도 개정이 잦으므로 발표 자료에 수치를 박기 전 원문을 재확인할 것.
+_VISA_RULES = {
+    "E-9": {
+        "label": "비전문취업 (고용허가제)",
+        "change_rule": "사업장 변경 3회 제한 · 계약 종료 후 1개월 내 신청 · 구직기간 3개월",
+        "count_limited": True,
+        "deadline_days": 30,
+        "search_days": 90,
+    },
+    "H-2": {
+        "label": "방문취업 (동포 특례고용)",
+        "change_rule": "특례고용 — 사업장 변경 횟수 제한 없음 · 근무개시 15일 내 신고",
+        "count_limited": False,
+        "deadline_days": None,
+        "search_days": None,
+    },
+    "E-7-4": {
+        "label": "숙련기능인력 (점수제)",
+        "change_rule": "근무처 변경 사전허가 대상 · 최소 근무기간 또는 사용자 귀책 요건 충족 필요",
+        "count_limited": False,
+        "deadline_days": None,
+        "search_days": None,
+    },
+    "F-6": {
+        "label": "결혼이민",
+        "change_rule": "취업활동 제한 없음 · 사업장 변경 신고 불필요",
+        "count_limited": False,
+        "deadline_days": None,
+        "search_days": None,
+    },
+}
+
+
+def _visa_rule(cred: dict):
+    return _VISA_RULES.get(cred.get("visa_type") or "E-9", _VISA_RULES["E-9"])
+
+
 def _build_job_change_dossier(cred: dict) -> dict:
-    used = cred.get("job_change_used")
-    limit = cred.get("job_change_limit") or 3
-    excluded = cred.get("job_change_excluded") or 0
-    deadline_left = _days_left(cred.get("employment_to"), _DEADLINE_DAYS)
-    search_left = _days_left(cred.get("employment_to"), 90)  # 구직기간 최대 3개월
+    rule = _visa_rule(cred)
+    notice = []
 
     verified = [
         {
             "name": "체류자격",
-            "value": f"{_fmt(cred.get('visa_type'), 'E-9')} · 만료 {_fmt(cred.get('visa_valid_until'))}",
+            "value": (
+                f"{_fmt(cred.get('visa_type'), 'E-9')} {rule['label']} · "
+                f"만료 {_fmt(cred.get('visa_valid_until'))}"
+                + (f" · 상태 {cred['visa_status']}" if cred.get("visa_status") not in (None, "유효") else "")
+            ),
             "issuer": "출입국·외국인청",
         },
         {
+            "name": "이직 규정",
+            "value": rule["change_rule"],
+            "issuer": "체류자격별 적용 규정",
+        },
+    ]
+
+    # 사업장 변경 횟수는 E-9에만 있는 개념이다.
+    used, limit = cred.get("job_change_used"), cred.get("job_change_limit") or 3
+    excluded = cred.get("job_change_excluded") or 0
+    if rule["count_limited"]:
+        verified.append({
             "name": "사업장 변경 이력",
             "value": (
-                f"{used}/{limit}회 사용"
-                + (f" (사용자 귀책 {excluded}건 미산입)" if excluded else "")
+                f"{used}/{limit}회 사용" + (f" (사용자 귀책 {excluded}건 미산입)" if excluded else "")
                 if used is not None else "변경 이력 없음"
             ),
             "issuer": "고용노동부 고용센터",
-        },
-        {
-            "name": "고용·경력",
-            "value": (
-                f"{cred['employer_name']} · "
-                f"{_fmt(cred.get('employment_from'))}~{_fmt(cred.get('employment_to'))} · "
-                f"{_fmt(cred.get('job_category'))}"
-                if cred.get("employer_name")
-                # 갓 입국해 첫 직장을 구하는 경우. 기록이 없는 것이 정상이다.
-                else "고용 기록 없음 (신규 입국 · 사업장 변경 아님)"
-            ),
-            "issuer": "고용허가서 / 표준근로계약서",
-        },
-        {
-            "name": "급여계좌",
-            "value": f"{_fmt(cred.get('account_bank'))} {_fmt(cred.get('account_number'))}",
-            "issuer": "은행 실명확인",
-        },
-    ]
+        })
+        if used is not None and used >= limit:
+            notice.append("사업장 변경 횟수 한도 소진 — 사용자 귀책 사유 확인 필요")
 
-    hc = cred.get("health_check_date")
+    verified.append({
+        "name": "고용·경력",
+        "value": (
+            f"{cred['employer_name']} · {_fmt(cred.get('industry'))} · "
+            f"{_fmt(cred.get('employment_from'))}~{_fmt(cred.get('employment_to'))} · "
+            f"{_fmt(cred.get('job_category'))}"
+            if cred.get("employer_name")
+            else "고용 기록 없음 (신규 입국 또는 취업 제한 없는 자격)"
+        ),
+        "issuer": "고용노동부 고용센터",
+    })
+    verified.append({
+        "name": "급여계좌",
+        "value": f"{_fmt(cred.get('account_bank'))} {_fmt(cred.get('account_number'))}",
+        "issuer": "iM뱅크 실명확인",
+    })
+
+    # 건강진단 — 유효기간까지 본다
+    hc, until = cred.get("health_check_date"), cred.get("health_check_valid_until")
     if hc:
+        expired = bool(until and until < datetime.now(timezone.utc).date().isoformat())
         verified.append({
             "name": "건강진단",
-            "value": f"{hc} 실시 · 유효 (진단 내용 비공개)",
+            "value": (f"{hc} 실시 · {until or '유효기간 미상'}까지"
+                      + (" · 기한 경과" if expired else " 유효") + " (진단 내용 비공개)"),
             "issuer": "지정 의료기관",
         })
-    if cred.get("topik_level"):
+        if expired:
+            notice.append(f"건강진단 기한 경과({until}) — 입사 전 재검진 필요")
+    else:
+        notice.append("건강진단 기록 없음 — 입사 전 검진 필요")
+
+    # 한국어 — 자격마다 요구되는 시험이 다르다
+    if cred.get("eps_topik_score"):
         verified.append({
-            "name": "어학",
-            "value": cred["topik_level"],
+            "name": "한국어 (EPS-TOPIK)",
+            "value": f"{cred['eps_topik_score']} · {_fmt(cred.get('eps_topik_date'))} 응시 (E-9 입국 요건)",
+            "issuer": "한국산업인력공단",
+        })
+    if cred.get("topik_level") or cred.get("kiip_level"):
+        parts = []
+        if cred.get("topik_level"):
+            parts.append(f"{cred['topik_level']} ({_fmt(cred.get('topik_date'))})")
+        if cred.get("kiip_level"):
+            parts.append(f"{cred.get('kiip_program', '사회통합프로그램')} {cred['kiip_level']}")
+        verified.append({
+            "name": "한국어 (TOPIK·KIIP)",
+            "value": " · ".join(parts),
             "issuer": "국립국제교육원",
         })
 
-    # 이 화면은 "채용 사업장이 스캔하는 화면"이다. 따라서 근로자가 이 회사에
-    # 내거나 이 회사가 확인해야 하는 것만 서류로 세운다. 고용센터·출입국에
-    # 내는 서류(변경사유 확인서, 통합신청서 등)나 회사 자체 서류(사업자등록증)는
-    # 제출 대상이 아니므로 목록에서 빼고, 절차 진행 상태로만 참고 표시한다.
-    attached = [
-        {"name": "증명사진", "note": "인사기록카드용 · 검증 대상 아님"},
-    ]
+    if cred.get("job_training_name"):
+        verified.append({
+            "name": "취업교육",
+            "value": f"{cred['job_training_name']} {cred.get('job_training_hours', '')}시간 · {_fmt(cred.get('job_training_date'))} 이수",
+            "issuer": "한국산업인력공단",
+        })
+    if cred.get("certificate_name"):
+        verified.append({
+            "name": "국가기술자격",
+            "value": f"{cred['certificate_name']} ({_fmt(cred.get('certificate_grade'))}) · {_fmt(cred.get('certificate_date'))} 취득",
+            "issuer": "Q-Net 한국산업인력공단",
+        })
+    if cred.get("safety_training_name"):
+        verified.append({
+            "name": "안전보건교육",
+            "value": (f"{cred['safety_training_name']}"
+                      + (f" {cred['safety_training_hours']}" if cred.get("safety_training_hours") else "")
+                      + f" · {_fmt(cred.get('safety_training_date'))} 이수"),
+            "issuer": "안전보건공단",
+        })
+    elif (cred.get("industry") or "") == "건설업":
+        notice.append("건설업 기초안전보건교육 미이수 — 현장 투입 전 4시간 이수 필요")
+
+    # 이 화면은 채용 사업장이 스캔하는 화면이다. 근로자가 이 회사에 내거나
+    # 이 회사가 확인해야 하는 것만 서류로 세운다.
+    attached = [{"name": "증명사진", "note": "인사기록카드용 · 검증 대상 아님"}]
     required = [
         {"name": "여권 · 외국인등록증", "note": "채용 시 실물 대조 (체류자격 확인 의무)"},
         {"name": "표준근로계약서", "note": "본 사업장과 새로 체결 · 서명본"},
     ]
-    # 서류가 아니라 절차다. 회사가 채용 전에 확인만 하면 되는 항목.
     procedure = [
-        {"name": "고용센터 사업장변경 신청", "note": "근로자 본인 · 변경사유 확인서 제출"},
-        {"name": "출입국 근무처변경허가", "note": "근로자 본인 · 통합신청서(별지 제34호)"},
-        {"name": "고용허가서 발급", "note": "본 사업장이 고용센터에서 발급"},
+        {"name": "고용센터 사업장변경 신청", "note": "근로자 본인 · E-9 해당"} if rule["count_limited"]
+        else {"name": "근무처 변경 신고·허가", "note": f"{cred.get('visa_type')} 절차에 따름"},
+        {"name": "출입국 근무처변경 허가·신고", "note": "근로자 본인 · 통합신청서(별지 제34호)"},
+        {"name": "고용허가서 발급", "note": "본 사업장이 고용센터에서 발급"} if rule["count_limited"]
+        else {"name": "고용 신고", "note": "본 사업장 처리"},
         {"name": "4대보험 취득신고 · 고용변동 신고", "note": "입사 후 본 사업장 처리"},
     ]
 
-    notice = []
-    if deadline_left is not None:
-        notice.append(
-            f"사업장 변경 신청기한: 계약 종료({cred.get('employment_to')}) 후 1개월 이내 · "
-            + (f"D-{deadline_left}" if deadline_left >= 0 else f"{-deadline_left}일 경과")
-        )
-    if search_left is not None:
-        notice.append(
-            "구직기간 최대 3개월 · "
-            + (f"잔여 {search_left}일" if search_left >= 0 else f"{-search_left}일 경과")
-        )
-    if used is not None and used >= limit:
-        notice.append("사업장 변경 횟수 한도 소진 — 사용자 귀책 사유 확인 필요")
+    # 기한 계산은 E-9에만 적용된다.
+    if rule["deadline_days"]:
+        d = _days_left(cred.get("employment_to"), rule["deadline_days"])
+        if d is not None:
+            notice.append(
+                f"사업장 변경 신청기한: 계약 종료({cred.get('employment_to')}) 후 1개월 이내 · "
+                + (f"D-{d}" if d >= 0 else f"{-d}일 경과"))
+    if rule["search_days"]:
+        d = _days_left(cred.get("employment_to"), rule["search_days"])
+        if d is not None:
+            notice.append("구직기간 최대 3개월 · "
+                          + (f"잔여 {d}일" if d >= 0 else f"{-d}일 경과"))
+
+    visa_until = cred.get("visa_valid_until")
+    if visa_until:
+        try:
+            left = (datetime.strptime(visa_until, "%Y-%m-%d").date()
+                    - datetime.now(timezone.utc).date()).days
+            if left < 0:
+                notice.append(f"체류 만료일 경과({visa_until})")
+            elif left <= 90:
+                notice.append(f"체류 만료 임박 — {visa_until} · 잔여 {left}일")
+        except Exception:
+            pass
+    if cred.get("visa_status") not in (None, "유효"):
+        notice.insert(0, f"체류자격 {cred['visa_status']} — 고용할 수 없습니다")
 
     return {
+        "visa_type": cred.get("visa_type"),
+        "visa_rule": rule["change_rule"],
         "verified": verified,
         "attached": attached,
         "required": required,
         "procedure": procedure,
         "notice": notice,
-        "summary": {
-            "verified": len(verified),
-            "attached": len(attached),
-            "required": len(required),
-        },
+        "summary": {"verified": len(verified), "attached": len(attached), "required": len(required)},
     }
-
-
-# 발급 시 기관 조회.
-# 체류자격·고용이력·건강진단 같은 값은 근로자가 입력하는 값이 아니라 기관이 답하는 값이다.
-# 요청에 값이 실려 오면 그대로 쓰고(수동 override), 없으면 agency_api로 조회한다.
 
 
 @app.get("/agencies")
 def list_agencies():
     """발급기관 목록과 목적별 조회 대상. 화면에서 배지 구분에 쓴다."""
-    return {
-        "agencies": [
-            {k: a[k] for k in ("id", "name", "authority", "purpose")}
-            for a in AGENCIES
-        ],
-        "purposes": PURPOSE_AGENCIES,
-    }
+    return {"agencies": agency_coverage(), "purposes": PURPOSE_AGENCIES}
 
 
 @app.post("/credentials")
@@ -447,7 +506,12 @@ def list_credentials():
 
 @app.post("/wallet/bank-verify")
 def wallet_bank_verify(req: BankVerifyRequest):
-    row = wallet_svc.bank_verify(req.worker_name, req.account_number, req.account_bank)
+    row, err = wallet_svc.bank_verify(req.worker_name)
+    if err:
+        raise HTTPException(
+            status_code=403,
+            detail="BANK_KYC_NOT_FOUND: 창구 실명확인 기록이 없습니다. 급여계좌 개설 후 다시 시도하십시오.",
+        )
     return {
         "verification_token": row["token"],
         "verified_by": row["verified_by"],
@@ -456,6 +520,8 @@ def wallet_bank_verify(req: BankVerifyRequest):
         "verified_at": row["verified_at"],
         "expires_at": row["expires_at"].isoformat(),
         "bank_signature": row["bank_signature"],
+        "account_number": row["account_number"],
+        "kyc_date": row["kyc_date"],
         "message": "은행 창구 실명확인이 완료되었습니다. 30분 내에 지갑을 등록하세요.",
     }
 
@@ -466,26 +532,30 @@ def wallet_register(req: WalletRegisterRequest):
     if err:
         raise HTTPException(status_code=403, detail=err)
 
-    worker = {
-        "worker_name": verification["worker_name"],
-        "account_number": verification["account_number"],
-    }
+    worker = {"worker_name": verification["worker_name"]}
 
     # ③ 출입국은 필수다. 은행 실명확인을 통과했더라도 체류 기록이 없으면 발급하지 않는다.
-    immigration = run_lookups(worker, purpose="hospital")[1]
-    imm = next((l for l in immigration if l["agency_id"] == "immigration"), None)
+    immigration_values, immigration_log = run_lookups(worker, purpose="hospital")
+    imm = next((l for l in immigration_log if l["agency_id"] == "immigration"), None)
     if not imm or imm["status"] != "ok":
         raise HTTPException(
             status_code=403,
             detail="IMMIGRATION_RECORD_NOT_FOUND: 출입국 체류 기록을 확인할 수 없어 지갑을 발급하지 않습니다.",
         )
 
+    # 기록은 있으나 체류자격이 말소·취소된 경우. 은행 실명확인만으로는 잡히지 않는다.
+    imm_values = immigration_values.get("visa_status")
+    if imm_values not in (None, "유효"):
+        raise HTTPException(
+            status_code=403,
+            detail=f"VISA_NOT_ACTIVE: 체류자격이 {imm_values} 상태입니다. 지갑을 발급할 수 없습니다.",
+        )
+
     # 이미 지갑이 있으면 새로 만들지 않는다 (지갑은 1인 1개).
     # 다만 단말 키는 다시 등록한다 — 폰을 바꾸거나 앱을 다시 깔면
     # 새 키 쌍이 만들어지고, 은행 실명확인을 다시 거쳐 그 단말을 묶는다.
     for existing in _local_db.values():
-        if (existing.get("worker_name") == worker["worker_name"]
-                and existing.get("account_number") == worker["account_number"]):
+        if existing.get("worker_name") == worker["worker_name"]:
             cid = existing["credential_id"]
             holder = wallet_svc.register_holder_key(cid, req.public_key, verification)
             if not existing.get("agency_lookups"):
@@ -509,7 +579,6 @@ def wallet_register(req: WalletRegisterRequest):
     row = {
         "credential_id": cid,
         "worker_name": verification["worker_name"],
-        "nationality": None,
         "account_bank": verification["bank_name"],
         "account_number": verification["account_number"],
         "status": "valid",

@@ -1,0 +1,138 @@
+{
+  "_agency": "출입국·외국인청",
+  "_agency_id": "immigration",
+  "_authority": "mock",
+  "_note": "체류자격과 신원. 체류자격이 말소되었거나 명단에 없으면 지갑을 발급하지 않는다.",
+  "records": [
+    {
+      "worker_name": "NGUYEN VAN A",
+      "nationality": "베트남",
+      "reg_no": "980312-5000001",
+      "birth_date": "1998-03-12",
+      "gender": "남",
+      "visa_type": "E-9",
+      "visa_valid_until": "2029-03-14",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "SITI RAHAYU",
+      "nationality": "인도네시아",
+      "reg_no": "010725-6000002",
+      "birth_date": "2001-07-25",
+      "gender": "여",
+      "visa_type": "E-9",
+      "visa_valid_until": "2028-11-30",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "BOLORMAA BAT",
+      "nationality": "몽골",
+      "reg_no": "000914-6000003",
+      "birth_date": "2000-09-14",
+      "gender": "여",
+      "visa_type": "E-9",
+      "visa_valid_until": "2030-06-19",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "RAMESH THAPA",
+      "nationality": "네팔",
+      "reg_no": "940902-5000004",
+      "birth_date": "1994-09-02",
+      "gender": "남",
+      "visa_type": "E-9",
+      "visa_valid_until": "2027-06-30",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "SOMCHAI PRASERT",
+      "nationality": "태국",
+      "reg_no": "990415-5000005",
+      "birth_date": "1999-04-15",
+      "gender": "남",
+      "visa_type": "E-9",
+      "visa_valid_until": "2028-02-28",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "MARIA SANTOS",
+      "nationality": "필리핀",
+      "reg_no": "020211-6000006",
+      "birth_date": "2002-02-11",
+      "gender": "여",
+      "visa_type": "E-9",
+      "visa_valid_until": "2029-08-15",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "NGUYEN THI E",
+      "nationality": "베트남",
+      "reg_no": "010303-6000007",
+      "birth_date": "2001-03-03",
+      "gender": "여",
+      "visa_type": "E-9",
+      "visa_valid_until": "2027-05-09",
+      "visa_status": "말소"
+    },
+    {
+      "worker_name": "SERGEY KIM",
+      "nationality": "러시아",
+      "reg_no": "880720-5000008",
+      "birth_date": "1988-07-20",
+      "gender": "남",
+      "visa_type": "H-2",
+      "visa_valid_until": "2029-01-31",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "LI CHUNHUA",
+      "nationality": "중국",
+      "reg_no": "910105-6000009",
+      "birth_date": "1991-01-05",
+      "gender": "여",
+      "visa_type": "H-2",
+      "visa_valid_until": "2026-11-20",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "OLGA TSOY",
+      "nationality": "카자흐스탄",
+      "reg_no": "930628-6000010",
+      "birth_date": "1993-06-28",
+      "gender": "여",
+      "visa_type": "H-2",
+      "visa_valid_until": "2028-10-02",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "HTET AUNG",
+      "nationality": "미얀마",
+      "reg_no": "920511-5000011",
+      "birth_date": "1992-05-11",
+      "gender": "남",
+      "visa_type": "E-7-4",
+      "visa_valid_until": "2029-12-31",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "DILSHOD KARIMOV",
+      "nationality": "우즈베키스탄",
+      "reg_no": "950130-5000012",
+      "birth_date": "1995-01-30",
+      "gender": "남",
+      "visa_type": "E-7-4",
+      "visa_valid_until": "2030-03-20",
+      "visa_status": "유효"
+    },
+    {
+      "worker_name": "ANNA PETROVA",
+      "nationality": "러시아",
+      "reg_no": "960823-6000013",
+      "birth_date": "1996-08-23",
+      "gender": "여",
+      "visa_type": "F-6",
+      "visa_valid_until": "2031-04-18",
+      "visa_status": "유효"
+    }
+  ]
+}

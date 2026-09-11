@@ -1,0 +1,50 @@
+{
+  "_agency": "안전보건공단 (KOSHA)",
+  "_agency_id": "kosha",
+  "_authority": "mock",
+  "_note": "업종별 안전보건교육 이수. 건설업은 기초안전보건교육 4시간이 현장 투입 전 필수다.",
+  "records": [
+    {
+      "worker_name": "NGUYEN VAN A",
+      "safety_training_name": "제조업 정기 안전보건교육",
+      "safety_training_date": "2026-01-15"
+    },
+    {
+      "worker_name": "SITI RAHAYU",
+      "safety_training_name": "제조업 정기 안전보건교육",
+      "safety_training_date": "2026-02-20"
+    },
+    {
+      "worker_name": "BOLORMAA BAT",
+      "safety_training_name": "건설업 기초안전보건교육",
+      "safety_training_date": "2026-06-25",
+      "safety_training_hours": "4시간"
+    },
+    {
+      "worker_name": "RAMESH THAPA",
+      "safety_training_name": "조선업 특별 안전보건교육",
+      "safety_training_date": "2025-11-04"
+    },
+    {
+      "worker_name": "SOMCHAI PRASERT",
+      "safety_training_name": "농축산업 안전보건교육",
+      "safety_training_date": "2026-03-12"
+    },
+    {
+      "worker_name": "SERGEY KIM",
+      "safety_training_name": "제조업 정기 안전보건교육",
+      "safety_training_date": "2026-01-28"
+    },
+    {
+      "worker_name": "OLGA TSOY",
+      "safety_training_name": "건설업 기초안전보건교육",
+      "safety_training_date": "2023-03-02",
+      "safety_training_hours": "4시간"
+    },
+    {
+      "worker_name": "HTET AUNG",
+      "safety_training_name": "제조업 정기 안전보건교육",
+      "safety_training_date": "2026-05-09"
+    }
+  ]
+}

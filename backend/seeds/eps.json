@@ -1,0 +1,103 @@
+{
+  "_agency": "고용노동부 고용센터 (EPS)",
+  "_agency_id": "eps",
+  "_authority": "mock",
+  "_note": "고용이력. 사업장 변경 횟수는 E-9에만 적용된다. 갓 입국한 근로자와 취업 제한이 없는 자격(F-6)은 기록이 없는 것이 정상이다.",
+  "records": [
+    {
+      "worker_name": "NGUYEN VAN A",
+      "employer_name": "A제조 (주)대구정밀",
+      "industry": "제조업",
+      "job_category": "금속가공",
+      "employment_from": "2024-04-01",
+      "employment_to": "2026-08-31",
+      "job_change_used": 1,
+      "job_change_limit": 3,
+      "job_change_excluded": 1
+    },
+    {
+      "worker_name": "SITI RAHAYU",
+      "employer_name": "B식품 (주)경산푸드",
+      "industry": "제조업",
+      "job_category": "식품가공",
+      "employment_from": "2023-12-01",
+      "employment_to": "2026-08-20",
+      "job_change_used": 2,
+      "job_change_limit": 3,
+      "job_change_excluded": 0
+    },
+    {
+      "worker_name": "RAMESH THAPA",
+      "employer_name": "C조선 (주)영천기자재",
+      "industry": "조선업",
+      "job_category": "용접",
+      "employment_from": "2022-09-01",
+      "employment_to": "2026-08-25",
+      "job_change_used": 3,
+      "job_change_limit": 3,
+      "job_change_excluded": 0
+    },
+    {
+      "worker_name": "SOMCHAI PRASERT",
+      "employer_name": "D농산 (주)고령영농",
+      "industry": "농축산업",
+      "job_category": "시설원예",
+      "employment_from": "2024-02-05",
+      "employment_to": "2026-08-28",
+      "job_change_used": 1,
+      "job_change_limit": 3,
+      "job_change_excluded": 0
+    },
+    {
+      "worker_name": "NGUYEN THI E",
+      "employer_name": "E전자 (주)구미부품",
+      "industry": "제조업",
+      "job_category": "전자부품 조립",
+      "employment_from": "2023-08-01",
+      "employment_to": "2026-08-29",
+      "job_change_used": 1,
+      "job_change_limit": 3,
+      "job_change_excluded": 0
+    },
+    {
+      "worker_name": "SERGEY KIM",
+      "employer_name": "F모빌 (주)달성자동차부품",
+      "industry": "제조업",
+      "job_category": "자동차부품",
+      "employment_from": "2021-06-14",
+      "employment_to": "2026-09-02"
+    },
+    {
+      "worker_name": "LI CHUNHUA",
+      "employer_name": "G식당 (주)수성푸드빌",
+      "industry": "음식점업",
+      "job_category": "조리 보조",
+      "employment_from": "2022-04-01",
+      "employment_to": "2026-08-31"
+    },
+    {
+      "worker_name": "OLGA TSOY",
+      "employer_name": "H건설 (주)칠곡종합건설",
+      "industry": "건설업",
+      "job_category": "형틀목공",
+      "employment_from": "2023-03-06",
+      "employment_to": "2026-08-27"
+    },
+    {
+      "worker_name": "HTET AUNG",
+      "employer_name": "I정밀 (주)성서테크",
+      "industry": "제조업",
+      "job_category": "정밀가공(CNC)",
+      "employment_from": "2021-10-01",
+      "employment_to": "2026-08-31"
+    },
+    {
+      "worker_name": "DILSHOD KARIMOV",
+      "employer_name": "J중공업 (주)포항플랜트",
+      "industry": "조선업",
+      "job_category": "선체 용접",
+      "employment_from": "2022-12-15",
+      "employment_to": "2026-07-31"
+    }
+  ]
+}
