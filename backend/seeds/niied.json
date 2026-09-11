@@ -1,0 +1,35 @@
+{
+  "_agency": "국립국제교육원 · 사회통합프로그램",
+  "_agency_id": "niied",
+  "_authority": "mock",
+  "_note": "일반 TOPIK 등급과 사회통합프로그램(KIIP) 이수 단계. E-7-4 점수제와 F계열 체류자격에서 쓰인다. E-9 입국 요건인 EPS-TOPIK과는 다른 제도다.",
+  "records": [
+    {
+      "worker_name": "SITI RAHAYU",
+      "topik_level": "TOPIK 2급",
+      "topik_date": "2024-07-14"
+    },
+    {
+      "worker_name": "HTET AUNG",
+      "topik_level": "TOPIK 3급",
+      "topik_date": "2025-04-13",
+      "kiip_program": "사회통합프로그램",
+      "kiip_level": "4단계"
+    },
+    {
+      "worker_name": "DILSHOD KARIMOV",
+      "kiip_program": "사회통합프로그램",
+      "kiip_level": "5단계"
+    },
+    {
+      "worker_name": "ANNA PETROVA",
+      "kiip_program": "사회통합프로그램",
+      "kiip_level": "4단계"
+    },
+    {
+      "worker_name": "LI CHUNHUA",
+      "topik_level": "TOPIK 3급",
+      "topik_date": "2023-10-15"
+    }
+  ]
+}

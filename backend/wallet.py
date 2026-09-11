@@ -21,6 +21,7 @@ import os
 import secrets
 from datetime import datetime, timedelta, timezone
 
+import agency_api
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec, utils as asym_utils
@@ -30,13 +31,8 @@ BANK_SECRET = os.environ.get("BANK_SECRET", "dev-bank-secret")
 BANK_ID = "iM-BANK-001"
 VERIFICATION_TTL_MIN = 30
 
-# 은행 창구에서 실명확인을 마쳤다고 가정하는 사람들.
-# 실제로는 여권·외국인등록증 대조 결과가 은행 시스템에 남는다.
-_BANK_KYC = {
-    ("NGUYEN VAN A", "512-123456-01"): {"passport_no": "C1234567", "reg_no": "980312-5123456"},
-    ("SITI RAHAYU", "512-987654-02"): {"passport_no": "X7654321", "reg_no": "010725-6234567"},
-}
-
+# 창구 실명확인 명단은 은행 자기 파일(seeds/bank_kyc.json)에서 읽는다.
+# 여기에 없으면 지갑 발급 1단계에서 막힌다 — 출입국 미등록(위조 등록증)과는 다른 이유다.
 _verifications = {}   # token -> 본인확인 결과
 _wallets = {}         # credential_id -> 홀더 공개키 등록 정보
 
@@ -45,23 +41,25 @@ def _b64u_decode(s: str) -> bytes:
     return base64.urlsafe_b64decode(s + "=" * (-len(s) % 4))
 
 
-def bank_verify(worker_name: str, account_number: str, account_bank: str):
+def bank_verify(worker_name: str):
     """
     은행 창구 실명확인 (시뮬레이션).
-    성공하면 30분짜리 확인 토큰을 내준다. 지갑 등록은 이 토큰이 있어야 한다.
+    은행 명단에 있어야 한다. 성공하면 30분짜리 1회용 확인 토큰을 내준다.
     """
-    kyc = _BANK_KYC.get((worker_name, account_number))
-    known = kyc is not None
+    kyc = agency_api.load_agency("bank_kyc.json")["_index"].get(worker_name)
+    if not kyc:
+        return None, "BANK_KYC_NOT_FOUND"
 
     token = secrets.token_urlsafe(24)
     row = {
         "token": token,
         "verified_by": BANK_ID,
-        "bank_name": account_bank or "iM뱅크",
+        "bank_name": kyc["account_bank"],
         "worker_name": worker_name,
-        "account_number": account_number,
-        "id_document": "여권 + 외국인등록증 대조" if known else "신규 고객 (창구 대조)",
-        "passport_no": (kyc or {}).get("passport_no"),
+        "account_number": kyc["account_number"],
+        "id_document": "여권 + 외국인등록증 대조",
+        "passport_no": kyc.get("passport_no"),
+        "kyc_date": kyc.get("kyc_date"),
         "verified_at": datetime.now(timezone.utc).isoformat(),
         "expires_at": datetime.now(timezone.utc) + timedelta(minutes=VERIFICATION_TTL_MIN),
         "used": False,
@@ -69,11 +67,11 @@ def bank_verify(worker_name: str, account_number: str, account_bank: str):
     # 은행이 이 확인 결과에 서명한다. 서버가 뒤에서 내용을 바꾸면 서명이 깨진다.
     row["bank_signature"] = hmac.new(
         BANK_SECRET.encode(),
-        f"{token}|{worker_name}|{account_number}".encode(),
+        f"{token}|{worker_name}|{row['account_number']}".encode(),
         hashlib.sha256,
     ).hexdigest()
     _verifications[token] = row
-    return row
+    return row, None
 
 
 def consume_verification(token: str):

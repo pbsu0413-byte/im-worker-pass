@@ -1,0 +1,98 @@
+{
+  "_agency": "한국산업인력공단 (HRD Korea)",
+  "_agency_id": "hrdk",
+  "_authority": "mock",
+  "_note": "고용허가제 한국어능력시험(EPS-TOPIK)과 취업교육 이수. EPS-TOPIK은 일반 TOPIK과 다른 시험이며 E-9 입국 요건이다. H-2 동포는 시험 대신 16시간 취업교육을 이수한다.",
+  "records": [
+    {
+      "worker_name": "NGUYEN VAN A",
+      "job_training_name": "E-9 취업교육",
+      "job_training_hours": 20,
+      "job_training_date": "2024-03-25",
+      "eps_topik_test": "EPS-TOPIK",
+      "eps_topik_score": "168점",
+      "eps_topik_date": "2023-09-10"
+    },
+    {
+      "worker_name": "SITI RAHAYU",
+      "job_training_name": "E-9 취업교육",
+      "job_training_hours": 20,
+      "job_training_date": "2023-11-22",
+      "eps_topik_test": "EPS-TOPIK",
+      "eps_topik_score": "152점",
+      "eps_topik_date": "2023-05-14"
+    },
+    {
+      "worker_name": "BOLORMAA BAT",
+      "job_training_name": "E-9 취업교육",
+      "job_training_hours": 20,
+      "job_training_date": "2026-06-20",
+      "eps_topik_test": "EPS-TOPIK",
+      "eps_topik_score": "175점",
+      "eps_topik_date": "2026-04-12"
+    },
+    {
+      "worker_name": "RAMESH THAPA",
+      "job_training_name": "E-9 취업교육",
+      "job_training_hours": 20,
+      "job_training_date": "2022-08-18",
+      "eps_topik_test": "EPS-TOPIK",
+      "eps_topik_score": "181점",
+      "eps_topik_date": "2022-03-20"
+    },
+    {
+      "worker_name": "SOMCHAI PRASERT",
+      "job_training_name": "E-9 취업교육",
+      "job_training_hours": 20,
+      "job_training_date": "2024-01-30",
+      "eps_topik_test": "EPS-TOPIK",
+      "eps_topik_score": "143점",
+      "eps_topik_date": "2023-10-08"
+    },
+    {
+      "worker_name": "MARIA SANTOS",
+      "job_training_name": "E-9 취업교육",
+      "job_training_hours": 20,
+      "job_training_date": "2025-02-05",
+      "eps_topik_test": "EPS-TOPIK",
+      "eps_topik_score": "160점",
+      "eps_topik_date": "2024-11-17"
+    },
+    {
+      "worker_name": "NGUYEN THI E",
+      "job_training_name": "E-9 취업교육",
+      "job_training_hours": 20,
+      "job_training_date": "2023-07-14",
+      "eps_topik_test": "EPS-TOPIK",
+      "eps_topik_score": "149점",
+      "eps_topik_date": "2023-02-19"
+    },
+    {
+      "worker_name": "SERGEY KIM",
+      "job_training_name": "H-2 취업교육",
+      "job_training_hours": 16,
+      "job_training_date": "2021-06-02"
+    },
+    {
+      "worker_name": "LI CHUNHUA",
+      "job_training_name": "H-2 취업교육",
+      "job_training_hours": 16,
+      "job_training_date": "2022-03-28"
+    },
+    {
+      "worker_name": "OLGA TSOY",
+      "job_training_name": "H-2 취업교육",
+      "job_training_hours": 16,
+      "job_training_date": "2023-02-27"
+    },
+    {
+      "worker_name": "HTET AUNG",
+      "job_training_name": "E-9 취업교육",
+      "job_training_hours": 20,
+      "job_training_date": "2021-09-15",
+      "eps_topik_test": "EPS-TOPIK",
+      "eps_topik_score": "172점",
+      "eps_topik_date": "2021-04-11"
+    }
+  ]
+}
