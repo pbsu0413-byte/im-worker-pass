@@ -25,13 +25,19 @@ from fastapi.staticfiles import StaticFiles
 
 from crypto_utils import sign_payload, verify_signature
 from models import (
+    AttendanceScanRequest,
+    BankVerifyRequest,
     CredentialIssueRequest,
     InsuranceDecisionRequest,
     InsuranceSubmitRequest,
     PresentationRequest,
     VerifyRequest,
+    WalletRegisterRequest,
 )
+import wallet as wallet_svc
+import attendance as att
 from blockchain_client import get_blockchain_client, CredentialStatus
+from agency_api import AGENCIES, PURPOSE_AGENCIES, run_lookups
 
 load_dotenv()
 
@@ -210,16 +216,19 @@ def _build_job_change_dossier(cred: dict) -> dict:
             "value": (
                 f"{used}/{limit}회 사용"
                 + (f" (사용자 귀책 {excluded}건 미산입)" if excluded else "")
-                if used is not None else "이력 없음"
+                if used is not None else "변경 이력 없음"
             ),
             "issuer": "고용노동부 고용센터",
         },
         {
             "name": "고용·경력",
             "value": (
-                f"{_fmt(cred.get('employer_name'))} · "
+                f"{cred['employer_name']} · "
                 f"{_fmt(cred.get('employment_from'))}~{_fmt(cred.get('employment_to'))} · "
                 f"{_fmt(cred.get('job_category'))}"
+                if cred.get("employer_name")
+                # 갓 입국해 첫 직장을 구하는 경우. 기록이 없는 것이 정상이다.
+                else "고용 기록 없음 (신규 입국 · 사업장 변경 아님)"
             ),
             "issuer": "고용허가서 / 표준근로계약서",
         },
@@ -291,27 +300,21 @@ def _build_job_change_dossier(cred: dict) -> dict:
     }
 
 
-# 발급기관(출입국·고용센터·지정 의료기관) 조회 시뮬레이션.
-# 이 값들은 근로자가 지갑에서 입력하는 값이 아니라 기관이 서명해 내려주는 값이므로,
-# 발급 요청에 없으면 기관 조회 결과를 가져온 것으로 보고 채운다.
-_AGENCY_DEFAULTS = {
-    "visa_type": "E-9",
-    "visa_valid_until": "2029-03-14",
-    "employer_name": "A제조 (주)대구정밀",
-    "employment_from": "2024-04-01",
-    "employment_to": "2026-08-31",
-    "job_category": "제조업 (금속가공)",
-    "job_change_used": 1,
-    "job_change_limit": 3,
-    "job_change_excluded": 1,
-    "health_check_date": "2026-07-15",
-    "topik_level": "TOPIK 3급",
-}
+# 발급 시 기관 조회.
+# 체류자격·고용이력·건강진단 같은 값은 근로자가 입력하는 값이 아니라 기관이 답하는 값이다.
+# 요청에 값이 실려 오면 그대로 쓰고(수동 override), 없으면 agency_api로 조회한다.
 
 
-def _agency_value(req, field):
-    v = getattr(req, field, None)
-    return _AGENCY_DEFAULTS[field] if v in (None, "") else v
+@app.get("/agencies")
+def list_agencies():
+    """발급기관 목록과 목적별 조회 대상. 화면에서 배지 구분에 쓴다."""
+    return {
+        "agencies": [
+            {k: a[k] for k in ("id", "name", "authority", "purpose")}
+            for a in AGENCIES
+        ],
+        "purposes": PURPOSE_AGENCIES,
+    }
 
 
 @app.post("/credentials")
@@ -355,6 +358,20 @@ def issue_credential(req: CredentialIssueRequest):
     cid = str(uuid.uuid4())
     bc = get_blockchain_client()
 
+    # ── 기관 조회 (S2) ────────────────────────────────────────────
+    # 목적은 employer 고정. 목적이 달라지면 묻는 기관도 달라진다(agency_api).
+    agency_values, agency_log = run_lookups(
+        {"worker_name": req.worker_name, "account_number": req.account_number},
+        purpose="employer",
+    )
+
+    def agency(field, fallback=None):
+        """요청에 직접 실린 값이 우선, 없으면 기관 조회 결과."""
+        v = getattr(req, field, None)
+        if v not in (None, ""):
+            return v
+        return agency_values.get(field, fallback)
+
     # 1. 블록체인 스마트 컨트랙트에 등록 (keccak256 해시값만 전송)
     bc_res = bc.issue(cid)
 
@@ -364,20 +381,21 @@ def issue_credential(req: CredentialIssueRequest):
         "nationality": req.nationality,
         "account_bank": req.account_bank,
         "account_number": req.account_number,
-        "reg_no": req.reg_no,
-        "birth_date": req.birth_date,
-        "gender": req.gender,
-        "visa_type": _agency_value(req, "visa_type"),
-        "visa_valid_until": _agency_value(req, "visa_valid_until"),
-        "employer_name": _agency_value(req, "employer_name"),
-        "employment_from": _agency_value(req, "employment_from"),
-        "employment_to": _agency_value(req, "employment_to"),
-        "job_category": _agency_value(req, "job_category"),
-        "job_change_used": _agency_value(req, "job_change_used"),
-        "job_change_limit": _agency_value(req, "job_change_limit"),
-        "job_change_excluded": _agency_value(req, "job_change_excluded"),
-        "health_check_date": _agency_value(req, "health_check_date"),
-        "topik_level": _agency_value(req, "topik_level"),
+        "reg_no": agency("reg_no"),
+        "birth_date": agency("birth_date"),
+        "gender": agency("gender"),
+        "visa_type": agency("visa_type", "E-9"),
+        "visa_valid_until": agency("visa_valid_until"),
+        "employer_name": agency("employer_name"),
+        "employment_from": agency("employment_from"),
+        "employment_to": agency("employment_to"),
+        "job_category": agency("job_category"),
+        "job_change_used": agency("job_change_used"),
+        "job_change_limit": agency("job_change_limit", 3),
+        "job_change_excluded": agency("job_change_excluded"),
+        "health_check_date": agency("health_check_date"),
+        "topik_level": agency("topik_level"),
+        "agency_lookups": agency_log,
         "status": "valid",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "credential_hash": bc_res["credential_hash"],
@@ -411,6 +429,149 @@ def list_credentials():
             print(f"[Supabase fetch error]: {e}")
 
     return list(_local_db.values())
+
+
+# ---------------------------------------------------------------------------
+# S1 : 지갑 발급 — 최초 1회
+#
+#   ① 은행 창구 실명확인   → 30분짜리 확인 토큰
+#   ② 단말에서 키 쌍 생성  → 공개키만 서버로 (개인키는 폰 밖으로 나가지 않는다)
+#   ③ 출입국 조회(필수)    → 기록이 없으면 발급 중단. 위조 등록증은 여기서 걸린다
+#   ④ 나머지 기관 조회     → 없으면 빈칸으로 두고 발급은 진행
+#   ⑤ 체인 등록           → 여기서만 트랜잭션이 나간다
+#
+# 이후 제출할 때는 체인에 아무것도 쓰지 않는다. 갱신도 마찬가지다 —
+# 체인에 올라간 것은 번호의 지문이라 내용이 바뀌어도 그대로 유효하다.
+# ---------------------------------------------------------------------------
+
+
+@app.post("/wallet/bank-verify")
+def wallet_bank_verify(req: BankVerifyRequest):
+    row = wallet_svc.bank_verify(req.worker_name, req.account_number, req.account_bank)
+    return {
+        "verification_token": row["token"],
+        "verified_by": row["verified_by"],
+        "bank_name": row["bank_name"],
+        "id_document": row["id_document"],
+        "verified_at": row["verified_at"],
+        "expires_at": row["expires_at"].isoformat(),
+        "bank_signature": row["bank_signature"],
+        "message": "은행 창구 실명확인이 완료되었습니다. 30분 내에 지갑을 등록하세요.",
+    }
+
+
+@app.post("/wallet/register")
+def wallet_register(req: WalletRegisterRequest):
+    verification, err = wallet_svc.consume_verification(req.verification_token)
+    if err:
+        raise HTTPException(status_code=403, detail=err)
+
+    worker = {
+        "worker_name": verification["worker_name"],
+        "account_number": verification["account_number"],
+    }
+
+    # ③ 출입국은 필수다. 은행 실명확인을 통과했더라도 체류 기록이 없으면 발급하지 않는다.
+    immigration = run_lookups(worker, purpose="hospital")[1]
+    imm = next((l for l in immigration if l["agency_id"] == "immigration"), None)
+    if not imm or imm["status"] != "ok":
+        raise HTTPException(
+            status_code=403,
+            detail="IMMIGRATION_RECORD_NOT_FOUND: 출입국 체류 기록을 확인할 수 없어 지갑을 발급하지 않습니다.",
+        )
+
+    # 이미 지갑이 있으면 새로 만들지 않는다 (지갑은 1인 1개).
+    # 다만 단말 키는 다시 등록한다 — 폰을 바꾸거나 앱을 다시 깔면
+    # 새 키 쌍이 만들어지고, 은행 실명확인을 다시 거쳐 그 단말을 묶는다.
+    for existing in _local_db.values():
+        if (existing.get("worker_name") == worker["worker_name"]
+                and existing.get("account_number") == worker["account_number"]):
+            cid = existing["credential_id"]
+            holder = wallet_svc.register_holder_key(cid, req.public_key, verification)
+            if not existing.get("agency_lookups"):
+                vals, log = run_lookups(worker, purpose="employer")
+                vals.pop("account_verified", None)
+                existing.update({k: v for k, v in vals.items() if v is not None})
+                existing["agency_lookups"] = log
+            return {
+                "credential_id": cid,
+                "is_existing": True,
+                "message": "이미 지갑이 있습니다. 이 단말을 기존 지갑에 연결했습니다.",
+                "wallet": {k: holder[k] for k in ("verified_by", "bank_name", "id_document", "registered_at")},
+            }
+
+    agency_values, agency_log = run_lookups(worker, purpose="employer")
+
+    cid = str(uuid.uuid4())
+    bc = get_blockchain_client()
+    bc_res = bc.issue(cid)
+
+    row = {
+        "credential_id": cid,
+        "worker_name": verification["worker_name"],
+        "nationality": None,
+        "account_bank": verification["bank_name"],
+        "account_number": verification["account_number"],
+        "status": "valid",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "credential_hash": bc_res["credential_hash"],
+        "tx_hash": bc_res["tx_hash"],
+        "explorer_url": bc_res["explorer_url"],
+        "chain_mode": bc_res.get("mode"),
+        "agency_lookups": agency_log,
+        "verified_by": verification["verified_by"],
+        "id_document": verification["id_document"],
+        "is_existing": False,
+        "message": "지갑 발급 및 블록체인 등록 완료",
+    }
+    row.update(agency_values)
+    row.pop("account_verified", None)
+    row.setdefault("job_change_limit", 3)
+
+    _local_db[cid] = row
+    holder = wallet_svc.register_holder_key(cid, req.public_key, verification)
+    row["wallet"] = {k: holder[k] for k in ("verified_by", "bank_name", "id_document", "registered_at")}
+
+    sb = _get_supabase_safe()
+    if sb:
+        try:
+            sb.table("credentials").insert(
+                {k: v for k, v in row.items()
+                 if k not in ("agency_lookups", "wallet", "is_existing", "message")}
+            ).execute()
+        except Exception as e:
+            print(f"[Supabase sync error]: {e}")
+
+    return row
+
+
+@app.get("/wallet/{credential_id}")
+def wallet_status(credential_id: str):
+    """내 지갑 상태. 저장된 문자열이 아니라 체인에서 읽어 온다."""
+    cred = _local_db.get(credential_id)
+    if not cred:
+        raise HTTPException(status_code=404, detail="wallet not found")
+
+    chain = get_blockchain_client().get_status(credential_id)
+    holder = wallet_svc.get_wallet(credential_id)
+
+    return {
+        "credential_id": credential_id,
+        "worker_name": cred.get("worker_name"),
+        "nationality": cred.get("nationality"),
+        "visa_type": cred.get("visa_type"),
+        "visa_valid_until": cred.get("visa_valid_until"),
+        "account_bank": cred.get("account_bank"),
+        "account_number": cred.get("account_number"),
+        "onchain_proof": chain,
+        "chain_mode": chain["mode"],
+        "tx_hash": cred.get("tx_hash"),
+        "explorer_url": cred.get("explorer_url") if chain["mode"] == "live_testnet" else None,
+        "agency_lookups": cred.get("agency_lookups", []),
+        "holder_registered": bool(holder),
+        "wallet": holder and {k: holder[k] for k in ("verified_by", "bank_name", "id_document", "registered_at")},
+        "dossier": _build_job_change_dossier(cred),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -471,6 +632,30 @@ def create_secure_presentation(req: PresentationRequest):
     cred = _local_db.get(req.credential_id)
     if not cred:
         raise HTTPException(status_code=404, detail="credential not found")
+
+    # 이 지갑의 주인이 보낸 요청인지 단말 서명으로 확인한다.
+    ok, why = wallet_svc.verify_holder_signature(
+        req.credential_id,
+        f"{req.credential_id}|{req.target_id}|{req.signed_at or ''}",
+        req.holder_signature,
+    )
+    if not ok:
+        raise HTTPException(status_code=403, detail=why)
+
+    # 제출하는 순간 기관에 다시 묻는다. 카드를 미리 쌓아두지 않으므로
+    # 낡은 버전이라는 것이 존재하지 않는다. 체인에는 아무것도 쓰지 않는다.
+    if req.target_id in _SITE_TARGETS:
+        # 출퇴근은 매일 두 번이라 기관 재조회를 하지 않는다.
+        # 필요한 것은 체류자격이 살아 있는지뿐이고, 그건 스캔 시 체인 조회로 확인한다.
+        fresh, refresh_log = {}, []
+    else:
+        purpose = "hospital" if req.target_id == "hospital_1" else "employer"
+        fresh, refresh_log = run_lookups(cred, purpose=purpose)
+    fresh.pop("account_verified", None)
+    cred.update({k: v for k, v in fresh.items() if v is not None})
+    cred["agency_lookups"] = refresh_log
+    cred["refreshed_at"] = datetime.now(timezone.utc).isoformat()
+
     token = secrets.token_urlsafe(32)
     expires_at = datetime.now(timezone.utc) + timedelta(seconds=60)
     _presentation_sessions[_token_hash(token)] = {
@@ -483,7 +668,14 @@ def create_secure_presentation(req: PresentationRequest):
         "status": "created",
     }
     payload = {"v": 1, "t": token}
-    return {"qr_payload": payload, "qr_image_base64": _make_qr_base64(payload), "expires_at": expires_at.isoformat()}
+    return {
+        "qr_payload": payload,
+        "qr_image_base64": _make_qr_base64(payload),
+        "expires_at": expires_at.isoformat(),
+        "agency_lookups": refresh_log,
+        "refreshed_at": cred["refreshed_at"],
+        "holder_verified": why != "NO_WALLET_REGISTERED",
+    }
 
 
 @app.post("/presentations/secure/consume")
@@ -567,6 +759,87 @@ def consume_secure_presentation(req: VerifyRequest):
         out.update({"worker_name": cred["worker_name"], "nationality": cred.get("nationality")})
 
     return out
+
+
+# ---------------------------------------------------------------------------
+# 자리 4 : 출퇴근 — 지갑을 매일 쓰는 자리
+#
+# 새 크리덴셜을 발행하지 않는다. 이미 있는 것을 그대로 쓴다.
+#   · 단말 키 서명    -> 본인 확인 (지갑이 은행 앱 안이라 대리 출근은 계좌 비밀번호를 넘기는 일)
+#   · 온체인 상태 조회 -> 체류자격이 취소되면 내일 아침 출근이 막힌다. 읽기라 가스 0원.
+#
+# 시각을 찍고 보관하는 주체는 **회사 근태 시스템**이다. 은행은 유효 여부만 답하고 빠진다.
+# 근태 조작 방지는 의도적으로 범위 밖이다 (attendance.py 상단 참조).
+# ---------------------------------------------------------------------------
+
+_SITE_TARGETS = {"site_A": "SCANNER-BIZ-001", "site_B": "SCANNER-BIZ-002"}
+
+
+@app.get("/attendance/sites")
+def attendance_sites():
+    return {"targets": _SITE_TARGETS, "sites": att.SITES}
+
+
+@app.post("/attendance/scan")
+def attendance_scan(req: AttendanceScanRequest):
+    """사업장 스캐너가 출퇴근 QR을 읽었을 때."""
+    token = req.payload.get("t") if isinstance(req.payload, dict) else None
+    if not isinstance(token, str):
+        raise HTTPException(status_code=400, detail="token payload required")
+
+    session = _presentation_sessions.get(_token_hash(token))
+    if not session:
+        raise HTTPException(status_code=404, detail="session not found")
+    if session["expires_at"] <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=410, detail="session expired")
+    if session["status"] != "created":
+        raise HTTPException(status_code=409, detail="session already consumed")
+    if _SITE_TARGETS.get(session["target_id"]) != req.scanner_id:
+        raise HTTPException(status_code=403, detail="TARGET_MISMATCH")
+
+    cid = session["credential_id"]
+    cred = _local_db.get(cid, {})
+    status = get_blockchain_client().get_status(cid)
+    session["status"] = "consumed"
+
+    # 여기가 이 자리의 핵심. 체류자격이 철회되면 출근 자체가 기록되지 않는다.
+    if not status["is_valid"]:
+        return {
+            "result": "fail",
+            "reason": "REVOKED",
+            "worker_name": cred.get("worker_name"),
+            "onchain_proof": status,
+            "message": "체류자격이 철회되어 출근을 기록할 수 없습니다. 고용노동부·출입국에 확인하십시오.",
+        }
+
+    row, err = att.record_scan(cid, cred.get("worker_name"), req.scanner_id)
+    if err:
+        raise HTTPException(status_code=400, detail=err)
+
+    return {
+        "result": "pass",
+        "onchain_proof": status,
+        "record": row,
+        "message": "출근이 기록되었습니다." if row["check_type"] == "in" else "퇴근이 기록되었습니다.",
+    }
+
+
+@app.get("/attendance/site/{site_id}")
+def attendance_site(site_id: str):
+    """회사 근태 시스템 화면이 읽는다."""
+    return {
+        "site_id": site_id,
+        "summary": att.today_summary(site_id),
+        "records": att.records_of(site_id),
+    }
+
+
+@app.get("/attendance/worker/{credential_id}")
+def attendance_worker(credential_id: str):
+    """근로자 폰에 마지막 기록 한 건만 돌려준다. 지갑에 근무 기록을 쌓지 않는다."""
+    rows = [r for r in att._records.values() if r["credential_id"] == credential_id]
+    rows.sort(key=lambda r: r["server_time"], reverse=True)
+    return {"last": rows[0] if rows else None}
 
 
 # ---------------------------------------------------------------------------

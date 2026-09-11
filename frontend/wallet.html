@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM Worker Pass - 지갑</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .step { border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:10px; background:#fff; }
+  .step h4 { margin:0 0 4px; font-size:14px; }
+  .step .desc { font-size:12.5px; color:#64748b; }
+  .done { border-color:#86efac; background:#f0fdf4; }
+  .rows .row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid #eef2f7; font-size:13px; }
+  .rows .row span:first-child { color:#475569; white-space:nowrap; }
+  .rows .row span:last-child { text-align:right; word-break:break-all; }
+  .badge-real { background:#dcfce7; color:#15803d; padding:1px 7px; border-radius:999px; font-size:11px; }
+  .badge-mock { background:#f1f5f9; color:#64748b; padding:1px 7px; border-radius:999px; font-size:11px; }
+  .muted { font-size:11.5px; color:#94a3b8; margin-top:8px; line-height:1.6; }
+  .err { background:#fdecea; border:1px solid #e74c3c; color:#a92c22; padding:12px; border-radius:10px; margin-top:12px; font-size:13px; }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">🏠 홈</a>
+    <a href="wallet.html" class="active">① 지갑</a>
+    <a href="submit.html">② 제출</a>
+    <a href="scan.html">③ 스캐너</a>
+    <a href="attendance.html">④ 근태</a>
+    <a href="insurance.html">⑤ 보험</a>
+    <a href="insurer.html">⑥ 보험사</a>
+    <a href="admin.html">⑦ 관리자</a>
+  </nav>
+
+  <h1>근로자 지갑</h1>
+  <p style="font-size:13px;color:#64748b;margin-top:-6px;">
+    지갑 발급은 <b>최초 1회</b>입니다. 제출은 <a href="submit.html">② 제출</a> 화면에서 할 때마다 합니다.
+  </p>
+
+  <div id="walletView" style="display:none;"></div>
+
+  <div id="setupView">
+    <div class="card">
+      <h3>1) 은행 창구 본인확인</h3>
+      <p style="font-size:12.5px;color:#666;margin-top:0;">
+        카카오 인증서가 통신사 본인확인 위에 세워지듯, 이 지갑은 <b>은행 실명확인</b> 위에 세워집니다.
+        외국인 근로자는 급여 계좌를 만들며 여권·외국인등록증 대조를 이미 거치므로 절차가 늘지 않습니다.
+        은행이 보증하는 것은 <b>"이 지갑이 이 사람의 것"</b> 하나뿐입니다.
+      </p>
+      <label>근로자 이름</label>
+      <input id="workerName" value="NGUYEN VAN A" />
+      <label>국적</label>
+      <input id="nationality" value="베트남" />
+      <label>은행</label>
+      <input id="accountBank" value="iM뱅크" />
+      <label>계좌번호</label>
+      <input id="accountNumber" value="512-123456-01" />
+      <button onclick="bankVerify()">창구 실명확인</button>
+      <div id="verifyBox"></div>
+    </div>
+
+    <div class="card" id="registerCard" style="display:none;">
+      <h3>2) 지갑 등록</h3>
+      <div class="step">
+        <h4>단말 키 생성</h4>
+        <div class="desc">
+          이 브라우저에서 키 한 쌍을 만듭니다. <b>개인키는 단말에 남고 서버로 전송되지 않습니다.</b>
+          앞으로 제출할 때마다 이 키로 서명하고, 서버는 공개키로 검증합니다.
+        </div>
+      </div>
+      <div class="step">
+        <h4>출입국 조회 (필수)</h4>
+        <div class="desc">
+          체류 기록이 없으면 지갑을 발급하지 않습니다. 은행 실명확인만으로는 잡히지 않는
+          위조·말소 외국인등록증이 여기서 걸립니다.
+        </div>
+      </div>
+      <div class="step">
+        <h4>나머지 기관 조회 · 블록체인 등록</h4>
+        <div class="desc">
+          고용센터·의료기관·교육원은 기록이 없어도 빈칸으로 두고 발급은 진행합니다.
+          체인에는 이때 한 번만 기록합니다.
+        </div>
+      </div>
+      <button onclick="registerWallet()">지갑 발급 &amp; 블록체인 등록</button>
+      <div id="registerBox"></div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const esc = (v) => String(v == null || v === "" ? "—" : v);
+    const KEY_STORE = "imwp_holder_key";
+    const CID_STORE = "imwp_credential_id";
+    let verification = null;
+
+    const FIELD_LABELS = {
+      reg_no: "외국인등록번호", birth_date: "생년월일", gender: "성별",
+      visa_type: "체류자격", visa_valid_until: "체류 만료일",
+      employer_name: "직전 사업장", employment_from: "근무 시작",
+      employment_to: "계약 종료", job_category: "직종",
+      job_change_used: "변경 횟수", job_change_limit: "변경 한도",
+      job_change_excluded: "귀책 미산입", health_check_date: "건강진단일",
+      topik_level: "어학", account_verified: "계좌 실명확인",
+    };
+
+    function agencyRows(log) {
+      if (!log || !log.length) return "";
+      return log.map(l => `
+        <div style="padding:6px 0;border-bottom:1px solid #eef2f7;">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+            <span style="font-size:13px;">
+              <b style="color:${l.status === 'ok' ? '#15803d' : '#94a3b8'};">${l.status === 'ok' ? '✓' : '—'}</b>
+              ${esc(l.agency)}
+            </span>
+            <span class="${l.authority === 'real' ? 'badge-real' : 'badge-mock'}">
+              ${l.authority === 'real' ? '실제 발급기관' : '모의 API'}
+            </span>
+          </div>
+          <div style="font-size:12px;color:#64748b;margin-left:16px;">
+            ${esc(l.purpose)} → ${l.fields.length ? l.fields.map(f => FIELD_LABELS[f] || f).join(" · ") : "해당 없음"}
+          </div>
+        </div>`).join("");
+    }
+
+    async function bankVerify() {
+      const body = {
+        worker_name: document.getElementById("workerName").value.trim(),
+        nationality: document.getElementById("nationality").value.trim(),
+        account_bank: document.getElementById("accountBank").value.trim(),
+        account_number: document.getElementById("accountNumber").value.trim(),
+      };
+      const res = await fetch(`${API_BASE_URL}/wallet/bank-verify`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) { document.getElementById("verifyBox").innerHTML = `<div class="err">${esc(JSON.stringify(data))}</div>`; return; }
+      verification = data;
+      document.getElementById("verifyBox").innerHTML = `
+        <div class="step done" style="margin-top:12px;">
+          <h4>✅ 실명확인 완료</h4>
+          <div class="rows">
+            <div class="row"><span>확인 기관</span><span>${esc(data.bank_name)} (${esc(data.verified_by)})</span></div>
+            <div class="row"><span>확인 방법</span><span>${esc(data.id_document)}</span></div>
+            <div class="row"><span>확인 시각</span><span>${esc(data.verified_at)}</span></div>
+          </div>
+          <div class="muted">이 확인은 30분간 유효하며 지갑 등록에 1회만 사용됩니다.</div>
+        </div>`;
+      document.getElementById("registerCard").style.display = "block";
+      document.getElementById("registerCard").scrollIntoView({ behavior: "smooth" });
+    }
+
+    async function createHolderKey() {
+      const pair = await crypto.subtle.generateKey(
+        { name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+      const priv = await crypto.subtle.exportKey("jwk", pair.privateKey);
+      const pub = await crypto.subtle.exportKey("jwk", pair.publicKey);
+      try { localStorage.setItem(KEY_STORE, JSON.stringify(priv)); } catch (e) {}
+      return { kty: pub.kty, crv: pub.crv, x: pub.x, y: pub.y };
+    }
+
+    async function registerWallet() {
+      if (!verification) return;
+      const box = document.getElementById("registerBox");
+      box.innerHTML = `<p style="color:#0969da;font-size:13px;">⏳ 단말 키 생성 → 출입국 조회 → 블록체인 등록 중...</p>`;
+
+      let publicKey;
+      try { publicKey = await createHolderKey(); }
+      catch (e) { box.innerHTML = `<div class="err">이 브라우저에서 키를 만들 수 없습니다: ${esc(e.message)}</div>`; return; }
+
+      const res = await fetch(`${API_BASE_URL}/wallet/register`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          verification_token: verification.verification_token,
+          public_key: publicKey,
+          device_label: navigator.userAgent.slice(0, 60),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        box.innerHTML = `<div class="err"><b>지갑 발급이 거부되었습니다.</b><br/>${esc(data.detail)}</div>`;
+        return;
+      }
+      try { localStorage.setItem(CID_STORE, data.credential_id); } catch (e) {}
+      box.innerHTML = "";
+      loadWallet(data.credential_id);
+    }
+
+    async function loadWallet(cid) {
+      const res = await fetch(`${API_BASE_URL}/wallet/${cid}`);
+      if (!res.ok) { try { localStorage.removeItem(CID_STORE); } catch (e) {} return; }
+      const w = await res.json();
+      const chain = String(w.onchain_proof?.status_name || "").toUpperCase();
+
+      document.getElementById("setupView").style.display = "none";
+      const view = document.getElementById("walletView");
+      view.style.display = "block";
+      view.innerHTML = `
+        <div class="card">
+          <h3>내 지갑</h3>
+          <div class="rows">
+            <div class="row"><span>대상자</span><span><b>${esc(w.worker_name)}</b></span></div>
+            <div class="row"><span>체류자격</span><span>${esc(w.visa_type)} · 만료 ${esc(w.visa_valid_until)}</span></div>
+            <div class="row"><span>급여계좌</span><span>${esc(w.account_bank)} ${esc(w.account_number)}</span></div>
+            <div class="row"><span>온체인 상태</span>
+              <span style="color:${chain === 'VALID' ? '#15803d' : '#a92c22'};"><b>${esc(chain)}</b></span></div>
+            <div class="row"><span>검증 네트워크</span>
+              <span>${w.chain_mode === 'live_testnet' ? 'Polygon Amoy Testnet' : 'EVM 시뮬레이터 (미배포)'}</span></div>
+            <div class="row"><span>식별 해시</span><span><code>${esc(w.onchain_proof?.credential_hash)}</code></span></div>
+            <div class="row"><span>Credential ID</span><span><code>${esc(w.credential_id)}</code></span></div>
+          </div>
+          ${w.explorer_url ? `<div style="margin-top:10px;">🔗 <a href="${w.explorer_url}" target="_blank">블록체인 탐색기에서 등록 트랜잭션 확인</a></div>` : ""}
+          <div class="muted">
+            체인에는 이 지갑의 <b>번호 지문과 상태</b>만 있습니다. 이름·계좌·등록번호는 올라가지 않습니다.<br/>
+            내용이 바뀌어도 체인 기록은 그대로 유효하므로, 갱신에는 트랜잭션이 들지 않습니다.
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>본인확인 · 단말 키</h3>
+          <div class="rows">
+            <div class="row"><span>확인 기관</span><span>${esc(w.wallet?.bank_name)} (${esc(w.wallet?.verified_by)})</span></div>
+            <div class="row"><span>확인 방법</span><span>${esc(w.wallet?.id_document)}</span></div>
+            <div class="row"><span>단말 키</span>
+              <span style="color:${w.holder_registered ? '#15803d' : '#a92c22'};">
+                ${w.holder_registered ? '등록됨 ✓ (개인키는 단말 보관)' : '미등록'}</span></div>
+          </div>
+          <div class="muted">제출할 때마다 이 단말이 서명하고 서버가 공개키로 검증합니다. 서명이 없거나 맞지 않으면 제출이 거부됩니다.</div>
+        </div>
+
+        <div class="card">
+          <h3>발급기관 조회 ${(w.agency_lookups || []).length}건</h3>
+          <div style="font-size:12px;color:#64748b;margin-bottom:6px;">
+            근로자가 입력한 값이 아니라 각 기관이 답한 값으로 구성되었습니다.
+          </div>
+          ${agencyRows(w.agency_lookups)}
+        </div>
+
+        <div class="card">
+          <button onclick="location.href='submit.html'">제출하러 가기 →</button>
+          <button class="secondary" onclick="resetWallet()">지갑 초기화 (시연용)</button>
+        </div>`;
+    }
+
+    function resetWallet() {
+      try { localStorage.removeItem(CID_STORE); localStorage.removeItem(KEY_STORE); } catch (e) {}
+      location.reload();
+    }
+
+    (function boot() {
+      let cid = null;
+      try { cid = localStorage.getItem(CID_STORE); } catch (e) {}
+      if (cid) loadWallet(cid);
+    })();
+  </script>
+</body>
+</html>

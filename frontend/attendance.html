@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM Worker Pass - 근태</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .kpi { display:flex; gap:8px; margin-top:10px; }
+  .kpi div { flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; text-align:center; }
+  .kpi b { display:block; font-size:20px; }
+  .kpi span { font-size:11.5px; color:#64748b; }
+  .rec { display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid #eef2f7; font-size:13px; }
+  .in { color:#15803d; font-weight:600; }
+  .out { color:#2563eb; font-weight:600; }
+  .ok { background:#e6f7ee; border:1px solid #2ecc71; color:#1e7e45; padding:14px; border-radius:10px; margin-top:12px; }
+  .no { background:#fdecea; border:1px solid #e74c3c; color:#a92c22; padding:14px; border-radius:10px; margin-top:12px; }
+  .muted { font-size:11.5px; color:#94a3b8; margin-top:8px; line-height:1.6; }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">🏠 홈</a>
+    <a href="wallet.html">① 지갑</a>
+    <a href="submit.html">② 제출</a>
+    <a href="scan.html">③ 스캐너</a>
+    <a href="attendance.html" class="active">④ 근태</a>
+    <a href="insurance.html">⑤ 보험</a>
+    <a href="insurer.html">⑥ 보험사</a>
+    <a href="admin.html">⑦ 관리자</a>
+  </nav>
+
+  <h1>사업장 근태 시스템</h1>
+  <p style="font-size:13px;color:#64748b;margin-top:-6px;">
+    근태 기록은 <b>회사 시스템</b>에 남습니다. 은행은 "이 사람이 유효한가"만 답하고 근무 시각은 보지 않습니다.
+  </p>
+
+  <div class="card">
+    <h3>출입 스캐너</h3>
+    <label>스캐너</label>
+    <select id="scannerId" onchange="loadSite()">
+      <option value="SCANNER-BIZ-001">SCANNER-BIZ-001 — A제조 (주)대구정밀</option>
+      <option value="SCANNER-BIZ-002">SCANNER-BIZ-002 — B제조 (주)구미사출</option>
+    </select>
+    <label>QR payload 붙여넣기</label>
+    <textarea id="payload" rows="3" placeholder='{"v":1,"t":"..."}'></textarea>
+    <button onclick="scan()">스캔</button>
+    <div id="result"></div>
+    <div class="muted">
+      공장은 개인 카메라 사용이 제한되는 곳이 많아, 근로자가 QR을 만들고 사업장 스캐너가 읽는 방향입니다.
+      스캐너가 사업장에 고정되어 있으므로 위치는 스캐너가 보증합니다.
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h3 style="margin:0;">오늘 현황</h3>
+      <button class="secondary" style="margin:0;padding:7px 12px;font-size:13px;" onclick="loadSite()">새로고침</button>
+    </div>
+    <div class="kpi" id="kpi"></div>
+    <div id="records" style="margin-top:10px;"></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const esc = (v) => String(v == null || v === "" ? "—" : v);
+    const hhmm = (iso) => { try { return new Date(iso).toLocaleString("ko-KR", { hour12:false }); } catch(e){ return iso; } };
+
+    async function scan() {
+      const box = document.getElementById("result");
+      let payload;
+      try { payload = JSON.parse(document.getElementById("payload").value.trim()); }
+      catch (e) { box.innerHTML = `<div class="no">payload 형식이 올바르지 않습니다.</div>`; return; }
+
+      const res = await fetch(`${API_BASE_URL}/attendance/scan`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload, scanner_id: document.getElementById("scannerId").value }),
+      });
+      const d = await res.json();
+
+      if (!res.ok) {
+        box.innerHTML = `<div class="no"><b>❌ 스캔 실패</b><br/>${esc(d.detail)}</div>`;
+        return;
+      }
+      if (d.result !== "pass") {
+        box.innerHTML = `
+          <div class="no">
+            <b>⛔ 출근 차단 — ${esc(d.reason)}</b><br/>
+            ${esc(d.worker_name)}<br/>
+            <span style="font-size:12.5px;">${esc(d.message)}</span><br/>
+            <span style="font-size:12px;">온체인 상태: <b>${esc(d.onchain_proof?.status_name).toUpperCase()}</b></span>
+          </div>
+          <div class="muted">
+            체류자격이 취소된 근로자를 모르고 고용하는 위험을 사업장이 덜어냅니다.
+            기관마다 연락을 돌릴 필요 없이, 체인 상태 하나로 즉시 반영됩니다.
+          </div>`;
+        loadSite();
+        return;
+      }
+
+      const r = d.record;
+      box.innerHTML = `
+        <div class="ok">
+          <b>✅ ${r.check_type === "in" ? "출근" : "퇴근"} 기록됨</b><br/>
+          ${esc(r.worker_name)} · ${esc(r.site_name)}<br/>
+          <span style="font-size:12.5px;">${hhmm(r.server_time)} (회사 스캐너 기준 시각)</span>
+          ${r.worked_minutes != null ? `<br/><span style="font-size:12.5px;">근무 ${Math.floor(r.worked_minutes/60)}시간 ${r.worked_minutes%60}분</span>` : ""}
+        </div>`;
+      document.getElementById("payload").value = "";
+      loadSite();
+    }
+
+    async function loadSite() {
+      const scanner = document.getElementById("scannerId").value;
+      const siteId = scanner === "SCANNER-BIZ-001" ? "BIZ-001" : "BIZ-002";
+      const res = await fetch(`${API_BASE_URL}/attendance/site/${siteId}`);
+      const d = await res.json();
+      const s = d.summary;
+
+      document.getElementById("kpi").innerHTML = `
+        <div><b>${s.currently_working}</b><span>근무 중</span></div>
+        <div><b>${s.check_in}</b><span>출근</span></div>
+        <div><b>${s.check_out}</b><span>퇴근</span></div>
+        <div><b>${s.scans}</b><span>오늘 스캔</span></div>`;
+
+      const rows = d.records || [];
+      document.getElementById("records").innerHTML = rows.length
+        ? rows.map(r => `
+            <div class="rec">
+              <span><b>${esc(r.worker_name)}</b>
+                <span class="${r.check_type}">${r.check_type === "in" ? "출근" : "퇴근"}</span></span>
+              <span style="color:#64748b;">${hhmm(r.server_time)}${
+                r.worked_minutes != null ? ` · ${Math.floor(r.worked_minutes/60)}h ${r.worked_minutes%60}m` : ""}</span>
+            </div>`).join("")
+        : `<p style="font-size:13px;color:#94a3b8;">기록이 없습니다. 제출 화면에서 출퇴근 QR을 만들어 스캔해 보세요.</p>`;
+    }
+
+    loadSite();
+    setInterval(loadSite, 10000);
+  </script>
+</body>
+</html>
