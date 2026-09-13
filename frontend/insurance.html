@@ -160,6 +160,12 @@
             <b>⏳ 접수 완료 · 보험사 심사 대기</b><br/>
             접수번호 <code>${esc(d.submission_id)}</code> · 수령처 ${esc(d.audience)}<br/>
             <span style="font-size:12.5px;">온체인 검증 통과. 담당자 승인을 기다리는 중입니다.</span>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(15,23,42,.08);
+                        font-size:12px;line-height:1.7;">
+              심사는 보험사 담당자가 자기 화면에서 합니다.
+              시연에서는 <a href="insurer.html" target="_blank" style="font-weight:600;">보험사 접수함</a>을
+              열어 승인한 뒤 이 화면을 새로고침하면 결과가 반영됩니다.
+            </div>
           </div>`;
       } else if (d.status === "approved") {
         box.innerHTML = `
