@@ -31,11 +31,16 @@ from models import (
     InsuranceDecisionRequest,
     InsuranceSubmitRequest,
     PresentationRequest,
+    SavingsEnrollRequest,
     VerifyRequest,
     WalletRegisterRequest,
 )
 import wallet as wallet_svc
 import attendance as att
+import products as prod
+import payroll as pay
+import savings as sav
+import settlement as stl
 from blockchain_client import get_blockchain_client, CredentialStatus
 from agency_api import PURPOSE_AGENCIES, coverage as agency_coverage, run_lookups
 
@@ -614,6 +619,20 @@ def wallet_register(req: WalletRegisterRequest):
     return row
 
 
+@app.get("/products/recommend/{credential_id}")
+def recommend_products(credential_id: str, force: bool = False):
+    """
+    지갑 데이터에서 조건을 뽑아 지금 의미 있는 상품만 돌려준다.
+    force=true 는 시연 전용 — 조건을 무시하고 전부 보여준다.
+    """
+    cred = _local_db.get(credential_id)
+    if not cred:
+        raise HTTPException(status_code=404, detail="wallet not found")
+    enrolled = sav.status(credential_id, cred.get("worker_name"),
+                          cred.get("visa_valid_until"))["enrolled"]
+    return prod.recommend(cred, enrolled_savings=enrolled, force=force)
+
+
 @app.get("/wallets")
 def list_wallets():
     """
@@ -662,6 +681,87 @@ def wallet_status(credential_id: str):
         "holder_registered": bool(holder),
         "wallet": holder and {k: holder[k] for k in ("verified_by", "bank_name", "id_document", "registered_at")},
         "dossier": _build_job_change_dossier(cred),
+    }
+
+
+# ---------------------------------------------------------------------------
+# 금융 패스포트 홈 — 흩어진 값을 한 번에 모아 내려준다
+#
+# 지갑 화면이 기관마다 따로 fetch 하면 카드가 제각각 늦게 뜬다. 홈은 "지금 내
+# 상태 한 장"이므로 서버에서 합쳐 한 번에 준다. 새 크리덴셜을 만들지 않고
+# 이미 있는 것들(근태·급여·상품)을 읽기만 한다.
+#
+# 근태는 두 겹이다. seeds/attendance.json 의 이번 달 기본 기록 위에,
+# 시연 중 스캐너로 실제 찍은 기록이 얹힌다. 뒤엣것은 서버를 끄면 사라진다.
+# ---------------------------------------------------------------------------
+@app.get("/passport/{credential_id}")
+def passport_home(credential_id: str):
+    cred = _local_db.get(credential_id)
+    if not cred:
+        raise HTTPException(status_code=404, detail="wallet not found")
+
+    name = cred.get("worker_name")
+    live = att.live_shifts_of(name)
+    month = pay.month_summary(name, live_records=live)
+    _sv = sav.status(credential_id, name, cred.get("visa_valid_until"))
+
+    rows = [r for r in att._records.values() if r["credential_id"] == credential_id]
+    rows.sort(key=lambda r: r["server_time"], reverse=True)
+    last = rows[0] if rows else None
+    today_iso = datetime.now(timezone.utc).date().isoformat()
+    open_now = any(r["check_type"] == "in" and not r["closed"] for r in rows)
+
+    return {
+        "credential_id": credential_id,
+        "worker_name": name,
+        "visa_type": cred.get("visa_type"),
+        "today": {
+            "date": today_iso,
+            "state": "working" if open_now else ("done" if last and last["server_time"][:10] == today_iso else "not_yet"),
+            "last_scan": last and {
+                "check_type": last["check_type"],
+                "server_time": last["server_time"],
+                "site_name": last["site_name"],
+                "worked_minutes": last.get("worked_minutes"),
+            },
+        },
+        "month": month,
+        "account": {
+            "bank": cred.get("account_bank"),
+            "number": cred.get("account_number"),
+        },
+        "savings": _sv,
+        "settlement": stl.build(cred, _sv),
+        # 환율 보장 송금 안내. 근로자에게는 등급 이름이 아니라 예상비용·보호범위만 보여준다.
+        "hedge": prod.hedge_tier(cred),
+        # 보험 가입 여부는 손보사 원천 기록에서 읽는다 (카드로 쌓지 않는다).
+        "insurance": _insurance_db.get(credential_id) and {
+            "product": _insurance_db[credential_id]["product"],
+            "company": _insurance_db[credential_id]["company"],
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# 귀국 목표 적금 — 가입은 은행 원천 기록에 남고, 지갑은 조회만 한다 (설계 축 3).
+# 만기는 체류 만료일이라 근로자가 따로 정하지 않는다.
+# ---------------------------------------------------------------------------
+@app.post("/savings/enroll")
+def savings_enroll(req: SavingsEnrollRequest):
+    cred = _local_db.get(req.credential_id)
+    if not cred:
+        raise HTTPException(status_code=404, detail="wallet not found")
+    if not get_blockchain_client().get_status(req.credential_id)["is_valid"]:
+        raise HTTPException(status_code=403, detail="CREDENTIAL_NOT_VALID")
+    if req.monthly < 100000 or req.monthly > 1500000:
+        raise HTTPException(status_code=400, detail="MONTHLY_OUT_OF_RANGE")
+
+    sav.enroll(req.credential_id, cred.get("worker_name"), req.monthly,
+               auto_remit=req.auto_remit, fx_guard=req.fx_guard)
+    return {
+        "result": "ok",
+        "savings": sav.status(req.credential_id, cred.get("worker_name"),
+                              cred.get("visa_valid_until")),
     }
 
 
@@ -1225,6 +1325,25 @@ def restore(credential_id: str):
         "explorer_url": bc_res["explorer_url"],
         "message": "블록체인에 체류자격 복구 트랜잭션이 기록되었습니다."
     }
+
+
+# 프로토타입은 화면을 계속 고친다. 브라우저가 파일을 캐싱하면 코드를 바꿔도
+# 옛 화면이 그대로 떠서 "안 고쳐졌다"로 보인다. HTML만 막으면 CSS·JS 가 옛 것으로
+# 남아 같은 증상이 며칠 뒤 다시 나오므로, **모든 응답**의 캐시를 끈다.
+# 로컬 시연용이라 성능을 아낄 이유가 없다. 실서비스라면 정적 파일에는
+# 해시 파일명 + 긴 max-age 를 쓰는 게 맞다.
+@app.middleware("http")
+async def _no_cache(request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    # ETag/Last-Modified 가 남아 있으면 크롬이 조건부 요청으로 304 를 받아
+    # 옛 사본을 계속 쓸 수 있다. 검증 근거 자체를 없앤다.
+    for h in ("etag", "last-modified"):
+        if h in response.headers:
+            del response.headers[h]
+    return response
 
 
 if os.path.isdir(_frontend_dir):

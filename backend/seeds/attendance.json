@@ -1,0 +1,60 @@
+{
+  "_agency": "제휴 사업장 근태시스템",
+  "_agency_id": "ATTENDANCE",
+  "_authority": "mock",
+  "_note": "이번 달 1일부터 어제까지의 평일을 근무일로 본다. 아래 인덱스는 그 근무일 목록의 0-기준 순번이며, 매달 같은 모양이 재현되도록 날짜 대신 순번으로 적는다. 시연 중 새로 찍는 출퇴근은 메모리에만 쌓이고 이 시드 위에 얹힌다.",
+  "records": [
+    {
+      "worker_name": "NGUYEN VAN A",
+      "absent": [],
+      "late": [
+        4
+      ],
+      "overtime": [
+        {
+          "i": 2,
+          "hours": 2
+        },
+        {
+          "i": 9,
+          "hours": 3
+        }
+      ]
+    },
+    {
+      "worker_name": "SITI RAHAYU",
+      "absent": [
+        7
+      ],
+      "late": [],
+      "overtime": [
+        {
+          "i": 3,
+          "hours": 2
+        }
+      ]
+    },
+    {
+      "worker_name": "LI CHUNHUA",
+      "absent": [],
+      "late": [
+        3
+      ],
+      "overtime": [
+        {
+          "i": 8,
+          "hours": 2
+        }
+      ]
+    },
+    {
+      "worker_name": "NGUYEN THI E",
+      "absent": [
+        5,
+        6
+      ],
+      "late": [],
+      "overtime": []
+    }
+  ]
+}

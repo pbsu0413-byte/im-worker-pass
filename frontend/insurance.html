@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass - 보험 가입</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="ui.css" />
 <style>
   .product { border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:10px; cursor:pointer; background:#fff; }
   .product.sel { border-color:#1a1a1a; background:#f8fafc; }
@@ -22,19 +22,15 @@
   .st-no   { background:#fdecea; border:1px solid #e74c3c; color:#a92c22; }
 </style>
 </head>
-<body>
-  <nav>
-    <a href="index.html">🏠 홈</a>
-    <a href="wallet.html">① 지갑</a>
-    <a href="submit.html">② 제출</a>
-    <a href="scan.html">③ 스캐너</a>
-    <a href="attendance.html">④ 근태</a>
-    <a href="insurance.html" class="active">⑤ 보험</a>
-    <a href="insurer.html">⑥ 보험사</a>
-    <a href="admin.html">⑦ 관리자</a>
-  </nav>
+<body class="role-phone">
+<div class="phone">
+  <header class="ph-top">
+    <div class="brand">iM Worker Pass</div>
+    <h1>보험</h1>
+    <div class="who">앱 안에서 서류 없이</div>
+  </header>
+  <main class="ph-body">
 
-  <h1>보험 가입 — QR 없이 앱 안에서</h1>
 
   <div class="card">
     <h3>1) 가입할 근로자</h3>
@@ -76,6 +72,21 @@
 
   <script src="config.js"></script>
   <script>
+    // 새로고침(F5)이면 지갑 상태를 비워 처음부터 시작한다 (wallet.html 과 동일 규칙).
+    (function resetOnReload() {
+      let nav = null;
+      try { nav = performance.getEntriesByType("navigation")[0]; } catch (e) {}
+      const reloaded = nav ? nav.type === "reload"
+                           : (performance.navigation && performance.navigation.type === 1);
+      if (reloaded) {
+        try {
+          localStorage.removeItem("imwp_credential_id");
+          localStorage.removeItem("imwp_pick_worker");
+        } catch (e) {}
+        location.replace("wallet.html");
+      }
+    })();
+
     let products = [], selected = null, pending = null, submissionId = null, poller = null;
     const esc = (v) => String(v == null || v === "" ? "—" : v);
 
@@ -177,5 +188,13 @@
 
     loadProducts();
   </script>
+  </main>
+  <nav class="ph-tabs">
+    <a href="wallet.html"><b>◎</b>홈</a>
+    <a href="submit.html"><b>❒</b>제출</a>
+    <a href="insurance.html" class="active"><b>✚</b>보험</a>
+    <a href="home.html"><b>⌂</b>역할</a>
+  </nav>
+</div>
 </body>
 </html>

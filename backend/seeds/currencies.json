@@ -1,0 +1,133 @@
+{
+  "_agency": "환율·통화 분류",
+  "_agency_id": "fx",
+  "_authority": "mock",
+  "_note": "국적별 송금 통화와 환헷지 등급. 근로자의 실제 노출은 **원화-자국통화 크로스**이며 달러는 경유 통화일 뿐이다. swing_6m_pct는 그 크로스 변동폭(원화 자체 변동이 포함됨)이고, own_vol_pct는 자국통화 대 달러 변동폭이다. 달러 연동 통화라도 원화가 움직이므로 크로스 변동은 작지 않다 — 다만 원화-달러만 고정하면 사실상 전부 막힌다. 수치는 시연용 가정값이며 실서비스에서는 시세에서 계산한다.",
+  "_tiers": {
+    "A": "자국통화가 달러에 강하게 연동됨 → 원화-달러만 고정해도 사실상 완전 헷지. 시장이 깊어 수수료가 싸다.",
+    "B": "자국통화가 달러와 따로 움직임 → 달러만 고정하면 절반만 막힌다. 원화-자국통화 직접 보장이 필요하고 시장이 얕아 수수료가 비싸다.",
+    "C": "송금액이 작아 기대 절감이 수수료보다 작다 → 권하지 않는다."
+  },
+  "records": [
+    {
+      "nationality": "베트남",
+      "currency": "VND",
+      "currency_name": "베트남 동",
+      "tier": "A",
+      "usd_linked": true,
+      "swing_6m_pct": 7.2,
+      "unit_per_krw": 18.6,
+      "own_vol_pct": 1.4
+    },
+    {
+      "nationality": "캄보디아",
+      "currency": "KHR",
+      "currency_name": "캄보디아 리엘",
+      "tier": "A",
+      "usd_linked": true,
+      "swing_6m_pct": 7.0,
+      "unit_per_krw": 2.95,
+      "own_vol_pct": 1.1
+    },
+    {
+      "nationality": "중국",
+      "currency": "CNY",
+      "currency_name": "위안",
+      "tier": "A",
+      "usd_linked": true,
+      "swing_6m_pct": 6.4,
+      "unit_per_krw": 0.0052,
+      "own_vol_pct": 2.3
+    },
+    {
+      "nationality": "미얀마",
+      "currency": "MMK",
+      "currency_name": "짯",
+      "tier": "A",
+      "usd_linked": true,
+      "swing_6m_pct": 7.1,
+      "unit_per_krw": 1.55,
+      "own_vol_pct": 2.0
+    },
+    {
+      "nationality": "태국",
+      "currency": "THB",
+      "currency_name": "바트",
+      "tier": "B",
+      "usd_linked": false,
+      "swing_6m_pct": 8.5,
+      "unit_per_krw": 0.0243,
+      "own_vol_pct": 8.2
+    },
+    {
+      "nationality": "인도네시아",
+      "currency": "IDR",
+      "currency_name": "루피아",
+      "tier": "B",
+      "usd_linked": false,
+      "swing_6m_pct": 8.8,
+      "unit_per_krw": 11.9,
+      "own_vol_pct": 5.6
+    },
+    {
+      "nationality": "필리핀",
+      "currency": "PHP",
+      "currency_name": "페소",
+      "tier": "B",
+      "usd_linked": false,
+      "swing_6m_pct": 8.1,
+      "unit_per_krw": 0.0418,
+      "own_vol_pct": 4.9
+    },
+    {
+      "nationality": "네팔",
+      "currency": "NPR",
+      "currency_name": "루피",
+      "tier": "B",
+      "usd_linked": false,
+      "swing_6m_pct": 8.3,
+      "unit_per_krw": 0.0976,
+      "own_vol_pct": 4.2
+    },
+    {
+      "nationality": "몽골",
+      "currency": "MNT",
+      "currency_name": "투그릭",
+      "tier": "B",
+      "usd_linked": false,
+      "swing_6m_pct": 10.2,
+      "unit_per_krw": 2.52,
+      "own_vol_pct": 7.4
+    },
+    {
+      "nationality": "우즈베키스탄",
+      "currency": "UZS",
+      "currency_name": "숨",
+      "tier": "B",
+      "usd_linked": false,
+      "swing_6m_pct": 11.4,
+      "unit_per_krw": 9.15,
+      "own_vol_pct": 9.1
+    },
+    {
+      "nationality": "카자흐스탄",
+      "currency": "KZT",
+      "currency_name": "텡게",
+      "tier": "B",
+      "usd_linked": false,
+      "swing_6m_pct": 12.6,
+      "unit_per_krw": 0.385,
+      "own_vol_pct": 10.3
+    },
+    {
+      "nationality": "러시아",
+      "currency": "RUB",
+      "currency_name": "루블",
+      "tier": "B",
+      "usd_linked": false,
+      "swing_6m_pct": 16.9,
+      "unit_per_krw": 0.0605,
+      "own_vol_pct": 14.7
+    }
+  ]
+}

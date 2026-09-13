@@ -98,3 +98,12 @@ def today_summary(site_id: str):
         "check_out": sum(1 for r in rows if r["check_type"] == "out"),
         "currently_working": working,
     }
+
+
+def live_shifts_of(worker_name: str):
+    """
+    시연 중 실제로 찍혀 메모리에 쌓인 완료된 교대들. 시드 근태 위에 얹기 위한 것이며
+    서버를 다시 켜면 사라진다 — 기본 근무 이력은 seeds/attendance.json 이 담당한다.
+    """
+    return [r for r in _records.values()
+            if r["worker_name"] == worker_name and r.get("worked_minutes")]

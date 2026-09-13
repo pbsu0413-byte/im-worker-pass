@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass - 지갑</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="ui.css" />
 <style>
   .step { border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:10px; background:#fff; }
   .step h4 { margin:0 0 4px; font-size:14px; }
@@ -16,29 +16,110 @@
   .badge-real { background:#dcfce7; color:#15803d; padding:1px 7px; border-radius:999px; font-size:11px; }
   .badge-mock { background:#f1f5f9; color:#64748b; padding:1px 7px; border-radius:999px; font-size:11px; }
   .muted { font-size:11.5px; color:#94a3b8; margin-top:8px; line-height:1.6; }
+  .pop-mask { position:fixed; inset:0; background:rgba(15,23,42,.45); display:flex;
+    align-items:flex-end; justify-content:center; z-index:50; padding:16px; }
+  .pop { background:#fff; border-radius:16px; width:100%; max-width:520px; padding:18px 18px 14px;
+    box-shadow:0 -8px 40px rgba(0,0,0,.25); max-height:86vh; overflow:auto; }
+  .pop-kind { display:inline-block; background:#eff6ff; color:#1d4ed8; font-size:11px;
+    padding:2px 8px; border-radius:999px; }
+  .pop h3 { margin:8px 0 2px; font-size:17px; }
+  .pop .lead { font-size:14px; color:#0f172a; font-weight:600; }
+  .pop .why { font-size:12px; color:#64748b; margin-top:2px; }
+  .pop .rows { margin-top:12px; }
+  .pop .rows div { display:flex; justify-content:space-between; gap:10px; padding:6px 0;
+    border-bottom:1px solid #eef2f7; font-size:13px; }
+  .pop .rows span:first-child { color:#475569; white-space:nowrap; }
+  .pop .rows span:last-child { text-align:right; }
+  .goal { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:12px; }
+  .goal .big { font-size:24px; font-weight:700; letter-spacing:-.5px; }
+  .goal .sub { font-size:12.5px; color:#64748b; margin-top:2px; }
+  .goal input[type=range] { width:100%; margin:10px 0 2px; accent-color:#1a1a1a; padding:0; border:none; }
+  .goal .ends { display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; }
+  .goal .manual { display:flex; align-items:center; gap:6px; margin-top:10px; }
+  .goal .manual input { flex:1; text-align:right; font-size:15px; font-weight:600; padding:8px 10px; }
+  .goal .derived { display:flex; justify-content:space-between; gap:10px; padding:8px 0 0;
+    font-size:13px; border-top:1px solid #e2e8f0; margin-top:10px; }
+  .goal .derived b { font-size:15px; }
+  /* 패스포트 홈 — 근태·급여 */
+  .pp { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
+  .pp .cell { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:11px 13px; }
+  .pp .cell .lab { font-size:11.5px; color:#64748b; }
+  .pp .cell .val { font-size:20px; font-weight:700; letter-spacing:-.5px; margin-top:3px; }
+  .pp .cell .sub { font-size:11.5px; color:#94a3b8; margin-top:2px; }
+  .pp .wide { grid-column:1 / -1; }
+  .today { display:flex; align-items:center; gap:9px; font-size:14px; font-weight:600; }
+  .dot { width:9px; height:9px; border-radius:50%; flex:none; }
+  .live { display:inline-block; background:#ecfdf5; color:#047857; font-size:11px;
+    padding:2px 7px; border-radius:999px; margin-left:6px; }
+  @media (max-width:420px) { .pp { grid-template-columns:1fr; } }
+  /* 귀국 목표 적금 */
+  .sv { margin-top:14px; border-top:1px solid #eef2f7; padding-top:12px; }
+  .sv .hd { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .sv .ttl { font-size:13.5px; font-weight:700; }
+  .sv .tag { font-size:11px; padding:2px 8px; border-radius:999px;
+    background:#eff6ff; color:#1d4ed8; white-space:nowrap; }
+  .sv .bar { height:7px; border-radius:999px; background:#e2e8f0; margin:10px 0 6px; overflow:hidden; }
+  .sv .bar i { display:block; height:100%; background:#1d4ed8; border-radius:999px; }
+  .sv .ln { display:flex; justify-content:space-between; gap:10px; font-size:12.5px;
+    color:#475569; padding:4px 0; }
+  .sv .ln b { color:#0f172a; }
+  .sv .cta { display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:11px 13px;
+    font-size:13px; color:#475569; }
+  .sv .cta button { margin:0; width:auto; padding:7px 13px; font-size:12.5px; }
+  /* 귀국정산 */
+  .rt { margin-top:14px; border-top:1px solid #eef2f7; padding-top:12px; }
+  .rt .hd { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .rt .ttl { font-size:13.5px; font-weight:700; }
+  .rt .dday { font-size:12px; color:#64748b; }
+  .rt .amt { font-size:26px; font-weight:700; letter-spacing:-.6px; margin-top:8px; }
+  .rt .sub { font-size:13px; color:#475569; margin-top:2px; }
+  .rt .swing { font-size:12px; color:#94a3b8; margin-top:6px; line-height:1.6; }
+  .rt .guard { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px;
+    background:#ecfdf5; color:#047857; margin-left:6px; }
+  .rt .none { font-size:13px; color:#64748b; background:#f8fafc; border:1px solid #e2e8f0;
+    border-radius:10px; padding:11px 13px; margin-top:8px; }
+  /* 송금·보험 줄과 바로가기 */
+  .fxln { margin-top:14px; border-top:1px solid #eef2f7; padding-top:12px; }
+  .fxln .ttl { font-size:13.5px; font-weight:700; }
+  .fxln .big { font-size:17px; font-weight:700; margin-top:6px; letter-spacing:-.3px; }
+  .fxln .sub { font-size:12.5px; color:#64748b; margin-top:3px; line-height:1.6; }
+  .fxln .no { font-size:12.5px; color:#94a3b8; margin-top:6px; line-height:1.6; }
+  .go { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:16px; }
+  .go a { display:block; text-align:center; text-decoration:none; cursor:pointer;
+    background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;
+    padding:11px 6px; color:#0f172a; font-size:12.5px; font-weight:600; }
+  .go a:hover { border-color:#0f172a; background:#fff; }
+  .go a i { display:block; font-style:normal; font-size:11px; color:#94a3b8;
+    font-weight:400; margin-top:2px; }
+  @media (max-width:420px) { .go { grid-template-columns:repeat(2,1fr); } }
+  .pop .opt { display:flex; align-items:center; gap:8px; font-size:13px; margin-top:8px; }
+  .pop .opt input { width:auto; }
+  .pop .note { font-size:11.5px; color:#94a3b8; line-height:1.65; margin-top:10px; }
+  .pop .engine { font-size:11.5px; color:#475569; line-height:1.65; margin-top:8px;
+    background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:9px 11px; }
+  .pop .btns { display:flex; gap:8px; margin-top:12px; }
+  .pop .btns button { flex:1; margin:0; }
   .err { background:#fdecea; border:1px solid #e74c3c; color:#a92c22; padding:12px; border-radius:10px; margin-top:12px; font-size:13px; }
 </style>
 </head>
-<body>
-  <nav>
-    <a href="index.html">🏠 홈</a>
-    <a href="wallet.html" class="active">① 지갑</a>
-    <a href="submit.html">② 제출</a>
-    <a href="scan.html">③ 스캐너</a>
-    <a href="attendance.html">④ 근태</a>
-    <a href="insurance.html">⑤ 보험</a>
-    <a href="insurer.html">⑥ 보험사</a>
-    <a href="admin.html">⑦ 관리자</a>
-  </nav>
+<body class="role-phone">
+<div class="phone">
+  <header class="ph-top">
+    <div class="brand">iM Worker Pass</div>
+    <h1>내 지갑</h1>
+    <div class="who">근로자 금융 패스포트</div>
+  </header>
+  <main class="ph-body">
 
-  <h1>근로자 지갑</h1>
   <p style="font-size:13px;color:#64748b;margin-top:-6px;">
-    지갑 발급은 <b>최초 1회</b>입니다. 제출은 <a href="submit.html">② 제출</a> 화면에서 할 때마다 합니다.
+    지갑 발급은 <b>최초 1회</b>입니다. 제출은 낼 때마다 아래 <b>제출</b> 탭에서 합니다.
   </p>
 
   <div id="walletView" style="display:none;"></div>
 
   <div id="setupView">
+    <div id="pickedBanner" style="display:none;"></div>
     <div class="card">
       <h3>1) 은행 창구 본인확인</h3>
       <p style="font-size:12.5px;color:#666;margin-top:0;">
@@ -51,29 +132,16 @@
         <optgroup label="E-9 비전문취업 (고용허가제)">
           <option value="NGUYEN VAN A">NGUYEN VAN A · 베트남 · 제조(금속가공) — 표준</option>
           <option value="SITI RAHAYU">SITI RAHAYU · 인도네시아 · 제조(식품) — 표준 2</option>
-          <option value="BOLORMAA BAT">BOLORMAA BAT · 몽골 · 건설(형틀) — 신규 입국</option>
-          <option value="RAMESH THAPA">RAMESH THAPA · 네팔 · 조선(용접) — 변경 3/3 소진</option>
-          <option value="SOMCHAI PRASERT">SOMCHAI PRASERT · 태국 · 농축산 — 건강진단 기한 경과</option>
-          <option value="MARIA SANTOS">MARIA SANTOS · 필리핀 · 호텔·음식점 — 최소 정보</option>
           <option value="NGUYEN THI E">NGUYEN THI E · 베트남 · 제조(전자) — 체류자격 말소 ⛔</option>
         </optgroup>
         <optgroup label="H-2 방문취업 (동포 특례고용)">
-          <option value="SERGEY KIM">SERGEY KIM · 러시아 · 제조(자동차부품)</option>
           <option value="LI CHUNHUA">LI CHUNHUA · 중국 · 음식점 — 체류 만료 임박</option>
-          <option value="OLGA TSOY">OLGA TSOY · 카자흐스탄 · 건설 — 계좌 개설 전 ⛔</option>
-        </optgroup>
-        <optgroup label="E-7-4 숙련기능인력 (점수제)">
-          <option value="HTET AUNG">HTET AUNG · 미얀마 · 제조(정밀가공) — E-9에서 전환</option>
-          <option value="DILSHOD KARIMOV">DILSHOD KARIMOV · 우즈베키스탄 · 조선</option>
-        </optgroup>
-        <optgroup label="F-6 결혼이민">
-          <option value="ANNA PETROVA">ANNA PETROVA · 러시아 · 제조 — 취업 제한 없음</option>
         </optgroup>
       </select>
       <small>
         계좌번호는 입력하지 않습니다. 은행이 자기 명단에서 찾아 돌려주는 값입니다.
         체류자격마다 이직 규정이 다르고, 요구되는 한국어 시험과 교육도 다릅니다.
-        ⛔ 표시된 두 사람은 각각 다른 단계에서 막힙니다.
+        ⛔ 표시된 사람은 체류자격이 말소되어 2단계에서 막힙니다.
       </small>
       <button onclick="bankVerify()">창구 실명확인</button>
       <div id="verifyBox"></div>
@@ -231,6 +299,218 @@
       loadWallet(data.credential_id);
     }
 
+    // ---- 패스포트 홈: 오늘의 근태 · 이번 달 근무일수 · 예상 급여 --------------
+    // 새 크리덴셜을 만들지 않는다. 회사 근태 기록과 급여 기준을 읽어 보여줄 뿐이다.
+    const won = (n) => Number(n || 0).toLocaleString("ko-KR") + "원";
+
+    function todayLine(t) {
+      const map = {
+        working: ["#15803d", "근무 중"],
+        done:    ["#1d4ed8", "퇴근 완료"],
+        not_yet: ["#94a3b8", "오늘 출근 기록 없음"],
+      };
+      const [color, label] = map[t.state] || map.not_yet;
+      let tail = "";
+      if (t.last_scan) {
+        const d = new Date(t.last_scan.server_time);
+        const hhmm = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+        tail = ` · ${esc(t.last_scan.site_name)} ${hhmm} ${t.last_scan.check_type === "in" ? "출근" : "퇴근"}`;
+      }
+      return `<div class="today"><span class="dot" style="background:${color};"></span>
+              <span style="color:${color};">${label}</span>
+              <span style="color:#94a3b8;font-weight:400;font-size:12.5px;">${tail}</span></div>`;
+    }
+
+    async function loadPassport(cid) {
+      const box = document.getElementById("passportBody");
+      if (!box) return;
+      let p;
+      try {
+        const res = await fetch(`${API_BASE_URL}/passport/${cid}`);
+        if (!res.ok) throw new Error(res.status);
+        p = await res.json();
+      } catch (e) {
+        box.innerHTML = `<span style="color:#a92c22;">근태·급여 정보를 불러오지 못했습니다.</span>`;
+        return;
+      }
+      const m = p.month || {};
+      if (!m.available) {
+        box.innerHTML = `<span style="color:#94a3b8;">이 인물은 급여 기준 정보가 없어 예상 급여를 계산하지 않습니다.</span>`;
+        return;
+      }
+      const liveTag = m.live_days
+        ? `<span class="live">시연 중 +${m.live_days}일</span>` : "";
+
+      box.innerHTML = `
+        ${todayLine(p.today)}
+        <div class="pp" style="margin-top:12px;">
+          <div class="cell">
+            <div class="lab">근무일수 ${esc(m.month)}</div>
+            <div class="val">${m.workdays}일${liveTag}</div>
+            <div class="sub">${m.base_hours}시간${m.overtime_hours ? ` · 연장 ${m.overtime_hours}시간` : ""}</div>
+          </div>
+          <div class="cell">
+            <div class="lab">예상 급여 (공제 전)</div>
+            <div class="val">${won(m.estimated_gross_pay)}</div>
+            <div class="sub">시급 ${won(m.hourly_wage)}</div>
+          </div>
+          <div class="cell wide">
+            <div class="lab">급여계좌</div>
+            <div class="val" style="font-size:15px;">${esc(p.account.bank)} ${esc(p.account.number)}</div>
+            <div class="sub">${esc(m.job_title)} · ${esc(m.site_id)}${
+              m.absent_days || m.late_days
+                ? ` · 결근 ${m.absent_days}일 · 지각 ${m.late_days}회` : ""}</div>
+          </div>
+        </div>
+        <div class="muted" style="margin-top:10px;">
+          ${esc(m.notice)} 근무 시각을 기록하는 주체는 <b>회사 근태 시스템</b>이고,
+          은행은 체류자격이 유효한지만 답합니다.
+        </div>
+        ${savingsBlock(p.savings)}
+        ${hedgeBlock(p.hedge)}
+        ${insuranceBlock(p.insurance)}
+        ${settlementBlock(p.settlement)}
+        <div class="go" style="grid-template-columns:repeat(2,1fr);">
+          <a onclick="location.href='submit.html'">증명 제출<i>QR 발급</i></a>
+          <a onclick="openHedgeCard()">환율 보장<i>송금 예약</i></a>
+        </div>`;
+    }
+
+    // 해외송금 · 환율 보장 — 등급 이름(A/B/C)은 근로자 화면에 쓰지 않는다.
+    // 보여주는 것은 예상비용, 보호 범위, 적용 통화뿐이다 (파생 용어 금지).
+    function hedgeBlock(h) {
+      if (!h) return "";
+      if (h.tier === "C") {
+        return `
+          <div class="fxln">
+            <div class="ttl">해외송금 · 환율 보장</div>
+            <div class="no">
+              지금 송금 규모에서는 보장 비용이 기대 효과보다 커서 권해 드리지 않습니다.
+              송금액이 늘면 다시 안내해 드립니다.
+            </div>
+          </div>`;
+      }
+      return `
+        <div class="fxln">
+          <div class="ttl">해외송금 · 환율 보장</div>
+          <div class="big">${won(h.monthly_remit)} 송금 시 수수료 ${won(h.fee)}</div>
+          <div class="sub">
+            ${esc(h.currency_name)}(${esc(h.currency)}) · 다음 송금분의 환율을 지금 고정합니다.
+            환율이 불리하게 움직여도 받는 금액이 줄지 않습니다.
+          </div>
+          <div class="sub" style="color:#94a3b8;">
+            최근 6개월 변동폭 ${h.swing_6m_pct}% 기준 예상 절감 ${won(h.expected_saving)} ·
+            적용 기간은 다음 급여일 송금 1회분입니다.
+          </div>
+        </div>`;
+    }
+
+    // 보험 — 가입 사실은 손해보험사 원천 기록에 있고 지갑은 조회만 한다.
+    function insuranceBlock(ins) {
+      if (!ins) {
+        return `
+          <div class="fxln">
+            <div class="ttl">보험</div>
+            <div class="no">가입한 보험이 없습니다. 업무 외 상해는 회사 보험으로 보장되지 않습니다.</div>
+          </div>`;
+      }
+      return `
+        <div class="fxln">
+          <div class="ttl">보험</div>
+          <div class="big">${esc(ins.product)}</div>
+          <div class="sub">${esc(ins.company)} · 병원 접수 시 서류 없이 가입 사실이 조회됩니다.</div>
+        </div>`;
+    }
+
+    // 환율 보장 송금 카드를 홈에서 다시 연다 — 새 화면을 만들지 않는다.
+    function openHedgeCard() {
+      const card = (popAll || []).find(c => c.id === "fx_guaranteed_remittance");
+      if (card) { showCard(currentCid, card); return; }
+      alert("지금 조건에서는 환율 보장을 권해 드리지 않습니다.");
+    }
+
+    // 귀국정산 — 돌아갈 때 손에 쥐는 돈.
+    // 남은 기간의 급여는 생활비로 쓰이므로 더하지 않는다. 부풀리지 않는 것이 핵심이다.
+    function settlementBlock(st) {
+      if (!st || !st.leave_date) return "";
+      const dday = st.days_left != null
+        ? `${esc(st.leave_date)} · D-${st.days_left.toLocaleString("ko-KR")}` : esc(st.leave_date);
+
+      if (!st.enrolled || !st.savings_total) {
+        return `
+          <div class="rt">
+            <div class="hd"><span class="ttl">귀국정산</span><span class="dday">${dday}</span></div>
+            <div class="none">
+              아직 귀국할 때 가져갈 목돈이 준비되어 있지 않습니다.
+              남은 근무 기간은 약 ${st.months_left}개월입니다.
+            </div>
+          </div>`;
+      }
+
+      const h = st.home;
+      const num = (v) => Number(v || 0).toLocaleString("ko-KR", { maximumFractionDigits: 0 });
+      return `
+        <div class="rt">
+          <div class="hd">
+            <span class="ttl">귀국정산${st.fx_guard ? '<span class="guard">환율 보장</span>' : ""}</span>
+            <span class="dday">${dday}</span>
+          </div>
+          <div class="amt">${won(st.savings_total)}</div>
+          ${h ? `<div class="sub">${esc(h.currency_name)} 약 ${num(h.amount)} ${esc(h.currency)}</div>` : ""}
+          ${(h && !st.fx_guard) ? `
+            <div class="swing">
+              환율이 최근 6개월 변동폭(${h.swing_6m_pct}%)만큼 불리하게 움직이면
+              약 ${num(h.downside)} ${esc(h.currency)}가 됩니다.
+            </div>` : ""}
+          <div class="swing">${esc(st.notice)} ${esc(st.basis)}</div>
+        </div>`;
+    }
+
+    // 귀국 목표 적금 — 가입 기록은 은행이 갖고, 지갑은 읽어서 보여주기만 한다.
+    function savingsBlock(sv) {
+      if (!sv) return "";
+      if (!sv.enrolled) {
+        return `
+          <div class="sv"><div class="cta">
+            <span>귀국하실 때 가져갈 금액을 미리 정해둘 수 있습니다.</span>
+            <button onclick="openSavingsCard()">알아보기</button>
+          </div></div>`;
+      }
+      const pct = sv.months_total
+        ? Math.min(100, Math.round(sv.paid_months / sv.months_total * 100)) : 0;
+      const opts = [sv.auto_remit ? "만기 자동 송금" : null,
+                    sv.fx_guard ? "환율 보장 적용" : null].filter(Boolean).join(" · ");
+      return `
+        <div class="sv">
+          <div class="hd">
+            <span class="ttl">귀국 목표 적금</span>
+            <span class="tag">${sv.enrolled_now ? "방금 가입" : "납입 중"}</span>
+          </div>
+          <div class="bar"><i style="width:${pct}%;"></i></div>
+          <div class="ln"><span>지금까지 쌓인 금액</span><b>${won(sv.accrued)}</b></div>
+          <div class="ln"><span>매달 넣는 금액</span><b>${won(sv.monthly)}</b></div>
+          ${sv.expected_total ? `
+          <div class="ln"><span>만기 예상 수령액</span><b>${won(sv.expected_total)}</b></div>
+          <div class="ln"><span>만기일</span><span>${esc(sv.maturity_date)} · ${sv.months_left}개월 남음</span></div>` : ""}
+          ${opts ? `<div class="ln"><span>함께 적용</span><span>${esc(opts)}</span></div>` : ""}
+          <div style="font-size:11.5px;color:#94a3b8;margin-top:8px;">
+            만기는 체류 만료일에 자동으로 맞춰집니다. ${esc(sv.notice)}
+          </div>
+        </div>`;
+    }
+
+    // 미가입일 때 기존 적금 팝업을 그대로 연다 — 새 화면을 만들지 않는다.
+    function openSavingsCard() {
+      const card = (popAll || []).find(c => c.id === "return_goal_savings");
+      if (card) { showCard(currentCid, card); return; }
+      alert("체류 만료일이 가까워 적금 상품 조건에 맞지 않습니다.");
+    }
+
+    // 인물 선택 화면으로. 매번 다른 주소로 가서 브라우저가 옛 사본을 꺼내 쓰지 못하게 한다.
+    function gotoIssue() {
+      location.href = "people.html?t=" + Date.now();
+    }
+
     async function loadWallet(cid) {
       const res = await fetch(`${API_BASE_URL}/wallet/${cid}`);
       if (!res.ok) { try { localStorage.removeItem(CID_STORE); } catch (e) {} return; }
@@ -241,6 +521,11 @@
       const view = document.getElementById("walletView");
       view.style.display = "block";
       view.innerHTML = `
+        <div class="card" id="passportCard">
+          <h3>이번 달</h3>
+          <div id="passportBody" style="font-size:13px;color:#94a3b8;">불러오는 중…</div>
+        </div>
+
         <div class="card">
           <h3>내 지갑</h3>
           <div class="rows">
@@ -282,65 +567,283 @@
         </div>
 
         <div class="card">
-          <h3>심사·시연용 — 다른 인물 보기</h3>
-          <p style="font-size:12.5px;color:#64748b;margin-top:0;">
-            실제 서비스에서 근로자는 자기 지갑 하나만 갖습니다. 이 전환은 심사에서
-            여러 인물을 비교해 보기 위한 것입니다.
-          </p>
-          <label>발급된 지갑</label>
-          <select id="walletPicker" onchange="switchWallet(this.value)"></select>
           <div id="keyWarn"></div>
-          <button onclick="location.href='submit.html'">제출하러 가기 →</button>
-          <button class="secondary" onclick="newWallet()">새 인물 발급하기</button>
+          <button class="secondary" onclick="gotoIssue()">다른 인물로 보기</button>
+          <p style="font-size:12px;color:#94a3b8;margin:10px 0 0;">
+            실제 서비스에서 근로자는 자기 지갑 하나만 갖습니다.
+            인물을 바꿔 보려면 발급 화면으로 돌아갑니다.
+          </p>
         </div>`;
 
-      loadWalletList(w.credential_id);
+      paintKeyWarning(w.credential_id);
+      loadPassport(w.credential_id);
+      loadRecommendations(w.credential_id);
     }
 
-    async function loadWalletList(currentId) {
-      const res = await fetch(`${API_BASE_URL}/wallets`);
-      if (!res.ok) return;
-      const rows = (await res.json()).wallets || [];
-      const sel = document.getElementById("walletPicker");
-      if (!sel) return;
-      sel.innerHTML = rows.map(r => `
-        <option value="${r.credential_id}" ${r.credential_id === currentId ? "selected" : ""}>
-          ${esc(r.worker_name)} · ${esc(r.nationality)} · ${esc(r.visa_type)}${
-            r.holder_registered ? "" : " (이 브라우저에서 발급되지 않음)"}
-        </option>`).join("");
-
-      // 이 브라우저에 그 지갑의 단말 키가 없으면 제출 단계에서 서명이 안 된다.
+    // 이 브라우저에 이 지갑의 단말 키가 없으면 제출 단계에서 서명이 안 된다.
+    // (서버를 다시 켜 더미 지갑만 남았을 때 흔히 생긴다.)
+    function paintKeyWarning(currentId) {
+      const box = document.getElementById("keyWarn");
+      if (!box) return;
       let hasKey = false;
       try { hasKey = !!localStorage.getItem(keyStore(currentId)); } catch (e) {}
-      document.getElementById("keyWarn").innerHTML = hasKey ? "" : `
+      box.innerHTML = hasKey ? "" : `
         <div style="background:#fffbeb;border:1px solid #fcd34d;color:#b45309;
-                    padding:10px 12px;border-radius:8px;margin-top:10px;font-size:12.5px;">
+                    padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:12.5px;">
           이 지갑의 단말 키가 이 브라우저에 없습니다. 조회는 되지만 제출은 거부됩니다.
-          제출까지 시연하려면 "새 인물 발급하기"에서 이 인물로 다시 발급하세요.
+          제출까지 시연하려면 아래에서 이 인물로 다시 발급하세요.
         </div>`;
     }
 
-    function switchWallet(cid) {
-      try { localStorage.setItem(CID_STORE, cid); } catch (e) {}
-      loadWallet(cid);
+    // ── 상품 추천 팝업 ───────────────────────────────────────────
+    // 조건은 지갑이 이미 아는 값(체류 만료일·급여일)에서 나온다.
+    let popQueue = [];
+    let popAll = [];        // 홈의 "알아보기"에서 다시 꺼내 쓰기 위해 원본을 들고 있는다
+    let currentCid = null;
+
+    // 시연용 프로토타입이므로 상품 카드는 항상 전부 띄운다.
+    // 실서비스라면 노출 조건(체류 만료일·급여일 등)과 "닫은 카드는 7일간 숨김"이
+    // 걸리지만, 심사에서는 조건에 걸려 안 뜨는 카드가 있으면 확인할 방법이 없다.
+    async function loadRecommendations(cid) {
+      currentCid = cid;
+      const res = await fetch(`${API_BASE_URL}/products/recommend/${cid}?force=true`);
+      if (!res.ok) return;
+      const data = await res.json();
+      popAll = data.cards || [];
+      popQueue = popAll.slice();
+      showNextCard(cid);
     }
 
-    function newWallet() {
-      try { localStorage.removeItem(CID_STORE); } catch (e) {}
-      verification = null;
-      document.getElementById("walletView").style.display = "none";
-      document.getElementById("setupView").style.display = "block";
-      document.getElementById("verifyBox").innerHTML = "";
-      document.getElementById("registerBox").innerHTML = "";
-      document.getElementById("registerCard").style.display = "none";
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    // 팝업을 폰 화면 영역에 맞춘다. 데스크톱에서는 폰 목업 안쪽,
+    // 실제 휴대폰에서는 화면 전체가 된다. 창 크기가 바뀌면 다시 맞춘다.
+    function fitToPhone(mask) {
+      const phone = document.querySelector(".phone");
+      const apply = () => {
+        if (!document.body.contains(mask)) { window.removeEventListener("resize", apply); return; }
+        if (!phone) return;
+        const r = phone.getBoundingClientRect();
+        mask.style.left = r.left + "px";
+        mask.style.top = r.top + "px";
+        mask.style.width = r.width + "px";
+        mask.style.height = r.height + "px";
+        mask.style.right = "auto";
+        mask.style.bottom = "auto";
+        mask.style.borderRadius = getComputedStyle(phone).borderRadius;
+      };
+      apply();
+      window.addEventListener("resize", apply);
     }
+
+    function showNextCard(cid) {
+      const card = popQueue.shift();
+      if (!card) return;
+      showCard(cid, card);
+    }
+
+    function showCard(cid, card) {
+      const mask = document.createElement("div");
+      mask.className = "pop-mask";
+      mask.innerHTML = `
+        <div class="pop">
+          <span class="pop-kind" style="${card.tier === "C"
+            ? "background:#f1f5f9;color:#64748b;" : ""}">${esc(card.kind)}</span>
+          ${card.tier ? `<span class="pop-kind" style="background:#f8fafc;color:#94a3b8;margin-left:4px;">등급 ${esc(card.tier)}</span>` : ""}
+          <h3>${esc(card.title)}</h3>
+          <div class="lead">${esc(card.lead)}</div>
+          <div class="why">${esc(card.why)}</div>
+          <div class="rows">
+            ${card.rows.map(r => `<div><span>${esc(r.label)}</span><span>${esc(r.value)}</span></div>`).join("")}
+          </div>
+          ${card.calc ? `
+            <div class="goal">
+              <div style="font-size:12.5px;color:#475569;">귀국하실 때 받을 금액</div>
+              <div class="big" id="goalAmt"></div>
+              <div class="sub">끌어서 맞추거나 아래에 직접 입력하세요</div>
+              <input type="range" id="goalRange"
+                     min="${card.calc.target_min}" max="${card.calc.target_max}"
+                     step="${card.calc.target_step}" value="${card.calc.target_default}" />
+              <div class="ends">
+                <span>${(card.calc.target_min / 10000).toLocaleString("ko-KR")}만</span>
+                <span>${(card.calc.target_max / 10000).toLocaleString("ko-KR")}만</span>
+              </div>
+              <div class="manual">
+                <input type="number" id="goalInput" step="${card.calc.target_step}"
+                       min="${card.calc.target_min}" max="${card.calc.target_max}" />
+                <span style="font-size:13px;color:#475569;">원</span>
+              </div>
+              <div class="derived">
+                <span>매달 넣는 금액</span><b id="goalMonthly"></b>
+              </div>
+              <div class="derived" style="border:none;padding-top:4px;">
+                <span style="color:#64748b;font-size:12px;">${card.calc.months}개월 × 매달 납입 + 이자</span>
+                <span id="goalReal" style="color:#64748b;font-size:12px;"></span>
+              </div>
+            </div>` : ""}
+          ${(card.options || []).map(o => `
+            <label class="opt"><input type="checkbox" data-opt="${esc(o.id)}" checked /> ${esc(o.label)}</label>`).join("")}
+          ${card.detail ? `
+            <details style="margin-top:10px;">
+              <summary style="cursor:pointer;font-size:12.5px;color:#2563eb;">왜 그런가요?</summary>
+              <div style="font-size:12.5px;color:#475569;line-height:1.7;margin-top:6px;">
+                ${esc(card.detail)}
+              </div>
+              <div class="engine">${esc(card.engine)}</div>
+            </details>` : `<div class="engine">${esc(card.engine)}</div>`}
+          <div class="note">${esc(card.note)}</div>
+          <div class="btns">
+            <button data-act="cta">${esc(card.cta)}</button>
+            <button class="secondary" data-act="later">나중에</button>
+          </div>
+        </div>`;
+      // 폰 목업 안에만 띄운다. body 에 그대로 붙이면 프레임 밖으로 삐져나온다.
+      document.body.appendChild(mask);
+      fitToPhone(mask);
+
+      // 목표 금액 ↔ 월 납입 역산. 슬라이더와 입력칸이 서로를 따라간다.
+      let chosen = card.calc ? card.calc.target_default : null;
+      if (card.calc) {
+        const k = card.calc;
+        const range = mask.querySelector("#goalRange");
+        const input = mask.querySelector("#goalInput");
+        const amt = mask.querySelector("#goalAmt");
+        const mon = mask.querySelector("#goalMonthly");
+        const real = mask.querySelector("#goalReal");
+        const clamp = (v) => Math.min(k.target_max, Math.max(k.target_min, v));
+
+        const paint = (target, syncInput = true) => {
+          target = clamp(Math.round(target / k.target_step) * k.target_step);
+          // 목표 → 월 납입(만원 단위 반올림) → 그 납입으로 실제 도달하는 금액
+          let monthly = Math.round(target / (k.months * k.factor) / k.monthly_step) * k.monthly_step;
+          monthly = Math.min(k.monthly_max, Math.max(k.monthly_min, monthly));
+          const achieved = Math.round(monthly * k.months * k.factor);
+          chosen = { target, monthly, achieved };
+
+          amt.textContent = `${target.toLocaleString("ko-KR")}원`;
+          mon.textContent = `${monthly.toLocaleString("ko-KR")}원`;
+          real.textContent = `실제 약 ${achieved.toLocaleString("ko-KR")}원`;
+          range.value = target;
+          if (syncInput) input.value = target;
+        };
+
+        range.addEventListener("input", () => paint(Number(range.value)));
+        input.addEventListener("input", () => {
+          const v = Number(input.value);
+          if (!isNaN(v) && v > 0) paint(v, false);
+        });
+        input.addEventListener("blur", () => paint(Number(input.value) || k.target_default));
+        paint(k.target_default);
+      }
+
+      mask.addEventListener("click", (e) => {
+        const act = e.target.dataset && e.target.dataset.act;
+        if (!act && e.target !== mask) return;
+        mask.remove();
+        if (act === "cta") {
+          if (card.id === "return_goal_savings") {
+            enrollSavings(cid, card, mask);
+            return;   // 가입 결과를 보여준 뒤 다음 카드로 넘어간다
+          }
+          alert("Phase 2 — 이 상품의 가입은 이번 범위에 포함되지 않습니다.\n조건 판정과 금액 산출까지가 이번 구현 범위입니다.");
+        }
+        setTimeout(() => showNextCard(cid), 250);
+      });
+    }
+
+
+
+    // 적금 가입 — 만기·기간은 서버가 체류 만료일에서 계산하므로 월 납입액만 보낸다.
+    async function enrollSavings(cid, card, mask) {
+      const monthly = (chosen && chosen.monthly) || card.calc.monthly_default;
+      const opt = (id) => {
+        const el = document.querySelector(`.pop input[data-opt="${id}"]`);
+        return !!(el && el.checked);
+      };
+      let res;
+      try {
+        res = await fetch(`${API_BASE_URL}/savings/enroll`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            credential_id: cid,
+            monthly,
+            auto_remit: opt("auto_remit"),
+            fx_guard: opt("fx_guard"),
+          }),
+        });
+      } catch (e) { res = null; }
+
+      if (!res || !res.ok) {
+        alert("가입 처리에 실패했습니다. 서버 상태를 확인해주세요.");
+        setTimeout(() => showNextCard(cid), 250);
+        return;
+      }
+      alert(`가입되었습니다. 매달 ${monthly.toLocaleString("ko-KR")}원씩 체류 만료일까지 적립됩니다.`);
+      loadPassport(cid);          // 홈 카드를 새 상태로 다시 그린다
+      setTimeout(() => showNextCard(cid), 250);
+    }
+
+
+    // 새로고침(F5)이면 처음부터 다시 시작한다. 발급 완료나 탭 이동으로 다시 들어온
+    // 경우는 reload 가 아니므로 지갑 화면이 그대로 유지된다.
+    (function resetOnReload() {
+      let nav = null;
+      try { nav = performance.getEntriesByType("navigation")[0]; } catch (e) {}
+      const reloaded = nav ? nav.type === "reload"
+                           : (performance.navigation && performance.navigation.type === 1);
+      if (reloaded) {
+        try {
+          localStorage.removeItem(CID_STORE);
+          localStorage.removeItem("imwp_pick_worker");
+        } catch (e) {}
+      }
+    })();
 
     (function boot() {
+      // issue.html 에서 인물을 고르고 왔으면 그 사람으로 발급 화면부터 시작한다.
+      let picked = null;
+      try {
+        picked = new URLSearchParams(location.search).get("who");
+      } catch (e) {}
+      try {
+        if (!picked) picked = localStorage.getItem("imwp_pick_worker");
+        if (picked) localStorage.removeItem("imwp_pick_worker");
+      } catch (e) {}
+      // 주소로 인물이 넘어왔으면 기존 지갑은 비우고 그 사람부터 시작한다.
+      if (picked) { try { localStorage.removeItem(CID_STORE); } catch (e) {} }
+      if (picked) {
+        const sel = document.getElementById("workerName");
+        const known = sel && [...sel.options].some(o => o.value === picked);
+        if (known) sel.value = picked;
+        const b = document.getElementById("pickedBanner");
+        if (b) {
+          b.style.display = "block";
+          b.innerHTML = known
+            ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;
+                          padding:12px 14px;border-radius:10px;margin-bottom:14px;font-size:13.5px;">
+                 <b>${esc(picked)}</b> 님으로 시작합니다. 아래 <b>창구 실명확인</b>을 눌러 지갑 발급을 진행하세요.
+                 <a href="#" onclick="gotoIssue();return false;" style="color:#047857;margin-left:6px;">다른 인물 고르기</a>
+               </div>`
+            : `<div style="background:#fffbeb;border:1px solid #fcd34d;color:#b45309;
+                          padding:12px 14px;border-radius:10px;margin-bottom:14px;font-size:13.5px;">
+                 ${esc(picked)} 은(는) 현재 시드에 없는 인물입니다.
+                 <a href="#" onclick="gotoIssue();return false;" style="color:#b45309;">인물 선택으로 돌아가기</a>
+               </div>`;
+        }
+        window.scrollTo({ top: 0 });
+        return;   // 발급 화면(setupView)이 그대로 떠 있다
+      }
       let cid = null;
       try { cid = localStorage.getItem(CID_STORE); } catch (e) {}
       if (cid) loadWallet(cid);
     })();
   </script>
+  </main>
+  <nav class="ph-tabs">
+    <a href="wallet.html" class="active"><b>◎</b>홈</a>
+    <a href="submit.html"><b>❒</b>제출</a>
+    <a href="insurance.html"><b>✚</b>보험</a>
+    <a href="home.html"><b>⌂</b>역할</a>
+  </nav>
+</div>
 </body>
 </html>

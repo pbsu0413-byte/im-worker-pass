@@ -83,3 +83,12 @@ class AttendanceScanRequest(BaseModel):
 
     payload: Dict[str, Any]
     scanner_id: str
+
+
+class SavingsEnrollRequest(BaseModel):
+    """귀국 목표 적금 가입. 만기는 체류 만료일이라 받지 않는다."""
+
+    credential_id: str
+    monthly: int
+    auto_remit: bool = False
+    fx_guard: bool = False

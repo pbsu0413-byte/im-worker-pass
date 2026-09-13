@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass - 스캐너 (회사/병원/보험)</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="ui.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
   .onchain-badge {
@@ -81,19 +81,13 @@
   @media (max-width: 520px) { .rx-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
-<body>
-  <nav>
-    <a href="index.html">🏠 홈</a>
-    <a href="wallet.html">① 지갑</a>
-    <a href="submit.html">② 제출</a>
-    <a href="scan.html" class="active">③ 스캐너</a>
-    <a href="attendance.html">④ 근태</a>
-    <a href="insurance.html">⑤ 보험</a>
-    <a href="insurer.html">⑥ 보험사</a>
-    <a href="admin.html">⑦ 관리자</a>
-  </nav>
+<body class="role-kiosk">
+  <div class="ks-head">
+    <h1>검증 단말</h1>
+    <span class="site">사업장 · 병원 · 보험사 공용 스캐너</span>
+  </div>
+  <div class="ks-wrap">
 
-  <h1>사업장 / 병원 / 보험사 스캐너</h1>
 
   <div class="card">
     <label>이 스캐너는 누구인가요? (verifier_id)</label>
@@ -115,7 +109,7 @@
 
   <div class="card">
     <h3>방법 2) payload 직접 붙여넣기 (발표/테스트용)</h3>
-    <textarea id="pastedPayload" rows="5" placeholder='issue.html에서 복사한 payload JSON을 여기에 붙여넣으세요'></textarea>
+    <textarea id="pastedPayload" rows="5" placeholder='② 제출 화면에서 복사한 payload JSON을 여기에 붙여넣으세요'></textarea>
     <button onclick="verifyPasted()">온체인 검증 실행</button>
   </div>
 
@@ -519,5 +513,7 @@
         </div>`;
     }
   </script>
+  </div>
+  <div class="rolebar"><a href="home.html">← 역할 선택으로</a></div>
 </body>
 </html>

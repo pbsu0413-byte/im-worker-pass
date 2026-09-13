@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass - 제출</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="ui.css" />
 <style>
   .rows .row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid #eef2f7; font-size:13px; }
   .rows .row span:first-child { color:#475569; white-space:nowrap; }
@@ -14,20 +14,26 @@
   .err { background:#fdecea; border:1px solid #e74c3c; color:#a92c22; padding:12px; border-radius:10px; margin-top:12px; font-size:13px; }
   .sigline { font-size:12.5px; color:#15803d; margin-top:8px; }
 </style>
+<style>
+  .payload-wrap { position:relative; }
+  .payload-wrap .copy-ico { position:absolute; top:8px; right:8px; margin:0; width:auto;
+    padding:5px 6px; line-height:0; background:#fff; color:#475569;
+    border:1px solid #e2e8f0; border-radius:7px; cursor:pointer; }
+  .payload-wrap .copy-ico:hover { color:#0f172a; border-color:#94a3b8; background:#f8fafc; }
+  .payload-wrap .copy-ico.done { color:#047857; border-color:#a7f3d0; background:#ecfdf5; }
+  .payload-wrap .copy-ico.fail { color:#a92c22; border-color:#fca5a5; background:#fef2f2; }
+  .payload-wrap #payloadBox { padding-right:44px; }
+</style>
 </head>
-<body>
-  <nav>
-    <a href="index.html">🏠 홈</a>
-    <a href="wallet.html">① 지갑</a>
-    <a href="submit.html" class="active">② 제출</a>
-    <a href="scan.html">③ 스캐너</a>
-    <a href="attendance.html">④ 근태</a>
-    <a href="insurance.html">⑤ 보험</a>
-    <a href="insurer.html">⑥ 보험사</a>
-    <a href="admin.html">⑦ 관리자</a>
-  </nav>
+<body class="role-phone">
+<div class="phone">
+  <header class="ph-top">
+    <div class="brand">iM Worker Pass</div>
+    <h1>증명 제출</h1>
+    <div class="who">필요한 곳에 필요한 것만</div>
+  </header>
+  <main class="ph-body">
 
-  <h1>제출 — QR 생성</h1>
   <p style="font-size:13px;color:#64748b;margin-top:-6px;">
     제출은 낼 때마다 합니다. 체인에는 아무것도 쓰지 않고, 기관에 다시 물어 최신 값으로 만듭니다.
   </p>
@@ -89,12 +95,67 @@
         아래 payload를 복사해 <b>③ 스캐너</b>의 붙여넣기 창에 넣으면 카메라 없이도 검증을 테스트할 수 있습니다.
         계좌번호를 한 글자 바꿔 넣으면 위변조 시연이 됩니다.
       </p>
-      <pre id="payloadBox"></pre>
+      <div class="payload-wrap">
+        <button id="copyPayloadBtn" class="copy-ico" onclick="copyPayload(this)"
+                title="payload 복사" aria-label="payload 복사">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="9" width="11" height="11" rx="1.5"></rect>
+            <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+          </svg>
+        </button>
+        <pre id="payloadBox"></pre>
+      </div>
     </div>
   </div>
 
   <script src="config.js"></script>
   <script>
+    // 새로고침(F5)이면 지갑 상태를 비워 처음부터 시작한다 (wallet.html 과 동일 규칙).
+    (function resetOnReload() {
+      let nav = null;
+      try { nav = performance.getEntriesByType("navigation")[0]; } catch (e) {}
+      const reloaded = nav ? nav.type === "reload"
+                           : (performance.navigation && performance.navigation.type === 1);
+      if (reloaded) {
+        try {
+          localStorage.removeItem("imwp_credential_id");
+          localStorage.removeItem("imwp_pick_worker");
+        } catch (e) {}
+        location.replace("wallet.html");
+      }
+    })();
+
+    // payload 복사 — 드래그하지 않아도 되게. 클립보드 API가 막힌 환경에서는
+    // 화면 밖 textarea 를 만들어 execCommand 로 떨어뜨린다.
+    function copyPayload(btn) {
+      const text = document.getElementById("payloadBox").textContent.trim();
+      const flash = (cls) => {
+        btn.classList.remove("done", "fail");
+        btn.classList.add(cls);
+        btn.title = cls === "done" ? "복사됨" : "복사 실패 — 직접 선택하세요";
+        setTimeout(() => { btn.classList.remove(cls); btn.title = "payload 복사"; }, 1400);
+      };
+      if (!text) return flash("fail");
+      const fallback = () => {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.cssText = "position:fixed;left:-9999px;top:0;";
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try { ok = document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+        flash(ok ? "done" : "fail");
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => flash("done")).catch(fallback);
+      } else {
+        fallback();
+      }
+    }
+
     const esc = (v) => String(v == null || v === "" ? "—" : v);
     const keyStore = (cid) => `imwp_holder_key:${cid}`;
     const CID_STORE = "imwp_credential_id";
@@ -255,5 +316,13 @@
       }).catch(() => {});
     })();
   </script>
+  </main>
+  <nav class="ph-tabs">
+    <a href="wallet.html"><b>◎</b>홈</a>
+    <a href="submit.html" class="active"><b>❒</b>제출</a>
+    <a href="insurance.html"><b>✚</b>보험</a>
+    <a href="home.html"><b>⌂</b>역할</a>
+  </nav>
+</div>
 </body>
 </html>

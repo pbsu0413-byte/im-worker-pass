@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass - 관리자 (체류자격 온체인 철회/복구)</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="ui.css" />
 <style>
   .notification {
     display: none;
@@ -34,19 +34,14 @@
   }
 </style>
 </head>
-<body>
-  <nav>
-    <a href="index.html">🏠 홈</a>
-    <a href="wallet.html">① 지갑</a>
-    <a href="submit.html">② 제출</a>
-    <a href="scan.html">③ 스캐너</a>
-    <a href="attendance.html">④ 근태</a>
-    <a href="insurance.html">⑤ 보험</a>
-    <a href="insurer.html">⑥ 보험사</a>
-    <a href="admin.html" class="active">⑦ 관리자</a>
-  </nav>
+<body class="role-console">
+  <div class="cs-head">
+    <span class="mark">iM</span>
+    <h1>체류자격 온체인 상태 관리</h1>
+    <span class="sub">발급기관 콘솔</span>
+  </div>
+  <div class="cs-wrap">
 
-  <h1>관리자 — 체류자격 온체인 상태 관리</h1>
   <p style="font-size:13px;color:#666;">
     여기서 상태를 <b>철회(revoked)</b>로 바꾸면 스마트 컨트랙트에 <code>revoke</code> 트랜잭션이 전송되며,<br/>
     이미 발급된 QR을 다시 스캔해도 <b>회사·병원·보험 세 곳 모두 즉시 거부</b>됩니다. (S9 블록체인 연동 시연)
@@ -139,5 +134,7 @@
 
     loadList();
   </script>
+  </div>
+  <div class="rolebar"><a href="home.html">← 역할 선택으로</a></div>
 </body>
 </html>

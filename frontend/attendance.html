@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass - 근태</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="ui.css" />
 <style>
   .kpi { display:flex; gap:8px; margin-top:10px; }
   .kpi div { flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; text-align:center; }
@@ -18,19 +18,13 @@
   .muted { font-size:11.5px; color:#94a3b8; margin-top:8px; line-height:1.6; }
 </style>
 </head>
-<body>
-  <nav>
-    <a href="index.html">🏠 홈</a>
-    <a href="wallet.html">① 지갑</a>
-    <a href="submit.html">② 제출</a>
-    <a href="scan.html">③ 스캐너</a>
-    <a href="attendance.html" class="active">④ 근태</a>
-    <a href="insurance.html">⑤ 보험</a>
-    <a href="insurer.html">⑥ 보험사</a>
-    <a href="admin.html">⑦ 관리자</a>
-  </nav>
+<body class="role-kiosk">
+  <div class="ks-head">
+    <h1>사업장 근태 시스템</h1>
+    <span class="site">출입구 단말 · 회사 소유 기록</span>
+  </div>
+  <div class="ks-wrap">
 
-  <h1>사업장 근태 시스템</h1>
   <p style="font-size:13px;color:#64748b;margin-top:-6px;">
     근태 기록은 <b>회사 시스템</b>에 남습니다. 은행은 "이 사람이 유효한가"만 답하고 근무 시각은 보지 않습니다.
   </p>
@@ -138,5 +132,7 @@
     loadSite();
     setInterval(loadSite, 10000);
   </script>
+  </div>
+  <div class="rolebar"><a href="home.html">← 역할 선택으로</a></div>
 </body>
 </html>

@@ -1,0 +1,11 @@
+{
+  "_agency": "iM뱅크 수신",
+  "_agency_id": "SAVINGS",
+  "_authority": "real",
+  "_note": "귀국 목표 적금 가입 기록. 첫 번째 E-9(NGUYEN VAN A)는 아무것도 가입하지 않은 상태로 두어 신규 가입 흐름을 시연한다. start_month 는 '몇 달 전에 가입했는가'이며, 달이 바뀌어도 같은 모양이 재현되도록 날짜 대신 상대값으로 적는다.",
+  "records": [
+    {"worker_name": "SITI RAHAYU",  "monthly": 300000, "start_months_ago": 7,  "auto_remit": true,  "fx_guard": false},
+    {"worker_name": "LI CHUNHUA",   "monthly": 500000, "start_months_ago": 4,  "auto_remit": true,  "fx_guard": true},
+    {"worker_name": "NGUYEN THI E", "monthly": 200000, "start_months_ago": 11, "auto_remit": false, "fx_guard": false}
+  ]
+}

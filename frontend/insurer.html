@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass - 보험사 접수함</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="ui.css" />
 <style>
   .sub { border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:10px; background:#fff; }
   .sub-head { display:flex; justify-content:space-between; align-items:center; gap:10px; }
@@ -20,19 +20,14 @@
   .meta { font-size:12px; color:#94a3b8; }
 </style>
 </head>
-<body>
-  <nav>
-    <a href="index.html">🏠 홈</a>
-    <a href="wallet.html">① 지갑</a>
-    <a href="submit.html">② 제출</a>
-    <a href="scan.html">③ 스캐너</a>
-    <a href="attendance.html">④ 근태</a>
-    <a href="insurance.html">⑤ 보험</a>
-    <a href="insurer.html" class="active">⑥ 보험사</a>
-    <a href="admin.html">⑦ 관리자</a>
-  </nav>
+<body class="role-console">
+  <div class="cs-head">
+    <span class="mark">iM</span>
+    <h1>손해보험 행정 처리</h1>
+    <span class="sub">제휴 손해보험사 · INS-001</span>
+  </div>
+  <div class="cs-wrap">
 
-  <h1>○○손해보험 — 행정 처리 (INS-001)</h1>
   <p style="font-size:13px;color:#64748b;margin-top:-6px;">
     QR 스캐너가 아니라 접수함입니다. 근로자가 앱에서 전송한 건이 여기에 쌓이고, 담당자가 직접 승인합니다.
   </p>
@@ -119,5 +114,7 @@
     load();
     setInterval(load, 5000);
   </script>
+  </div>
+  <div class="rolebar"><a href="home.html">← 역할 선택으로</a></div>
 </body>
 </html>

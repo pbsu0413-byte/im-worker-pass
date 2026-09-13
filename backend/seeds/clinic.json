@@ -15,34 +15,9 @@
       "health_check_valid_until": "2027-06-01"
     },
     {
-      "worker_name": "RAMESH THAPA",
-      "health_check_date": "2026-05-18",
-      "health_check_valid_until": "2027-05-17"
-    },
-    {
-      "worker_name": "SOMCHAI PRASERT",
-      "health_check_date": "2025-06-01",
-      "health_check_valid_until": "2026-05-31"
-    },
-    {
       "worker_name": "NGUYEN THI E",
       "health_check_date": "2026-03-11",
       "health_check_valid_until": "2027-03-10"
-    },
-    {
-      "worker_name": "SERGEY KIM",
-      "health_check_date": "2026-08-03",
-      "health_check_valid_until": "2027-08-02"
-    },
-    {
-      "worker_name": "HTET AUNG",
-      "health_check_date": "2026-04-21",
-      "health_check_valid_until": "2027-04-20"
-    },
-    {
-      "worker_name": "ANNA PETROVA",
-      "health_check_date": "2026-02-09",
-      "health_check_valid_until": "2027-02-08"
     }
   ]
 }

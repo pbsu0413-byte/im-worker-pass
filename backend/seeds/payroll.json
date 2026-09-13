@@ -1,0 +1,45 @@
+{
+  "_agency": "제휴 사업장 급여시스템",
+  "_agency_id": "PAYROLL",
+  "_authority": "mock",
+  "_note": "시급·소정근로시간은 프로토타입 가정값이다. 실제 급여는 회사 급여명세가 기준이며, 이 값으로 계산한 예상 급여는 공제 전 세전 총액이다.",
+  "_assumed_min_wage": 10320,
+  "records": [
+    {
+      "worker_name": "NGUYEN VAN A",
+      "site_id": "BIZ-001",
+      "job_title": "CNC 선반 조작",
+      "hourly_wage": 11200,
+      "daily_hours": 8,
+      "workdays_per_week": 5,
+      "joined_date": "2024-03-15"
+    },
+    {
+      "worker_name": "SITI RAHAYU",
+      "site_id": "BIZ-001",
+      "job_title": "사출 성형 보조",
+      "hourly_wage": 10500,
+      "daily_hours": 8,
+      "workdays_per_week": 5,
+      "joined_date": "2025-01-08"
+    },
+    {
+      "worker_name": "LI CHUNHUA",
+      "site_id": "BIZ-001",
+      "job_title": "품질 검사",
+      "hourly_wage": 11500,
+      "daily_hours": 8,
+      "workdays_per_week": 5,
+      "joined_date": "2024-05-27"
+    },
+    {
+      "worker_name": "NGUYEN THI E",
+      "site_id": "BIZ-002",
+      "job_title": "조립",
+      "hourly_wage": 10320,
+      "daily_hours": 8,
+      "workdays_per_week": 5,
+      "joined_date": "2024-08-05"
+    }
+  ]
+}

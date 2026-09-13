@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM Worker Pass - 은행 콘솔</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .kpi { display:flex; gap:8px; margin-top:10px; }
+  .kpi div { flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; text-align:center; }
+  .kpi b { display:block; font-size:19px; }
+  .kpi span { font-size:11.5px; color:#64748b; }
+  .row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid #eef2f7; font-size:12.5px; }
+  .muted { font-size:11.5px; color:#94a3b8; margin-top:10px; line-height:1.6; }
+  .box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:12px; }
+</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">🏠 홈</a>
+    <a href="wallet.html">① 지갑</a>
+    <a href="submit.html">② 제출</a>
+    <a href="scan.html">③ 스캐너</a>
+    <a href="attendance.html">④ 출입</a>
+    <a href="bank.html" class="active">⑤ 은행</a>
+    <a href="insurance.html">⑥ 보험</a>
+    <a href="insurer.html">⑦ 보험사</a>
+    <a href="admin.html">⑧ 관리자</a>
+  </nav>
+
+  <h1>은행 콘솔</h1>
+  <p style="font-size:13px;color:#64748b;margin-top:-6px;">
+    <b>은행 영업담당자</b>가 보는 화면입니다. 개인은 보이지 않고 국적별 인원 집계에서 산출한 규모만 봅니다.
+    회사용 대시보드는 만들지 않습니다 — 회사가 얻는 것은 새 화면이 아니라 <b>일이 줄어드는 것</b>입니다.
+  </p>
+
+  <div class="card">
+    <label>사업장</label>
+    <select id="siteSel" onchange="load()"></select>
+    <div id="box"></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const esc = (v) => String(v == null || v === "" ? "—" : v);
+    const won = (v) => `${Math.round(v).toLocaleString("ko-KR")}원`;
+    const eok = (v) => v >= 100000000
+      ? `${(v / 100000000).toFixed(1)}억원` : `${Math.round(v / 10000).toLocaleString("ko-KR")}만원`;
+
+    async function loadList() {
+      const res = await fetch(`${API_BASE_URL}/employer/sites`);
+      if (!res.ok) return;
+      const sites = (await res.json()).sites || [];
+      document.getElementById("siteSel").innerHTML = sites.map(s =>
+        `<option value="${s.site_id}">${esc(s.site_name)} · ${esc(s.location)} · 외국인 ${s.foreign_employees}명</option>`
+      ).join("");
+      load();
+    }
+
+    async function load() {
+      const id = document.getElementById("siteSel").value;
+      if (!id) return;
+      const res = await fetch(`${API_BASE_URL}/employer/${id}/bank`);
+      if (!res.ok) return;
+      const d = await res.json();
+      const s = d.site, r = d.remit;
+
+      const tierRow = (name, t, color, desc) => !t || !t.people ? "" : `
+        <div style="padding:8px 0;border-bottom:1px solid #eef2f7;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span><b style="color:${color};">등급 ${esc(name)}</b> · ${t.people}명</span>
+            <span style="color:#64748b;">${eok(t.amount)} / 월</span>
+          </div>
+          <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">${esc(desc)}</div>
+          <div style="font-size:11.5px;color:#64748b;">${esc(t.nationalities.join(" · "))}</div>
+        </div>`;
+
+      document.getElementById("box").innerHTML = `
+        <div class="kpi" style="margin-top:12px;">
+          <div><b>${s.foreign_employees}</b><span>외국인 근로자</span></div>
+          <div><b>${s.im_payroll_accounts}</b><span>iM 급여계좌</span></div>
+          <div><b>${eok(r.total_monthly)}</b><span>월 송금 예정</span></div>
+          <div><b>${r.hedge_people}</b><span>환헷지 대상</span></div>
+        </div>
+
+        <div class="box">
+          <div style="font-weight:600;font-size:13px;">환헷지 묶음 (매월 ${s.payday}일 급여)</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:4px;">
+            개인 ${won(r.avg_monthly)}은 최소 계약 규모가 나오지 않지만, 같은 급여일에 같은 통화로
+            나가는 ${r.hedge_people}명분은 규모가 됩니다. 나라는 ${d.nationality_count}곳이지만
+            등급은 둘뿐이라 상품을 나라마다 만들 필요가 없습니다.
+          </div>
+          ${tierRow("A", d.tiers.A, "#15803d", "자국통화가 달러에 연동 — 원화·달러만 고정해도 사실상 완전 헷지")}
+          ${tierRow("B", d.tiers.B, "#b45309", "자국통화가 따로 움직임 — 원화·자국통화 직접 보장 필요")}
+        </div>
+
+        <div style="margin-top:14px;">
+          <div style="font-weight:600;font-size:13px;margin-bottom:4px;">통화별 송금 규모</div>
+          ${r.currencies.map(c => `
+            <div class="row">
+              <span>${esc(c.name)} (${esc(c.currency)}) · 등급 ${esc(c.tier)}</span>
+              <span style="color:#64748b;">${c.people}명 · ${eok(c.amount)}</span>
+            </div>`).join("")}
+        </div>
+
+        <div class="box">
+          <div style="font-weight:600;font-size:13px;">미가입 ${d.pipeline.payroll_gap}명</div>
+          <div style="font-size:12px;color:#64748b;">
+            급여계좌를 아직 열지 않은 인원입니다. 전환 시 월 ${eok(d.pipeline.gap_amount)}이 추가로 들어옵니다.
+          </div>
+        </div>
+
+        <div class="box">
+          <div style="font-weight:600;font-size:13px;margin-bottom:4px;">계약 하나가 여는 것</div>
+          ${d.expansion.map(e => `
+            <div class="row"><span>${esc(e.name)}</span><span style="color:#64748b;">${esc(e.value)}</span></div>
+          `).join("")}
+          <div style="font-size:11.5px;color:#64748b;margin-top:8px;line-height:1.6;">
+            근로자 복지로 들어가 급여이체를 받고, 거기서 기업계좌·외환·운전자금으로 이어집니다.
+            외국인을 수백 명 고용하는 제조업체는 대개 수출입을 하므로 외환 수요가 실재합니다.
+          </div>
+        </div>
+
+        <div class="box">
+          <div style="font-weight:600;font-size:13px;margin-bottom:4px;">제안할 때 쓸 문구</div>
+          ${d.pitch.map(p => `
+            <div style="font-size:12.5px;color:#334155;padding:5px 0;border-bottom:1px solid #eef2f7;">
+              · ${esc(p)}
+            </div>`).join("")}
+          <div style="font-size:11.5px;color:#94a3b8;margin-top:8px;line-height:1.6;">
+            회사가 얻는 것은 대시보드가 아니라 일이 줄어드는 것입니다. 지금 인사담당자가 하는
+            금융 민원 창구 노릇이 근로자 앱으로 넘어갑니다.
+          </div>
+        </div>
+
+        <div class="muted">${esc(d.note)}</div>`;
+    }
+
+    loadList();
+  </script>
+</body>
+</html>
