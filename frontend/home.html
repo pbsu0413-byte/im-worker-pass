@@ -4,6 +4,16 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass — 역할 선택</title>
+
+<!-- PWA & 모바일 앱 지원 -->
+<link rel="manifest" href="manifest.json" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="iM패스" />
+<meta name="theme-color" content="#1d6bf3" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
 <link rel="stylesheet" href="ui.css" />
 <style>
   .land { max-width: 940px; margin: 0 auto; padding: 44px 20px 70px; }
@@ -19,9 +29,17 @@
     display:block; text-decoration:none; background:#fff; border:1px solid var(--line);
     border-radius:16px; padding:20px 18px 18px; transition:border-color .15s, transform .15s;
   }
-  .role:hover { border-color:var(--im); transform:translateY(-2px); }
-  .role .ic { font-size:26px; line-height:1; }
-  .role .nm { font-size:16px; font-weight:700; margin-top:12px; letter-spacing:-.3px; }
+  .role .ic {
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+    font-size: 22px; margin-bottom: 12px;
+  }
+  .role.worker .ic { background: #eff6ff; color: #1d6bf3; }
+  .role.worker:hover { border-color: #1d6bf3; transform:translateY(-2px); }
+  .role.enterprise .ic { background: #ecfdf5; color: #0b8a5f; }
+  .role.enterprise:hover { border-color: #0b8a5f; transform:translateY(-2px); }
+  .role.bank .ic { background: #f1f5f9; color: #334155; }
+  .role.bank:hover { border-color: #334155; transform:translateY(-2px); }
+  .role .nm { font-size:16px; font-weight:700; margin-top:4px; letter-spacing:-.3px; }
   .role .de { font-size:12.5px; color:var(--muted); line-height:1.7; margin-top:6px; }
   .role .dv { font-size:11px; color:var(--faint); margin-top:12px;
     border-top:1px solid var(--line); padding-top:10px; }
@@ -41,20 +59,20 @@
   </p>
 
   <div class="roles">
-    <a class="role" href="people.html">
+    <a class="role worker" href="people.html">
       <div class="ic">📱</div>
       <div class="nm">근로자</div>
       <div class="de">내 지갑에서 근태·급여·송금·보험·적금·귀국정산을 보고, 필요한 곳에 증명을 냅니다.</div>
       <div class="dv">휴대폰</div>
     </a>
-    <a class="role" href="scan.html">
+    <a class="role enterprise" href="scan.html">
       <div class="ic">🏭</div>
       <div class="nm">기업 · 기관</div>
       <div class="de">출입구와 접수대의 단말이 QR을 읽어 서명과 온체인 상태를 즉시 확인합니다.
         보험사는 QR 없이 앱으로 받은 제출을 접수함에서 처리합니다.</div>
       <div class="dv">사업장 · 병원 스캐너 · 출퇴근 단말 · 보험사 접수함</div>
     </a>
-    <a class="role" href="admin.html">
+    <a class="role bank" href="admin.html">
       <div class="ic">🏦</div>
       <div class="nm">은행 · 발급기관</div>
       <div class="de">체류자격 상태를 관리하고, 철회가 현장에서 어떻게 즉시 막히는지 확인합니다.</div>
@@ -67,5 +85,13 @@
     실제 원천 주체가 답하는 항목은 화면에서 <b>실제 발급기관</b> 배지로 구분해 표시합니다.
   </p>
 </div>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
 </body>
 </html>

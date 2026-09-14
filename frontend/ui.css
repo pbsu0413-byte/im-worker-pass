@@ -85,7 +85,11 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
 #qrImg { max-width: 220px; display: block; margin: 12px auto; }
 
 /* ── ① 근로자 — 폰 ─────────────────────────────────────── */
-.role-phone { background: #0f172a; }
+.role-phone {
+  --im: #1d6bf3;            /* 근로자 블루 */
+  --im-dark: #1557c0;
+  background: #0f172a;
+}
 
 .phone {
   width: 100%; max-width: 412px; margin: 0 auto; background: var(--bg);
