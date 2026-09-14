@@ -6,32 +6,31 @@
 <title>iM Worker Pass - 보험사 접수함</title>
 <link rel="stylesheet" href="ui.css" />
 <style>
-  .sub { border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:10px; background:#fff; }
+  .sub { border:1px solid #1e293b; border-radius:10px; padding:12px 14px; margin-top:10px; background:#0b1220; color:#e2e8f0; }
   .sub-head { display:flex; justify-content:space-between; align-items:center; gap:10px; }
-  .sub-head b { font-size:14px; }
+  .sub-head b { font-size:14px; color:#f1f5f9; }
   .rows { margin-top:8px; }
-  .rows .row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid #eef2f7; font-size:13px; }
-  .rows .row span:first-child { color:#475569; white-space:nowrap; }
-  .rows .row span:last-child { text-align:right; }
-  .chk { font-size:12.5px; color:#15803d; margin-top:8px; }
-  .chk.bad { color:#a92c22; }
+  .rows .row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid #1e293b; font-size:13px; }
+  .rows .row span:first-child { color:#94a3b8; white-space:nowrap; }
+  .rows .row span:last-child { text-align:right; color:#f1f5f9; }
+  .chk { font-size:12.5px; color:#4ade80; margin-top:8px; }
+  .chk.bad { color:#f87171; }
   .btns { display:flex; gap:8px; }
   .btns button { margin-top:10px; padding:8px 14px; font-size:13px; }
-  .meta { font-size:12px; color:#94a3b8; }
+  .meta { font-size:12px; color:#64748b; }
 </style>
 </head>
-<body class="role-console">
-  <div class="cs-head">
-    <span class="mark">iM</span>
+<body class="role-kiosk">
+  <div class="ks-head">
     <h1>손해보험 행정 처리</h1>
-    <span class="sub">제휴 손해보험사 · INS-001</span>
+    <span class="site">제휴 손해보험사 · INS-001</span>
   </div>
-    <div class="orgbar">
-      <a href="scan.html">사업장 · 병원 스캐너</a>
-      <a href="attendance.html">출퇴근 단말</a>
-      <a href="insurer.html" class="on">보험사 접수함</a>
-    </div>
-  <div class="cs-wrap">
+  <div class="orgbar">
+    <a href="scan.html">사업장 · 병원 스캐너</a>
+    <a href="attendance.html">출퇴근 단말</a>
+    <a href="insurer.html" class="on">보험사 접수함</a>
+  </div>
+  <div class="ks-wrap">
 
   <p style="font-size:13px;color:#64748b;margin-top:-6px;">
     QR 스캐너가 아니라 접수함입니다. 근로자가 앱에서 전송한 건이 여기에 쌓이고, 담당자가 직접 승인합니다.
@@ -40,7 +39,7 @@
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <h3 style="margin:0;">접수 목록</h3>
-      <button class="secondary" style="margin:0;padding:7px 12px;font-size:13px;" onclick="load()">새로고침</button>
+      <button class="secondary" style="margin:0;padding:7px 12px;font-size:13px;width:auto;" onclick="load()">새로고침</button>
     </div>
     <label>담당자</label>
     <input id="officer" value="심사팀 김OO" />
@@ -72,8 +71,8 @@
         <div class="row"><span>${esc(f.label)}</span><span>${esc(d.disclosure[f.key])}</span></div>`).join("");
       const actions = d.status === "submitted" ? `
         <div class="btns">
-          <button onclick="decide('${d.submission_id}','approve')">승인</button>
-          <button class="danger" onclick="decide('${d.submission_id}','reject')">거절</button>
+          <button style="width:auto;" onclick="decide('${d.submission_id}','approve')">승인</button>
+          <button class="danger" style="width:auto;" onclick="decide('${d.submission_id}','reject')">거절</button>
         </div>` : `
         <div class="meta" style="margin-top:8px;">
           처리 ${esc(d.decided_at)} · ${esc(d.decided_by)}
