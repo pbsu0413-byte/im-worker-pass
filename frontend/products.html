@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM Worker Pass - 상품</title>
+<link rel="stylesheet" href="ui.css" />
+<style>
+
+  .step { border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:10px; background:#fff; }
+  .step h4 { margin:0 0 4px; font-size:14px; }
+  .step .desc { font-size:12.5px; color:#64748b; }
+  .done { border-color:#86efac; background:#f0fdf4; }
+  .rows .row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid #eef2f7; font-size:13px; }
+  .rows .row span:first-child { color:#475569; white-space:nowrap; }
+  .rows .row span:last-child { text-align:right; word-break:break-all; }
+  .badge-real { background:#dcfce7; color:#15803d; padding:1px 7px; border-radius:999px; font-size:11px; }
+  .badge-mock { background:#f1f5f9; color:#64748b; padding:1px 7px; border-radius:999px; font-size:11px; }
+  .muted { font-size:11.5px; color:#94a3b8; margin-top:8px; line-height:1.6; }
+  .pop-mask { position:fixed; inset:0; background:rgba(15,23,42,.45); display:flex;
+    align-items:flex-end; justify-content:center; z-index:50; padding:16px; }
+  .pop { background:#fff; border-radius:16px; width:100%; max-width:520px; padding:18px 18px 14px;
+    box-shadow:0 -8px 40px rgba(0,0,0,.25); max-height:86vh; overflow:auto; }
+  .pop-kind { display:inline-block; background:#eff6ff; color:#1d4ed8; font-size:11px;
+    padding:2px 8px; border-radius:999px; }
+  .pop h3 { margin:8px 0 2px; font-size:17px; }
+  .pop .lead { font-size:14px; color:#0f172a; font-weight:600; }
+  .pop .why { font-size:12px; color:#64748b; margin-top:2px; }
+  .pop .rows { margin-top:12px; }
+  .pop .rows div { display:flex; justify-content:space-between; gap:10px; padding:6px 0;
+    border-bottom:1px solid #eef2f7; font-size:13px; }
+  .pop .rows span:first-child { color:#475569; white-space:nowrap; }
+  .pop .rows span:last-child { text-align:right; }
+  .goal { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:12px; }
+  .goal .big { font-size:24px; font-weight:700; letter-spacing:-.5px; }
+  .goal .sub { font-size:12.5px; color:#64748b; margin-top:2px; }
+  .goal input[type=range] { width:100%; margin:10px 0 2px; accent-color:#1a1a1a; padding:0; border:none; }
+  .goal .ends { display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; }
+  .goal .manual { display:flex; align-items:center; gap:6px; margin-top:10px; }
+  .goal .manual input { flex:1; text-align:right; font-size:15px; font-weight:600; padding:8px 10px; }
+  .goal .derived { display:flex; justify-content:space-between; gap:10px; padding:8px 0 0;
+    font-size:13px; border-top:1px solid #e2e8f0; margin-top:10px; }
+  .goal .derived b { font-size:15px; }
+  /* 패스포트 홈 — 근태·급여 */
+  .pp { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
+  .pp .cell { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:11px 13px; }
+  .pp .cell .lab { font-size:11.5px; color:#64748b; }
+  .pp .cell .val { font-size:20px; font-weight:700; letter-spacing:-.5px; margin-top:3px; }
+  .pp .cell .sub { font-size:11.5px; color:#94a3b8; margin-top:2px; }
+  .pp .wide { grid-column:1 / -1; }
+  .today { display:flex; align-items:center; gap:9px; font-size:14px; font-weight:600; }
+  .dot { width:9px; height:9px; border-radius:50%; flex:none; }
+  .live { display:inline-block; background:#ecfdf5; color:#047857; font-size:11px;
+    padding:2px 7px; border-radius:999px; margin-left:6px; }
+  @media (max-width:420px) { .pp { grid-template-columns:1fr; } }
+  /* 귀국 목표 적금 */
+  .sv { margin-top:14px; border-top:1px solid #eef2f7; padding-top:12px; }
+  .sv .hd { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .sv .ttl { font-size:13.5px; font-weight:700; }
+  .sv .tag { font-size:11px; padding:2px 8px; border-radius:999px;
+    background:#eff6ff; color:#1d4ed8; white-space:nowrap; }
+  .sv .bar { height:7px; border-radius:999px; background:#e2e8f0; margin:10px 0 6px; overflow:hidden; }
+  .sv .bar i { display:block; height:100%; background:#1d4ed8; border-radius:999px; }
+  .sv .ln { display:flex; justify-content:space-between; gap:10px; font-size:12.5px;
+    color:#475569; padding:4px 0; }
+  .sv .ln b { color:#0f172a; }
+  .sv .cta { display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:11px 13px;
+    font-size:13px; color:#475569; }
+  .sv .cta button { margin:0; width:auto; padding:7px 13px; font-size:12.5px; }
+  /* 귀국정산 */
+  .rt { margin-top:14px; border-top:1px solid #eef2f7; padding-top:12px; }
+  .rt .hd { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .rt .ttl { font-size:13.5px; font-weight:700; }
+  .rt .dday { font-size:12px; color:#64748b; }
+  .rt .amt { font-size:26px; font-weight:700; letter-spacing:-.6px; margin-top:8px; }
+  .rt .sub { font-size:13px; color:#475569; margin-top:2px; }
+  .rt .swing { font-size:12px; color:#94a3b8; margin-top:6px; line-height:1.6; }
+  .rt .guard { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px;
+    background:#ecfdf5; color:#047857; margin-left:6px; }
+  .rt .none { font-size:13px; color:#64748b; background:#f8fafc; border:1px solid #e2e8f0;
+    border-radius:10px; padding:11px 13px; margin-top:8px; }
+  /* 송금·보험 줄과 바로가기 */
+  .fxln { margin-top:14px; border-top:1px solid #eef2f7; padding-top:12px; }
+  .fxln .ttl { font-size:13.5px; font-weight:700; }
+  .fxln .big { font-size:17px; font-weight:700; margin-top:6px; letter-spacing:-.3px; }
+  .fxln .sub { font-size:12.5px; color:#64748b; margin-top:3px; line-height:1.6; }
+  .fxln .no { font-size:12.5px; color:#94a3b8; margin-top:6px; line-height:1.6; }
+  .go { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:16px; }
+  .go a { display:block; text-align:center; text-decoration:none; cursor:pointer;
+    background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;
+    padding:11px 6px; color:#0f172a; font-size:12.5px; font-weight:600; }
+  .go a:hover { border-color:#0f172a; background:#fff; }
+  .go a i { display:block; font-style:normal; font-size:11px; color:#94a3b8;
+    font-weight:400; margin-top:2px; }
+  @media (max-width:420px) { .go { grid-template-columns:repeat(2,1fr); } }
+  /* DC형 퇴직연금 */
+  .dc { margin-top:14px; border-top:1px solid #eef2f7; padding-top:12px; }
+  .dc .hd { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .dc .ttl { font-size:13.5px; font-weight:700; }
+  .dc .yr { font-size:12px; color:#64748b; }
+  .dc .bal { font-size:24px; font-weight:700; letter-spacing:-.6px; margin-top:7px; }
+  .dc .ln { display:flex; justify-content:space-between; gap:10px; font-size:12.5px;
+    color:#475569; padding:4px 0; }
+  .dc .ln b { color:#0f172a; }
+  .dc .pick { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:11px; }
+  .dc .pick button {
+    margin:0; width:100%; padding:9px 4px; font-size:12px; font-weight:600; line-height:1.35;
+    background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:10px;
+  }
+  .dc .pick button:hover { border-color:var(--im); background:#f8fafc; }
+  .dc .pick button.on { background:var(--im); border-color:var(--im); color:#fff; }
+  .dc .pick button i { display:block; font-style:normal; font-size:10.5px; font-weight:400;
+    opacity:.75; margin-top:2px; }
+  .dc .why { background:#fffbeb; border:1px solid #fcd34d; color:#b45309;
+    border-radius:10px; padding:10px 12px; font-size:12.5px; line-height:1.65; margin-top:10px; }
+  .dc .desc { font-size:12px; color:#64748b; line-height:1.65; margin-top:8px; }
+  .pop .opt { display:flex; align-items:center; gap:8px; font-size:13px; margin-top:8px; }
+  .pop .opt input { width:auto; }
+  .pop .note { font-size:11.5px; color:#94a3b8; line-height:1.65; margin-top:10px; }
+  .pop .engine { font-size:11.5px; color:#475569; line-height:1.65; margin-top:8px;
+    background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:9px 11px; }
+  .pop .btns { display:flex; gap:8px; margin-top:12px; }
+  .pop .btns button { flex:1; margin:0; }
+  .err { background:#fdecea; border:1px solid #e74c3c; color:#a92c22; padding:12px; border-radius:10px; margin-top:12px; font-size:13px; }
+
+  .prod-empty { font-size:13px; color:#64748b; line-height:1.75; }
+  .sec { background:#fff; border-radius:14px; padding:16px; margin-bottom:14px;
+    box-shadow:0 1px 2px rgba(15,23,42,.06), 0 1px 8px rgba(15,23,42,.04); }
+  .sec > .dc, .sec > .fxln, .sec > .sv, .sec > .rt { margin-top:0; border-top:none; padding-top:0; }
+  .sec-no { font-size:12px; font-weight:700; color:var(--im); margin-bottom:10px; letter-spacing:-.2px; }
+  .held { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .held span { font-size:11.5px; background:#f1f5f9; color:#475569; border-radius:999px; padding:4px 10px; }
+  .held span.none { background:#fff; color:#94a3b8; border:1px dashed #e2e8f0; }
+  .stack { margin-top:12px; }
+  .stack .ln { display:flex; justify-content:space-between; gap:10px; font-size:12.5px;
+    color:#475569; padding:5px 0; }
+  .stack .ln b { color:#0f172a; }
+  .stack .ln.tot { border-top:1px solid #e2e8f0; margin-top:4px; padding-top:9px; font-size:13.5px; }
+  .stack .ln.tot b { font-size:16px; }
+  .fxopt { display:flex; align-items:flex-start; gap:9px; margin-top:12px;
+    background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:11px 13px;
+    font-size:12.5px; line-height:1.6; cursor:pointer; }
+  .fxopt input { width:auto; margin-top:2px; flex:none; }
+  .fxopt i { display:block; font-style:normal; font-size:11.5px; color:#94a3b8; margin-top:3px; }
+  .advice { margin-top:10px; background:#fffbeb; border:1px solid #fcd34d; color:#b45309;
+    border-radius:10px; padding:11px 13px; font-size:12.5px; line-height:1.7; }
+  .advice.ok { background:#ecfdf5; border-color:#a7f3d0; color:#047857; }
+  .advice .hint { display:block; color:#94a3b8; font-size:11px; margin-top:5px; }
+  .sec-lead { font-size:12px; color:#94a3b8; line-height:1.7; margin:0 0 14px; }
+</style>
+</head>
+<body class="role-phone">
+<div class="phone">
+  <header class="ph-top">
+    <div class="brand">iM Worker Pass</div>
+    <h1>금융상품</h1>
+    <div class="who" id="whoLine">불러오는 중…</div>
+  </header>
+  <main class="ph-body">
+    <p class="sec-lead">
+      체류 만료일·급여일·국적처럼 지갑이 이미 아는 값에서 조건이 나옵니다.
+      상품을 새로 만드는 것이 아니라 있는 상품을 상황에 맞게 엮습니다.
+    </p>
+    <div id="prodBox" class="prod-empty">불러오는 중…</div>
+  </main>
+  <nav class="ph-tabs">
+    <a href="wallet.html"><b>◎</b>홈</a>
+    <a href="submit.html"><b>❒</b>제출</a>
+    <a href="products.html" class="active"><b>◈</b>상품</a>
+    <a href="insurance.html"><b>✚</b>보험</a>
+    <a href="home.html"><b>⌂</b>역할</a>
+  </nav>
+</div>
+
+<script src="config.js"></script>
+<script>
+    // 새로고침(F5)이면 지갑 상태를 비워 처음부터 시작한다 (wallet.html 과 동일 규칙).
+    (function resetOnReload() {
+      let nav = null;
+      try { nav = performance.getEntriesByType("navigation")[0]; } catch (e) {}
+      const reloaded = nav ? nav.type === "reload"
+                           : (performance.navigation && performance.navigation.type === 1);
+      if (reloaded) {
+        try {
+          localStorage.removeItem("imwp_credential_id");
+          localStorage.removeItem("imwp_pick_worker");
+        } catch (e) {}
+        location.replace("wallet.html");
+      }
+    })();
+
+    const CID_STORE = "imwp_credential_id";
+    const esc = (v) => String(v == null || v === "" ? "—" : v);
+    const won = (n) => Number(n || 0).toLocaleString("ko-KR") + "원";
+
+    let popQueue = [];
+    let popAll = [];        // "알아보기"에서 다시 꺼내 쓰기 위해 원본을 들고 있는다
+    let currentCid = null;
+    let chosen = null;
+
+    function hedgeBlock(h) {
+      if (!h) return "";
+      if (h.tier === "C") {
+        return `
+          <div class="fxln">
+            <div class="ttl">해외송금 · 환율 보장</div>
+            <div class="no">
+              지금 송금 규모에서는 보장 비용이 기대 효과보다 커서 권해 드리지 않습니다.
+              송금액이 늘면 다시 안내해 드립니다.
+            </div>
+          </div>`;
+      }
+      return `
+        <div class="fxln">
+          <div class="ttl">해외송금 · 환율 보장</div>
+          <div class="big">${won(h.monthly_remit)} 송금 시 수수료 ${won(h.fee)}</div>
+          <div class="sub">
+            ${esc(h.currency_name)}(${esc(h.currency)}) · 다음 송금분의 환율을 지금 고정합니다.
+            환율이 불리하게 움직여도 받는 금액이 줄지 않습니다.
+          </div>
+          <div class="sub" style="color:#94a3b8;">
+            최근 6개월 변동폭 ${h.swing_6m_pct}% 기준 예상 절감 ${won(h.expected_saving)} ·
+            적용 기간은 다음 급여일 송금 1회분입니다.
+          </div>
+        </div>`;
+    }
+
+    function openHedgeCard() {
+      const card = (popAll || []).find(c => c.id === "fx_guaranteed_remittance");
+      if (card) { showCard(currentCid, card); return; }
+      alert("지금 조건에서는 환율 보장을 권해 드리지 않습니다.");
+    }
+
+
+    function pensionBlock(pn) {
+      if (!pn) return "";
+      if (!pn.enrolled) {
+        return `
+          <div class="dc">
+            <div class="hd"><span class="ttl">퇴직연금 (DC)</span></div>
+            <div class="desc">${esc(pn.reason || "적용 대상이 아닙니다.")}</div>
+          </div>`;
+      }
+      const yrs = (pn.months / 12).toFixed(1);
+      const picks = (pn.funds || []).map(f => `
+        <button class="${pn.fund && pn.fund.id === f.id ? "on" : ""}"
+                onclick="chooseFund('${esc(f.id)}')">${esc(f.name)}
+          <i>연 ${(f.rate * 100).toFixed(1)}% · 위험 ${esc(f.risk)}</i></button>`).join("");
+
+      return `
+        <div class="dc">
+          <div class="hd">
+            <span class="ttl">퇴직연금 (DC)</span>
+            <span class="yr">가입 ${pn.months}개월 · ${yrs}년</span>
+          </div>
+          <div class="bal">${won(pn.balance)}</div>
+          <div class="ln"><span>회사가 매달 넣는 금액</span><b>${won(pn.monthly_contribution)}</b></div>
+          <div class="ln"><span>원금 · 운용수익</span>
+            <b>${won(pn.principal)} · ${won(pn.interest)}</b></div>
+          <div class="pick">${picks}</div>
+          ${pn.chosen ? `
+            <div class="desc">
+              <b>${esc(pn.fund.name)}</b> — ${esc(pn.fund.desc)}
+              고르지 않고 두었을 때보다 ${won(pn.gain_vs_idle)} 많습니다.
+            </div>`
+          : `
+            <div class="why">
+              아직 운용상품을 고르지 않아 적립금이 <b>대기성 예금</b>에 있습니다.
+              지금 고르면 그동안 쌓인 금액 기준으로 최대 ${won(pn.gain_vs_idle_max || 0)}까지 차이가 납니다.
+            </div>`}
+          <div class="desc" style="color:#94a3b8;">${esc(pn.notice)}</div>
+        </div>`;
+    }
+
+    async function chooseFund(fundId) {
+      let res;
+      try {
+        res = await fetch(`${API_BASE_URL}/pension/allocation`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential_id: currentCid, fund_id: fundId }),
+        });
+      } catch (e) { res = null; }
+      if (!res || !res.ok) { alert("운용상품 변경에 실패했습니다."); return; }
+      loadProducts(currentCid);
+    }
+
+    function savingsBlock(sv) {
+      if (!sv) return "";
+      if (!sv.enrolled) {
+        // 팝업이 아니라 이 자리에서 바로 목표 금액을 정한다.
+        return `<div id="savingsForm" class="prod-empty">적금 조건을 확인하는 중…</div>`;
+      }
+      const pct = sv.months_total
+        ? Math.min(100, Math.round(sv.paid_months / sv.months_total * 100)) : 0;
+      const opts = [sv.auto_remit ? "만기 자동 송금" : null,
+                    sv.fx_guard ? "환율 보장 적용" : null].filter(Boolean).join(" · ");
+      return `
+        <div class="sv">
+          <div class="hd">
+            <span class="ttl">귀국 목표 적금</span>
+            <span class="tag">${sv.enrolled_now ? "방금 가입" : "납입 중"}</span>
+          </div>
+          <div class="bar"><i style="width:${pct}%;"></i></div>
+          <div class="ln"><span>지금까지 쌓인 금액</span><b>${won(sv.accrued)}</b></div>
+          <div class="ln"><span>매달 넣는 금액</span><b>${won(sv.monthly)}</b></div>
+          ${sv.expected_total ? `
+          <div class="ln"><span>만기 예상 수령액</span><b>${won(sv.expected_total)}</b></div>
+          <div class="ln"><span>만기일</span><span>${esc(sv.maturity_date)} · ${sv.months_left}개월 남음</span></div>` : ""}
+          ${opts ? `<div class="ln"><span>함께 적용</span><span>${esc(opts)}</span></div>` : ""}
+          <div style="font-size:11.5px;color:#94a3b8;margin-top:8px;">
+            만기는 체류 만료일에 자동으로 맞춰집니다. ${esc(sv.notice)}
+          </div>
+        </div>`;
+    }
+
+    // 미가입일 때 상품 탭 안에 그리는 가입 폼. 팝업과 같은 계산을 쓴다.
+    function paintSavingsForm() {
+      const host = document.getElementById("savingsForm");
+      if (!host) return;
+      const card = (popAll || []).find(c => c.id === "return_goal_savings");
+      if (!card || !card.calc) {
+        host.innerHTML = `<div class="sv"><div class="hd"><span class="ttl">귀국 목표 적금</span></div>
+          <div style="font-size:12.5px;color:#64748b;margin-top:8px;">
+            체류 만료일이 가까워 지금은 가입 조건에 맞지 않습니다.</div></div>`;
+        return;
+      }
+      const k = card.calc;
+      host.innerHTML = `
+        <div class="sv">
+          <div class="hd"><span class="ttl">${esc(card.title)}</span>
+            <span class="tag">미가입</span></div>
+          <div style="font-size:12.5px;color:#64748b;margin-top:6px;line-height:1.65;">
+            체류 만료일에 만기가 맞춰지는 적금입니다. ${esc(card.lead)}
+          </div>
+          <div class="goal">
+            <div style="font-size:12.5px;color:#475569;">귀국하실 때 받을 금액</div>
+            <div class="big" id="goalAmt"></div>
+            <div class="sub">끌어서 맞추거나 아래에 직접 입력하세요</div>
+            <input type="range" id="goalRange"
+                   min="${k.target_min}" max="${k.target_max}"
+                   step="${k.target_step}" value="${k.target_default}" />
+            <div class="ends">
+              <span>${(k.target_min / 10000).toLocaleString("ko-KR")}만</span>
+              <span>${(k.target_max / 10000).toLocaleString("ko-KR")}만</span>
+            </div>
+            <div class="manual">
+              <input type="number" id="goalInput" step="${k.target_step}"
+                     min="${k.target_min}" max="${k.target_max}" />
+              <span style="font-size:13px;color:#475569;">원</span>
+            </div>
+            <div class="derived"><span>매달 넣는 금액</span><b id="goalMonthly"></b></div>
+            <div class="derived" style="border:none;padding-top:4px;">
+              <span style="color:#64748b;font-size:12px;">${k.months}개월 × 매달 납입 + 이자</span>
+              <span id="goalReal" style="color:#64748b;font-size:12px;"></span>
+            </div>
+          </div>
+          ${(card.options || []).map(o => `
+            <label class="opt" style="display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px;">
+              <input type="checkbox" data-opt="${esc(o.id)}" style="width:auto;" checked /> ${esc(o.label)}</label>`).join("")}
+          <div style="font-size:11.5px;color:#94a3b8;line-height:1.65;margin-top:10px;">${esc(card.note)}</div>
+          <button id="savingsCta" style="margin-top:12px;">${esc(card.cta)}</button>
+        </div>`;
+
+      const range = host.querySelector("#goalRange");
+      const input = host.querySelector("#goalInput");
+      const amt = host.querySelector("#goalAmt");
+      const mon = host.querySelector("#goalMonthly");
+      const real = host.querySelector("#goalReal");
+      const clamp = (v) => Math.min(k.target_max, Math.max(k.target_min, v));
+      const paint = (target, syncInput = true) => {
+        target = clamp(Math.round(target / k.target_step) * k.target_step);
+        let monthly = Math.round(target / (k.months * k.factor) / k.monthly_step) * k.monthly_step;
+        monthly = Math.min(k.monthly_max, Math.max(k.monthly_min, monthly));
+        const achieved = Math.round(monthly * k.months * k.factor);
+        chosen = { target, monthly, achieved };
+        amt.textContent = `${target.toLocaleString("ko-KR")}원`;
+        mon.textContent = `${monthly.toLocaleString("ko-KR")}원`;
+        real.textContent = `실제 약 ${achieved.toLocaleString("ko-KR")}원`;
+        range.value = target;
+        if (syncInput) input.value = target;
+      };
+      range.addEventListener("input", () => paint(Number(range.value)));
+      input.addEventListener("input", () => {
+        const v = Number(input.value);
+        if (!isNaN(v) && v > 0) paint(v, false);
+      });
+      input.addEventListener("blur", () => paint(Number(input.value) || k.target_default));
+      paint(k.target_default);
+
+      host.querySelector("#savingsCta").addEventListener("click", () => {
+        enrollSavingsInline(card, host);
+      });
+    }
+
+    async function enrollSavingsInline(card, host) {
+      const monthly = (chosen && chosen.monthly) || card.calc.monthly_default;
+      const opt = (id) => {
+        const el = host.querySelector(`input[data-opt="${id}"]`);
+        return !!(el && el.checked);
+      };
+      let res;
+      try {
+        res = await fetch(`${API_BASE_URL}/savings/enroll`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            credential_id: currentCid, monthly,
+            auto_remit: opt("auto_remit"), fx_guard: opt("fx_guard"),
+          }),
+        });
+      } catch (e) { res = null; }
+      if (!res || !res.ok) { alert("가입 처리에 실패했습니다."); return; }
+      alert(`가입되었습니다. 매달 ${monthly.toLocaleString("ko-KR")}원씩 체류 만료일까지 적립됩니다.`);
+      loadProducts(currentCid);
+    }
+
+
+    function insuranceBlock(ins) {
+      if (!ins) {
+        return `
+          <div class="fxln">
+            <div class="ttl">보험</div>
+            <div class="no">가입한 보험이 없습니다. 업무 외 상해는 회사 보험으로 보장되지 않습니다.</div>
+          </div>`;
+      }
+      return `
+        <div class="fxln">
+          <div class="ttl">보험</div>
+          <div class="big">${esc(ins.product)}</div>
+          <div class="sub">${esc(ins.company)} · 병원 접수 시 서류 없이 가입 사실이 조회됩니다.</div>
+        </div>`;
+    }
+
+    async function loadRecommendations(cid) {
+      currentCid = cid;
+      const res = await fetch(`${API_BASE_URL}/products/recommend/${cid}?force=true`);
+      if (!res.ok) return;
+      const data = await res.json();
+      popAll = data.cards || [];
+      // 적금은 상품 탭 안에 펼쳐 두었으므로 팝업으로 다시 띄우지 않는다.
+      popQueue = popAll.filter(c => c.id !== "return_goal_savings");
+      showNextCard(cid);
+    }
+
+    function fitToPhone(mask) {
+      const phone = document.querySelector(".phone");
+      const apply = () => {
+        if (!document.body.contains(mask)) { window.removeEventListener("resize", apply); return; }
+        if (!phone) return;
+        const r = phone.getBoundingClientRect();
+        mask.style.left = r.left + "px";
+        mask.style.top = r.top + "px";
+        mask.style.width = r.width + "px";
+        mask.style.height = r.height + "px";
+        mask.style.right = "auto";
+        mask.style.bottom = "auto";
+        mask.style.borderRadius = getComputedStyle(phone).borderRadius;
+      };
+      apply();
+      window.addEventListener("resize", apply);
+    }
+
+    function showNextCard(cid) {
+      const card = popQueue.shift();
+      if (!card) return;
+      showCard(cid, card);
+    }
+
+    function showCard(cid, card) {
+      const mask = document.createElement("div");
+      mask.className = "pop-mask";
+      mask.innerHTML = `
+        <div class="pop">
+          <span class="pop-kind" style="${card.tier === "C"
+            ? "background:#f1f5f9;color:#64748b;" : ""}">${esc(card.kind)}</span>
+          ${card.tier ? `<span class="pop-kind" style="background:#f8fafc;color:#94a3b8;margin-left:4px;">등급 ${esc(card.tier)}</span>` : ""}
+          <h3>${esc(card.title)}</h3>
+          <div class="lead">${esc(card.lead)}</div>
+          <div class="why">${esc(card.why)}</div>
+          <div class="rows">
+            ${card.rows.map(r => `<div><span>${esc(r.label)}</span><span>${esc(r.value)}</span></div>`).join("")}
+          </div>
+          ${card.calc ? `
+            <div class="goal">
+              <div style="font-size:12.5px;color:#475569;">귀국하실 때 받을 금액</div>
+              <div class="big" id="goalAmt"></div>
+              <div class="sub">끌어서 맞추거나 아래에 직접 입력하세요</div>
+              <input type="range" id="goalRange"
+                     min="${card.calc.target_min}" max="${card.calc.target_max}"
+                     step="${card.calc.target_step}" value="${card.calc.target_default}" />
+              <div class="ends">
+                <span>${(card.calc.target_min / 10000).toLocaleString("ko-KR")}만</span>
+                <span>${(card.calc.target_max / 10000).toLocaleString("ko-KR")}만</span>
+              </div>
+              <div class="manual">
+                <input type="number" id="goalInput" step="${card.calc.target_step}"
+                       min="${card.calc.target_min}" max="${card.calc.target_max}" />
+                <span style="font-size:13px;color:#475569;">원</span>
+              </div>
+              <div class="derived">
+                <span>매달 넣는 금액</span><b id="goalMonthly"></b>
+              </div>
+              <div class="derived" style="border:none;padding-top:4px;">
+                <span style="color:#64748b;font-size:12px;">${card.calc.months}개월 × 매달 납입 + 이자</span>
+                <span id="goalReal" style="color:#64748b;font-size:12px;"></span>
+              </div>
+            </div>` : ""}
+          ${(card.options || []).map(o => `
+            <label class="opt"><input type="checkbox" data-opt="${esc(o.id)}" checked /> ${esc(o.label)}</label>`).join("")}
+          ${card.detail ? `
+            <details style="margin-top:10px;">
+              <summary style="cursor:pointer;font-size:12.5px;color:#2563eb;">왜 그런가요?</summary>
+              <div style="font-size:12.5px;color:#475569;line-height:1.7;margin-top:6px;">
+                ${esc(card.detail)}
+              </div>
+              <div class="engine">${esc(card.engine)}</div>
+            </details>` : `<div class="engine">${esc(card.engine)}</div>`}
+          <div class="note">${esc(card.note)}</div>
+          <div class="btns">
+            <button data-act="cta">${esc(card.cta)}</button>
+            <button class="secondary" data-act="later">나중에</button>
+          </div>
+        </div>`;
+      // 폰 목업 안에만 띄운다. body 에 그대로 붙이면 프레임 밖으로 삐져나온다.
+      document.body.appendChild(mask);
+      fitToPhone(mask);
+
+      // 목표 금액 ↔ 월 납입 역산. 슬라이더와 입력칸이 서로를 따라간다.
+      chosen = card.calc ? card.calc.target_default : null;
+      if (card.calc) {
+        const k = card.calc;
+        const range = mask.querySelector("#goalRange");
+        const input = mask.querySelector("#goalInput");
+        const amt = mask.querySelector("#goalAmt");
+        const mon = mask.querySelector("#goalMonthly");
+        const real = mask.querySelector("#goalReal");
+        const clamp = (v) => Math.min(k.target_max, Math.max(k.target_min, v));
+
+        const paint = (target, syncInput = true) => {
+          target = clamp(Math.round(target / k.target_step) * k.target_step);
+          // 목표 → 월 납입(만원 단위 반올림) → 그 납입으로 실제 도달하는 금액
+          let monthly = Math.round(target / (k.months * k.factor) / k.monthly_step) * k.monthly_step;
+          monthly = Math.min(k.monthly_max, Math.max(k.monthly_min, monthly));
+          const achieved = Math.round(monthly * k.months * k.factor);
+          chosen = { target, monthly, achieved };
+
+          amt.textContent = `${target.toLocaleString("ko-KR")}원`;
+          mon.textContent = `${monthly.toLocaleString("ko-KR")}원`;
+          real.textContent = `실제 약 ${achieved.toLocaleString("ko-KR")}원`;
+          range.value = target;
+          if (syncInput) input.value = target;
+        };
+
+        range.addEventListener("input", () => paint(Number(range.value)));
+        input.addEventListener("input", () => {
+          const v = Number(input.value);
+          if (!isNaN(v) && v > 0) paint(v, false);
+        });
+        input.addEventListener("blur", () => paint(Number(input.value) || k.target_default));
+        paint(k.target_default);
+      }
+
+      mask.addEventListener("click", (e) => {
+        const act = e.target.dataset && e.target.dataset.act;
+        if (!act && e.target !== mask) return;
+        mask.remove();
+        if (act === "cta") {
+          alert("Phase 2 — 이 상품의 가입은 이번 범위에 포함되지 않습니다.\n조건 판정과 금액 산출까지가 이번 구현 범위입니다.");
+        }
+        setTimeout(() => showNextCard(cid), 250);
+      });
+    }
+
+
+    // 상품 화면의 본체 — 네 구획.
+    //   ① 지금 들고 있는 것 + 귀국 목표 금액 + 목표에 따른 추천
+    //   ② 퇴직연금 (회사가 넣어주는 돈)
+    //   ③ 귀국 목표 적금 (내가 넣는 돈)
+    //   ④ 매달 해외송금 (지금 보내는 돈)
+    // 귀국정산은 따로 두지 않는다 — ①이 이미 "귀국할 때 얼마"를 다룬다.
+    let snapshot = null;
+
+    async function loadProducts(cid) {
+      currentCid = cid;
+      const box = document.getElementById("prodBox");
+      let p;
+      try {
+        const res = await fetch(`${API_BASE_URL}/passport/${cid}`);
+        if (!res.ok) throw new Error(res.status);
+        p = await res.json();
+      } catch (e) {
+        box.innerHTML = `<span style="color:#a92c22;">상품 정보를 불러오지 못했습니다.</span>`;
+        return;
+      }
+      snapshot = p;
+      document.getElementById("whoLine").textContent = `${p.worker_name} · ${p.visa_type}`;
+
+      box.className = "";
+      box.innerHTML = `
+        <div class="sec" id="secGoal"></div>
+        <div class="sec">
+          <div class="sec-no">② 회사가 넣어주는 돈</div>
+          ${pensionBlock(p.pension)}
+        </div>
+        <div class="sec">
+          <div class="sec-no">③ 내가 넣는 돈</div>
+          ${savingsBlock(p.savings)}
+        </div>
+        <div class="sec" id="secFx">
+          <div class="sec-no">④ 지금 보내는 돈</div>
+          ${hedgeBlock(p.hedge)}
+        </div>`;
+      paintGoal(p);
+      paintSavingsForm();
+    }
+
+    // ── ① 지금 들고 있는 것 + 매달 송금액 ──────────────────────
+    // 근로자가 실제로 하는 결정은 "이번 달에 집에 얼마를 보낼까"다.
+    // 그 금액이 정해지면 환율 보장 수수료·등급 판정(④)이 바로 따라오고,
+    // 남는 돈에서 적금(③)을 얼마나 넣을지가 나온다.
+    let fxTimer = null;
+
+    function paintGoal(p) {
+      const host = document.getElementById("secGoal");
+      const pn = p.pension || {};
+      const sv = p.savings || {};
+      const wage = (p.month && p.month.available) ? p.month.estimated_gross_pay : null;
+      const start = (p.hedge && p.hedge.monthly_remit) || 500000;
+      const maxRemit = Math.max(1000000, Math.round((wage || 1000000) / 100000) * 100000);
+
+      const held = [
+        pn.enrolled ? `퇴직연금 ${pn.fund ? pn.fund.name : "운용 미선택"}` : null,
+        sv.enrolled ? `적금 월 ${won(sv.monthly)}` : null,
+        p.insurance ? `보험 ${p.insurance.product}` : null,
+        (sv.enrolled && sv.fx_guard) ? "환율 보장" : null,
+      ].filter(Boolean);
+
+      host.innerHTML = `
+        <div class="sec-no">① 달마다 얼마를 송금하시겠어요?</div>
+        <div class="held">${held.length
+          ? held.map(h => `<span>${esc(h)}</span>`).join("")
+          : `<span class="none">아직 가입한 상품이 없습니다</span>`}</div>
+
+        <div class="goal">
+          <div style="font-size:12.5px;color:#475569;">매달 본국으로 보낼 금액</div>
+          <div class="big" id="gAmt"></div>
+          <div class="sub" id="gHome">끌어서 맞추거나 아래에 직접 입력하세요</div>
+          <input type="range" id="gRange" min="100000" max="${maxRemit}" step="50000" value="${start}" />
+          <div class="ends">
+            <span>10만</span><span>${(maxRemit / 10000).toLocaleString("ko-KR")}만</span>
+          </div>
+          <div class="manual">
+            <input type="number" id="gInput" step="50000" min="100000" max="${maxRemit}" />
+            <span style="font-size:13px;color:#475569;">원</span>
+          </div>
+        </div>
+
+        <label class="fxopt" id="fxOptWrap">
+          <input type="checkbox" id="fxGuard" checked />
+          <span>
+            <b>환율 보장</b> 적용 — 다음 송금분의 환율을 지금 고정합니다
+            <i id="fxFeeHint">수수료 —</i>
+          </span>
+        </label>
+
+        <div class="stack">
+          ${wage ? `<div class="ln"><span>이번 달 예상 급여 (공제 전)</span><b>${won(wage)}</b></div>` : ""}
+          <div class="ln"><span>본국 송금</span><b id="gSend">—</b></div>
+          <div class="ln" id="gFeeLine"><span>환율 보장 수수료</span><b id="gFee">—</b></div>
+          <div class="ln tot"><span>한국에서 쓰고 남는 돈</span><b id="gLeft">—</b></div>
+        </div>
+        <div id="gAdvice" class="advice"></div>`;
+
+      const range = host.querySelector("#gRange");
+      const input = host.querySelector("#gInput");
+      const amt = host.querySelector("#gAmt");
+      const home = host.querySelector("#gHome");
+      const send = host.querySelector("#gSend");
+      const left = host.querySelector("#gLeft");
+      const adv = host.querySelector("#gAdvice");
+      const guard = host.querySelector("#fxGuard");
+      const feeEl = host.querySelector("#gFee");
+      const feeLine = host.querySelector("#gFeeLine");
+      const feeHint = host.querySelector("#fxFeeHint");
+      const optWrap = host.querySelector("#fxOptWrap");
+      const clamp = (v) => Math.min(maxRemit, Math.max(100000, v));
+
+      // 체크 상태와 수수료를 반영해 "남는 돈"을 다시 쓴다.
+      // 환율 보장을 켜면 수수료가 이번 달 지출에 더해진다 — 그걸 숨기지 않는다.
+      let lastFee = 0, lastTier = null, lastRemit = 0;
+      const paintLeft = () => {
+        const on = guard.checked && lastTier && lastTier !== "C";
+        const fee = on ? lastFee : 0;
+        feeEl.textContent = on ? "− " + won(fee) : "적용 안 함";
+        feeLine.style.opacity = on ? "1" : ".5";
+        left.textContent = wage ? won(Math.max(wage - lastRemit - fee, 0)) : "—";
+      };
+      guard.addEventListener("change", paintLeft);
+
+      const paint = (v, syncInput = true) => {
+        v = clamp(Math.round(v / 50000) * 50000);
+        amt.textContent = `${v.toLocaleString("ko-KR")}원`;
+        range.value = v;
+        if (syncInput) input.value = v;
+        send.textContent = won(v);
+        lastRemit = v;
+        paintLeft();
+
+        const h = p.hedge;
+        if (h && h.unit_per_krw) {
+          const local = Math.round(v * h.unit_per_krw);
+          home.textContent = `${h.currency_name} 약 ${local.toLocaleString("ko-KR")} ${h.currency}`;
+        }
+        quoteFx(v, adv, wage, (h) => {
+          lastFee = h ? h.fee : 0;
+          lastTier = h ? h.tier : null;
+          if (h && h.tier !== "C") {
+            feeHint.textContent = `수수료 ${won(h.fee)} · 예상 절감 ${won(h.expected_saving)}`;
+            optWrap.style.display = "flex";
+          } else {
+            optWrap.style.display = "none";   // 권하지 않는 구간에서는 선택지를 내리지 않는다
+          }
+          paintLeft();
+        });
+      };
+
+      range.addEventListener("input", () => paint(Number(range.value)));
+      input.addEventListener("input", () => {
+        const v = Number(input.value);
+        if (!isNaN(v) && v > 0) paint(v, false);
+      });
+      input.addEventListener("blur", () => paint(Number(input.value) || start));
+      paint(start);
+    }
+
+    // 금액이 바뀔 때마다 서버에 다시 물어 등급·수수료를 받는다.
+    // 등급 C(권하지 않음)가 나오는 구간이 있다는 것이 이 화면의 논지다.
+    function quoteFx(monthly, adv, wage, onQuote) {
+      clearTimeout(fxTimer);
+      fxTimer = setTimeout(async () => {
+        let h = null;
+        try {
+          const res = await fetch(`${API_BASE_URL}/fx/quote/${currentCid}?monthly=${monthly}`);
+          if (res.ok) h = (await res.json()).hedge;
+        } catch (e) {}
+        if (onQuote) onQuote(h);
+        if (!h) { adv.className = "advice"; adv.innerHTML = "환율 조건을 불러오지 못했습니다."; return; }
+
+        // ④ 해외송금 구획도 같은 금액으로 다시 그린다
+        const sec = document.getElementById("secFx");
+        if (sec) sec.innerHTML = `<div class="sec-no">④ 지금 보내는 돈</div>${hedgeBlock(h)}`;
+
+        if (h.tier === "C") {
+          adv.className = "advice";
+          adv.innerHTML = `이 금액에서는 <b>환율 보장을 권해 드리지 않습니다.</b>
+            아껴지는 금액보다 수수료가 크기 때문입니다.
+            <span class="hint">송금액이 늘면 자동으로 다시 안내합니다.</span>`;
+          return;
+        }
+        const net = h.expected_saving - h.fee;
+        adv.className = net > 0 ? "advice ok" : "advice";
+        adv.innerHTML = `환율 보장 수수료 <b>${won(h.fee)}</b> ·
+          최근 6개월 변동폭 기준 예상 절감 <b>${won(h.expected_saving)}</b>
+          ${net > 0 ? `(순이득 <b>${won(net)}</b>)` : ""}
+          ${wage ? `<span class="hint">남는 돈으로 ③ 적금을 채우면 귀국할 때 목돈이 됩니다.</span>` : ""}`;
+      }, 180);
+    }
+
+    (function boot() {
+      let cid = null;
+      try { cid = localStorage.getItem(CID_STORE); } catch (e) {}
+      if (!cid) { location.replace("wallet.html"); return; }
+      loadRecommendations(cid).then(() => loadProducts(cid));
+    })();
+</script>
+</body>
+</html>

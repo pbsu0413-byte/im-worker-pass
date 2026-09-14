@@ -30,6 +30,7 @@ from models import (
     CredentialIssueRequest,
     InsuranceDecisionRequest,
     InsuranceSubmitRequest,
+    PensionAllocationRequest,
     PresentationRequest,
     SavingsEnrollRequest,
     VerifyRequest,
@@ -41,6 +42,7 @@ import products as prod
 import payroll as pay
 import savings as sav
 import settlement as stl
+import pension as pen
 from blockchain_client import get_blockchain_client, CredentialStatus
 from agency_api import PURPOSE_AGENCIES, coverage as agency_coverage, run_lookups
 
@@ -492,7 +494,13 @@ def list_credentials():
         except Exception as e:
             print(f"[Supabase fetch error]: {e}")
 
-    return list(_local_db.values())
+    # 관리자 콘솔의 근로자 목록에 퇴직연금 잔액 한 줄을 얹는다.
+    rows = []
+    for cid, cred in _local_db.items():
+        row = dict(cred)
+        row["pension_balance"] = pen.balance_of(cid, cred.get("worker_name"))
+        rows.append(row)
+    return rows
 
 
 # ---------------------------------------------------------------------------
@@ -633,6 +641,41 @@ def recommend_products(credential_id: str, force: bool = False):
     return prod.recommend(cred, enrolled_savings=enrolled, force=force)
 
 
+@app.post("/pension/allocation")
+def pension_allocation(req: PensionAllocationRequest):
+    """
+    DC 적립금의 운용상품을 고른다. 가입 자체는 사업장이 하는 것이므로
+    여기서 만들어지는 것은 '가입'이 아니라 '운용 지시'다.
+    """
+    cred = _local_db.get(req.credential_id)
+    if not cred:
+        raise HTTPException(status_code=404, detail="wallet not found")
+    if not get_blockchain_client().get_status(req.credential_id)["is_valid"]:
+        raise HTTPException(status_code=403, detail="CREDENTIAL_NOT_VALID")
+
+    name = cred.get("worker_name")
+    if not pen.status(req.credential_id, name, cred.get("visa_valid_until")).get("enrolled"):
+        raise HTTPException(status_code=409, detail="DC_NOT_ENROLLED")
+    if not pen.choose_fund(req.credential_id, req.fund_id):
+        raise HTTPException(status_code=400, detail="UNKNOWN_FUND")
+
+    return {"result": "ok",
+            "pension": pen.status(req.credential_id, name, cred.get("visa_valid_until"))}
+
+
+@app.get("/fx/quote/{credential_id}")
+def fx_quote(credential_id: str, monthly: int = 800000):
+    """
+    월 송금액을 바꿔가며 환율 보장 판정을 다시 받는다.
+    금액이 작으면 등급 C로 떨어져 "권하지 않음"이 나오는 것이 이 화면의 핵심이다.
+    """
+    cred = _local_db.get(credential_id)
+    if not cred:
+        raise HTTPException(status_code=404, detail="wallet not found")
+    monthly = max(0, min(int(monthly), 5_000_000))
+    return {"monthly_remit": monthly, "hedge": prod.hedge_tier(cred, monthly)}
+
+
 @app.get("/wallets")
 def list_wallets():
     """
@@ -734,6 +777,8 @@ def passport_home(credential_id: str):
         "settlement": stl.build(cred, _sv),
         # 환율 보장 송금 안내. 근로자에게는 등급 이름이 아니라 예상비용·보호범위만 보여준다.
         "hedge": prod.hedge_tier(cred),
+        # DC형 퇴직연금. 가입은 회사가 하고, 근로자는 운용상품을 고른다.
+        "pension": pen.status(credential_id, name, cred.get("visa_valid_until")),
         # 보험 가입 여부는 손보사 원천 기록에서 읽는다 (카드로 쌓지 않는다).
         "insurance": _insurance_db.get(credential_id) and {
             "product": _insurance_db[credential_id]["product"],

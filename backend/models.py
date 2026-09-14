@@ -92,3 +92,10 @@ class SavingsEnrollRequest(BaseModel):
     monthly: int
     auto_remit: bool = False
     fx_guard: bool = False
+
+
+class PensionAllocationRequest(BaseModel):
+    """DC형 퇴직연금 운용상품 선택. 가입이 아니라 운용 지시다."""
+
+    credential_id: str
+    fund_id: str

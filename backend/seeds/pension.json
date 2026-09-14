@@ -1,0 +1,56 @@
+{
+  "_agency": "iM뱅크 퇴직연금",
+  "_agency_id": "PENSION",
+  "_authority": "real",
+  "_note": "DC형 퇴직연금 가입 현황. 사업장이 iM과 제휴할 때 DC 제도를 도입한 것으로 보고 근로자는 모두 가입 상태다. 근로자가 하는 선택은 적립금 운용상품뿐이다. started_months_ago 는 상대값이라 달이 바뀌어도 재현된다. fund 가 null 이면 아직 고르지 않아 대기성 예금에 머물러 있는 상태다.",
+  "funds": [
+    {
+      "id": "stable",
+      "name": "안정형",
+      "rate": 0.025,
+      "desc": "원리금 보장 상품 위주. 원금이 줄지 않습니다.",
+      "risk": "낮음"
+    },
+    {
+      "id": "balanced",
+      "name": "중립형",
+      "rate": 0.04,
+      "desc": "채권을 중심으로 주식을 일부 섞습니다.",
+      "risk": "보통"
+    },
+    {
+      "id": "growth",
+      "name": "성장형",
+      "rate": 0.06,
+      "desc": "주식 비중이 높습니다. 손실이 날 수도 있습니다.",
+      "risk": "높음"
+    }
+  ],
+  "default_rate": 0.01,
+  "records": [
+    {
+      "worker_name": "NGUYEN VAN A",
+      "dc_enrolled": true,
+      "started_months_ago": 30,
+      "fund": null
+    },
+    {
+      "worker_name": "SITI RAHAYU",
+      "dc_enrolled": true,
+      "started_months_ago": 20,
+      "fund": "stable"
+    },
+    {
+      "worker_name": "LI CHUNHUA",
+      "dc_enrolled": true,
+      "started_months_ago": 28,
+      "fund": "growth"
+    },
+    {
+      "worker_name": "NGUYEN THI E",
+      "dc_enrolled": true,
+      "started_months_ago": 14,
+      "fund": null
+    }
+  ]
+}

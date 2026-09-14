@@ -59,6 +59,7 @@
         <th>이름</th>
         <th>국적</th>
         <th>계좌</th>
+        <th style="text-align:right;">퇴직연금 잔액</th>
         <th>온체인 상태</th>
         <th>최근 Tx Hash</th>
         <th>동작</th>
@@ -90,6 +91,10 @@
             <td><b>${r.worker_name}</b></td>
             <td>${r.nationality}</td>
             <td>${r.account_bank} ${r.account_number}</td>
+            <td style="text-align:right;white-space:nowrap;">${
+              r.pension_balance
+                ? Number(r.pension_balance).toLocaleString("ko-KR") + "원"
+                : '<span style="color:#94a3b8;">—</span>'}</td>
             <td><span class="badge ${r.status === "valid" ? "badge-valid" : "badge-revoked"}">${r.status.toUpperCase()}</span></td>
             <td class="tx-cell" title="${r.last_tx_hash || r.tx_hash || '-'}">
               ${r.explorer_url 

@@ -236,7 +236,7 @@ def _savings_card(cred, enrolled, force=False):
     return {
         "id": "return_goal_savings",
         "kind": "권유",
-        "title": "귀국하실 때 얼마를 가져가시겠어요?",
+        "title": "적금을 드시겠습니까?",
         "lead": f"만기 {cred.get('visa_valid_until')} · 체류 만료일에 자동으로 맞췄습니다",
         "why": f"체류 만료까지 {left}일 ({months}개월)",
         "rows": [
@@ -246,7 +246,6 @@ def _savings_card(cred, enrolled, force=False):
         ],
         "calc": calc,
         "options": [
-            {"id": "auto_remit", "label": "만기에 본국으로 자동 송금"},
             {"id": "fx_guard", "label": "만기 송금분 환율 보장 함께 적용"},
         ],
         "note": (
@@ -258,7 +257,7 @@ def _savings_card(cred, enrolled, force=False):
             "지갑이 체류 만료일을 알고 있어 만기를 따로 설정할 필요가 없습니다. "
             "운용은 iM에셋자산운용, 만기 송금은 iM뱅크로 이어집니다."
         ),
-        "cta": "목표 금액 설정",
+        "cta": "이 조건으로 적금 가입",
     }
 
 
