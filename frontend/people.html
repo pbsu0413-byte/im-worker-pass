@@ -5,7 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass - 인물 선택</title>
 <link rel="stylesheet" href="ui.css" />
+<script src="i18n.js"></script>
 <style>
+  .lang-picker-box {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--im-surface-soft, #f1f5f9); border: 1px solid var(--im-line, #e2e8f0);
+    padding: 3px 8px; border-radius: var(--radius-chip, 999px);
+  }
+  .lang-picker-box .lang-flag { font-size: 13px; line-height: 1; }
+  .lang-select-dropdown {
+    background: transparent; border: none; outline: none;
+    font-size: 11.5px; font-weight: 600; color: var(--im-text, #0f172a);
+    cursor: pointer; padding: 0; margin: 0; font-family: inherit;
+  }
   .who { display:grid; gap:var(--space-2); margin-top:var(--space-1); }
   .who button {
     width:100%; text-align:left; margin:0; min-height:0;
@@ -38,18 +50,18 @@
 <div class="phone">
   <header class="ph-top">
     <div class="ph-top-bar">
-      <span class="ph-brand"><span class="nm">iM PASS</span><span class="role">근로자</span></span>
+      <span class="ph-brand"><span class="nm">iM PASS</span><span class="role" data-i18n="worker_role">근로자</span></span>
       <span class="acts">
-        <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
-        <a href="home.html" class="switch-link"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
+        <div id="langSelectorArea"></div>
+        <a href="home.html" class="switch-link"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg><span data-i18n="switch_service">서비스 전환</span></a>
       </span>
     </div>
-    <h1>누구로 볼까요</h1>
-    <div class="who">외국인 근로자 프로필 선택 (E-9 / H-2)</div>
+    <h1 data-i18n="people_title">누구로 볼까요</h1>
+    <div class="who" data-i18n="people_sub">외국인 근로자 프로필 선택 (E-9 / H-2)</div>
   </header>
   <main class="ph-body">
 
-  <p style="font-size:12.5px;color:#64748b;margin:0 0 14px;line-height:1.7;">
+  <p style="font-size:12.5px;color:#64748b;margin:0 0 14px;line-height:1.7;" data-i18n="people_desc">
     실제 서비스에서 근로자는 자기 지갑 하나만 갖습니다. 고르면 그 사람으로 지갑 발급부터 시작합니다.
   </p>
 
@@ -89,6 +101,9 @@
   </div>
 
 <script>
+  I18N.renderSelector("langSelectorArea");
+  window.addEventListener("imwp-lang-change", () => I18N.apply());
+
   // 고른 사람을 지갑 화면에 넘긴다. 기존 지갑은 비워서 발급 화면부터 시작한다.
   function pick(name) {
     try {

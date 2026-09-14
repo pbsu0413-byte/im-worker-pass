@@ -5,7 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM PASS — 서비스 선택</title>
 <link rel="stylesheet" href="ui.css" />
+<script src="i18n.js"></script>
 <style>
+  .lang-picker-box {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--im-surface-soft, #f1f5f9); border: 1px solid var(--im-line, #e2e8f0);
+    padding: 3px 8px; border-radius: var(--radius-chip, 999px);
+  }
+  .lang-picker-box .lang-flag { font-size: 13px; line-height: 1; }
+  .lang-select-dropdown {
+    background: transparent; border: none; outline: none;
+    font-size: 11.5px; font-weight: 600; color: var(--im-text, #0f172a);
+    cursor: pointer; padding: 0; margin: 0; font-family: inherit;
+  }
   .trust {
     margin-top: 40px;
     background: var(--im-surface);
@@ -43,6 +55,7 @@
     <span class="wm">iM뱅크</span>
   </span>
   <span class="acts">
+    <div id="langSelectorArea"></div>
     <svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5'/></svg>
     <svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
     <svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 7h16M4 12h16M4 17h16'/></svg>
@@ -51,8 +64,8 @@
 
 <main class="launcher-body">
   <div class="launcher-head">
-    <div class="kicker tx-brand" style="font-size:17px;color:var(--im-text);">생활과 금융을 연결하는 새로운 신원지갑</div>
-    <h1>이용할 서비스를 선택해 주세요</h1>
+    <div class="kicker tx-brand" style="font-size:17px;color:var(--im-text);" data-i18n="home_kicker">생활과 금융을 연결하는 새로운 신원지갑</div>
+    <h1 data-i18n="home_heading">이용할 서비스를 선택해 주세요</h1>
   </div>
 
   <div class="app-grid">
@@ -66,9 +79,9 @@
           <path d="M16 9.5h4M16 13.5h3"/>
         </svg>
       </span>
-      <span class="app-badge">개인</span>
-      <span class="app-name">iM PASS 근로자</span>
-      <span class="app-desc">내 자격을 보관하고 필요한 곳에 제출해요</span>
+      <span class="app-badge" data-i18n="badge_worker">개인</span>
+      <span class="app-name" data-i18n="app_worker_name">iM PASS 근로자</span>
+      <span class="app-desc" data-i18n="app_worker_desc">내 자격을 보관하고 필요한 곳에 제출해요</span>
       <span class="app-go">
         <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m9 18 6-6-6-6'/></svg>
       </span>
@@ -82,9 +95,9 @@
           <rect x="8.5" y="7" width="3.5" height="3"/>
         </svg>
       </span>
-      <span class="app-badge">기업</span>
-      <span class="app-name">iM PASS 사업자</span>
-      <span class="app-desc">근로자의 자격을 빠르고 안전하게 확인해요</span>
+      <span class="app-badge" data-i18n="badge_biz">기업</span>
+      <span class="app-name" data-i18n="app_biz_name">iM PASS 사업자</span>
+      <span class="app-desc" data-i18n="app_biz_desc">근로자의 자격을 빠르고 안전하게 확인해요</span>
       <span class="app-go">
         <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m9 18 6-6-6-6'/></svg>
       </span>
@@ -97,9 +110,9 @@
           <path d="M12 11.8l3 1v2.4c0 1.7-1.2 3.1-3 3.6-1.8-.5-3-1.9-3-3.6v-2.4l3-1z"/>
         </svg>
       </span>
-      <span class="app-badge">관리자</span>
-      <span class="app-name">iM PASS 은행·기관</span>
-      <span class="app-desc">자격을 발급하고 변경 상태를 관리해요</span>
+      <span class="app-badge" data-i18n="badge_admin">관리자</span>
+      <span class="app-name" data-i18n="app_admin_name">iM PASS 은행·기관</span>
+      <span class="app-desc" data-i18n="app_admin_desc">자격을 발급하고 변경 상태를 관리해요</span>
       <span class="app-go">
         <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m9 18 6-6-6-6'/></svg>
       </span>
@@ -108,32 +121,37 @@
   </div>
 
   <section class="trust">
-    <h2>안심하고 쓸 수 있는 이유</h2>
+    <h2 data-i18n="trust_title">안심하고 쓸 수 있는 이유</h2>
     <div class="trust-steps">
       <div class="trust-step">
         <span class="n">1</span>
         <span>
-          <span class="t">자격을 원장에 등록해요</span>
-          <span class="d">은행 창구에서 본인 확인을 마치면 자격이 분산원장에 등록돼요. 등록 이후 변경 이력이 안전하게 보호돼요.</span>
+          <span class="t" data-i18n="trust_1_t">자격을 원장에 등록해요</span>
+          <span class="d" data-i18n="trust_1_d">은행 창구에서 본인 확인을 마치면 자격이 분산원장에 등록돼요. 등록 이후 변경 이력이 안전하게 보호돼요.</span>
         </span>
       </div>
       <div class="trust-step">
         <span class="n">2</span>
         <span>
-          <span class="t">필요한 정보만 골라 제출해요</span>
-          <span class="d">제출할 곳을 정하면 그곳에 필요한 항목만 담긴 QR이 만들어져요. 이름과 계좌는 원장에 올라가지 않아요.</span>
+          <span class="t" data-i18n="trust_2_t">필요한 정보만 골라 제출해요</span>
+          <span class="d" data-i18n="trust_2_d">제출할 곳을 정하면 그곳에 필요한 항목만 담긴 QR이 만들어져요. 이름과 계좌는 원장에 올라가지 않아요.</span>
         </span>
       </div>
       <div class="trust-step">
         <span class="n">3</span>
         <span>
-          <span class="t">받는 곳에서 바로 확인해요</span>
-          <span class="d">사업장 단말이 자격 상태를 그 자리에서 대조해요. 철회되거나 만료된 자격은 즉시 걸러져요.</span>
+          <span class="t" data-i18n="trust_3_t">받는 곳에서 바로 확인해요</span>
+          <span class="d" data-i18n="trust_3_d">사업장 단말이 자격 상태를 그 자리에서 대조해요. 철회되거나 만료된 자격은 즉시 걸러져요.</span>
         </span>
       </div>
     </div>
   </section>
 </main>
+
+<script>
+  I18N.renderSelector("langSelectorArea");
+  window.addEventListener("imwp-lang-change", () => I18N.apply());
+</script>
 
 </body>
 </html>
