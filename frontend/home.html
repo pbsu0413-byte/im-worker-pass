@@ -2,10 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>iM Worker Pass — 역할 선택</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>iM Worker Pass — 외국인 근로자 분산신원인증(DID)</title>
 
-<!-- PWA & 모바일 앱 지원 -->
+<!-- PWA & 모바일 앱 메타태그 -->
 <link rel="manifest" href="manifest.json" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -13,84 +13,843 @@
 <meta name="apple-mobile-web-app-title" content="iM패스" />
 <meta name="theme-color" content="#1d6bf3" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
 
-<link rel="stylesheet" href="ui.css" />
 <style>
-  .land { max-width: 940px; margin: 0 auto; padding: 44px 20px 70px; }
-  .land .brand { display:flex; align-items:center; gap:10px; }
-  .land .mark { width:34px; height:34px; border-radius:10px; background:var(--im); color:#fff;
-    display:grid; place-items:center; font-size:14px; font-weight:700; }
-  .land .bn { font-size:15px; font-weight:700; letter-spacing:-.3px; }
-  .land h1 { font-size:32px; line-height:1.3; letter-spacing:-1px; margin:26px 0 10px; }
-  .land h1 em { font-style:normal; color:var(--im); }
-  .land .lead { font-size:14.5px; color:var(--muted); line-height:1.8; margin:0 0 34px; max-width:620px; }
-  .roles { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-  .role {
-    display:block; text-decoration:none; background:#fff; border:1px solid var(--line);
-    border-radius:16px; padding:20px 18px 18px; transition:border-color .15s, transform .15s;
+  :root {
+    --im-blue: #1d6bf3;
+    --im-blue-dark: #1455c7;
+    --im-blue-light: #eff6ff;
+    --im-green: #0b8a5f;
+    --im-green-dark: #076c4a;
+    --im-green-light: #ecfdf5;
+    --slate-dark: #0f172a;
+    --slate-muted: #475569;
+    --slate-faint: #94a3b8;
+    --border: #e2e8f0;
+    --card-bg: #ffffff;
   }
-  .role .ic {
-    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
-    font-size: 22px; margin-bottom: 12px;
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background: #f8fafc;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(29, 107, 243, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(11, 138, 95, 0.08) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(241, 245, 249, 0.5) 0px, transparent 50%);
+    color: var(--slate-dark);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.025em;
   }
-  .role.worker .ic { background: #eff6ff; color: #1d6bf3; }
-  .role.worker:hover { border-color: #1d6bf3; transform:translateY(-2px); }
-  .role.enterprise .ic { background: #ecfdf5; color: #0b8a5f; }
-  .role.enterprise:hover { border-color: #0b8a5f; transform:translateY(-2px); }
-  .role.bank .ic { background: #f1f5f9; color: #334155; }
-  .role.bank:hover { border-color: #334155; transform:translateY(-2px); }
-  .role .nm { font-size:16px; font-weight:700; margin-top:4px; letter-spacing:-.3px; }
-  .role .de { font-size:12.5px; color:var(--muted); line-height:1.7; margin-top:6px; }
-  .role .dv { font-size:11px; color:var(--faint); margin-top:12px;
-    border-top:1px solid var(--line); padding-top:10px; }
-  .note { margin-top:30px; font-size:12px; color:var(--faint); line-height:1.8; }
-  @media (max-width:760px) { .roles { grid-template-columns:1fr; } .land h1 { font-size:25px; } }
+
+  .wrap {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 36px 24px 80px;
+  }
+
+  /* ── 상단 네비게이션 ── */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    text-decoration: none;
+  }
+  .brand-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #1d6bf3 0%, #0b8a5f 100%);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    font-weight: 800;
+    box-shadow: 0 4px 14px rgba(29, 107, 243, 0.28);
+    letter-spacing: -0.5px;
+  }
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+  }
+  .brand-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--slate-dark);
+    line-height: 1.2;
+  }
+  .brand-sub {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--slate-faint);
+    letter-spacing: 0.3px;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn-download-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #ffffff;
+    color: var(--im-blue);
+    border: 1.5px solid #bfdbfe;
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(29, 107, 243, 0.08);
+    transition: all 0.2s ease;
+  }
+  .btn-download-top:hover {
+    background: var(--im-blue);
+    color: #ffffff;
+    border-color: var(--im-blue);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(29, 107, 243, 0.25);
+  }
+  .btn-download-top .icon { font-size: 15px; }
+
+  /* ── 히어로 섹션 ── */
+  .hero {
+    margin-bottom: 44px;
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  }
+  .hero-tag .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--im-blue);
+    box-shadow: 0 0 0 3px rgba(29, 107, 243, 0.2);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+  }
+
+  .hero h1 {
+    font-size: 42px;
+    line-height: 1.25;
+    font-weight: 850;
+    letter-spacing: -1.5px;
+    color: #0f172a;
+    margin-bottom: 18px;
+  }
+  .hero h1 .highlight-blue {
+    background: linear-gradient(135deg, #1d6bf3 0%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero h1 .highlight-green {
+    background: linear-gradient(135deg, #0b8a5f 0%, #059669 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-desc {
+    font-size: 16px;
+    color: #64748b;
+    line-height: 1.75;
+    max-width: 680px;
+    font-weight: 450;
+  }
+
+  /* ── 3개 역할 카드 그리드 ── */
+  .grid-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .grid-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .roles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .role-card {
+    background: #ffffff;
+    border-radius: 22px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    padding: 26px 24px 22px;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+  }
+  .role-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 36px -10px rgba(15, 23, 42, 0.09);
+  }
+
+  /* 카드 헤더 */
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .app-icon-squircle {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    font-size: 28px;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    flex-shrink: 0;
+  }
+
+  /* 1. 근로자 카드 (Blue Hero) */
+  .role-worker {
+    border-color: #bfdbfe;
+    background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+  }
+  .role-worker .app-icon-squircle {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+  }
+  .role-worker .badge-role {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #dbeafe;
+  }
+
+  /* 2. 기업/기관 카드 (Green) */
+  .role-enterprise .app-icon-squircle {
+    background: linear-gradient(135deg, #10b981 0%, #0b8a5f 100%);
+    box-shadow: 0 10px 24px rgba(11, 138, 95, 0.3);
+  }
+  .role-enterprise .badge-role {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+  }
+
+  /* 3. 은행/관리자 카드 (Dark Slate) */
+  .role-bank .app-icon-squircle {
+    background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+    box-shadow: 0 10px 24px rgba(30, 41, 59, 0.25);
+  }
+  .role-bank .badge-role {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+  }
+
+  .badge-role {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    letter-spacing: -0.2px;
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .card-desc {
+    font-size: 13.5px;
+    color: #64748b;
+    line-height: 1.65;
+    margin-bottom: 22px;
+    flex-grow: 1;
+  }
+
+  .card-target-hint {
+    font-size: 11.5px;
+    color: #94a3b8;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+
+  /* 카드 액션 버튼 */
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+  }
+  .btn-enter {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-enter-blue {
+    background: var(--im-blue);
+    color: #ffffff;
+  }
+  .btn-enter-blue:hover {
+    background: var(--im-blue-dark);
+  }
+  .btn-enter-green {
+    background: var(--im-green);
+    color: #ffffff;
+  }
+  .btn-enter-green:hover {
+    background: var(--im-green-dark);
+  }
+  .btn-enter-slate {
+    background: #1e293b;
+    color: #ffffff;
+  }
+  .btn-enter-slate:hover {
+    background: #0f172a;
+  }
+
+  .btn-install-card {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    background: #eff6ff;
+    color: var(--im-blue);
+    border: 1px solid #bfdbfe;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn-install-card:hover {
+    background: #dbeafe;
+  }
+
+  /* ── 하단 안내 & 심사 배너 ── */
+  .bottom-info {
+    margin-top: 36px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
+  }
+  .bottom-info-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .info-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .bottom-info h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 3px;
+  }
+  .bottom-info p {
+    font-size: 12.5px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+  .btn-install-big {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #1d6bf3 0%, #1e40af 100%);
+    color: #ffffff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(29, 107, 243, 0.28);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .btn-install-big:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(29, 107, 243, 0.35);
+  }
+
+  .footer-note {
+    margin-top: 28px;
+    font-size: 12px;
+    color: #94a3b8;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* ── 앱 다운로드 / 설치 모달 팝업 ── */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    place-items: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+  .modal-backdrop.active {
+    display: grid;
+  }
+  .modal-box {
+    background: #ffffff;
+    width: 100%;
+    max-width: 440px;
+    border-radius: 28px;
+    padding: 32px 28px 24px;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+    text-align: center;
+    animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.92) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+    margin: 0 auto 16px;
+    box-shadow: 0 10px 24px rgba(29, 107, 243, 0.3);
+  }
+  .modal-title {
+    font-size: 21px;
+    font-weight: 850;
+    color: #0f172a;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .modal-desc {
+    font-size: 13.5px;
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 22px;
+  }
+
+  /* 플랫폼별 안내 박스 */
+  .guide-tabs {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 16px;
+    gap: 4px;
+  }
+  .guide-tab {
+    flex: 1;
+    padding: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .guide-tab.active {
+    background: #ffffff;
+    color: var(--slate-dark);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .step-list {
+    text-align: left;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .step-item:last-child { margin-bottom: 0; }
+  .step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--im-blue);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-text strong {
+    color: var(--slate-dark);
+  }
+
+  .btn-modal-action {
+    width: 100%;
+    padding: 13px;
+    border-radius: 14px;
+    font-size: 14.5px;
+    font-weight: 750;
+    border: none;
+    cursor: pointer;
+    background: var(--im-blue);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(29, 107, 243, 0.28);
+    transition: all 0.15s ease;
+    margin-bottom: 8px;
+  }
+  .btn-modal-action:hover {
+    background: var(--im-blue-dark);
+  }
+  .btn-modal-close {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  @media (max-width: 860px) {
+    .roles-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .hero h1 {
+      font-size: 30px;
+    }
+    .wrap {
+      padding: 24px 18px 60px;
+    }
+    .bottom-info {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .btn-install-big {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 </style>
 </head>
 <body>
-<div class="land">
-  <div class="brand"><span class="mark">iM</span><span class="bn">Worker Pass</span></div>
 
-  <h1>체류자격은,<br/>지갑 하나로 <em>증명</em>합니다.</h1>
-  <p class="lead">
-    외국인 근로자의 체류자격을 블록체인 원장에 기록하고, 회사·병원·보험사가 실시간으로 검증합니다.
-    이름과 계좌번호는 어디에도 올라가지 않습니다. 같은 원장을 보는 자리가 셋이라,
-    보는 사람에 따라 화면도 다릅니다.
-  </p>
+<div class="wrap">
+  <!-- 상단 네비게이션 -->
+  <header class="nav">
+    <a class="brand" href="home.html">
+      <div class="brand-logo">iM</div>
+      <div class="brand-text">
+        <span class="brand-title">Worker Pass</span>
+        <span class="brand-sub">Web3 DID Platform</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <button class="btn-download-top" type="button" onclick="triggerInstall()">
+        <span class="icon">📲</span>
+        <span>앱 다운로드</span>
+      </button>
+    </div>
+  </header>
 
-  <div class="roles">
-    <a class="role worker" href="people.html">
-      <div class="ic">📱</div>
-      <div class="nm">근로자</div>
-      <div class="de">내 지갑에서 근태·급여·송금·보험·적금·귀국정산을 보고, 필요한 곳에 증명을 냅니다.</div>
-      <div class="dv">휴대폰</div>
-    </a>
-    <a class="role enterprise" href="scan.html">
-      <div class="ic">🏭</div>
-      <div class="nm">기업 · 기관</div>
-      <div class="de">출입구와 접수대의 단말이 QR을 읽어 서명과 온체인 상태를 즉시 확인합니다.
-        보험사는 QR 없이 앱으로 받은 제출을 접수함에서 처리합니다.</div>
-      <div class="dv">사업장 · 병원 스캐너 · 출퇴근 단말 · 보험사 접수함</div>
-    </a>
-    <a class="role bank" href="admin.html">
-      <div class="ic">🏦</div>
-      <div class="nm">은행 · 발급기관</div>
-      <div class="de">체류자격 상태를 관리하고, 철회가 현장에서 어떻게 즉시 막히는지 확인합니다.</div>
-      <div class="dv">데스크톱 콘솔</div>
-    </a>
+  <!-- 메인 히어로 -->
+  <section class="hero">
+    <div class="hero-tag">
+      <span class="dot"></span>
+      <span>블록체인 분산신원인증 (DID) · 실시간 온체인 검증</span>
+    </div>
+    <h1>
+      체류자격은,<br/>
+      지갑 하나로 <span class="highlight-blue">증명</span>하고 <span class="highlight-green">검증</span>합니다.
+    </h1>
+    <p class="hero-desc">
+      외국인 근로자의 체류자격을 블록체인 원장에 기록하고, 회사·병원·보험사가 실시간으로 검증합니다.
+      이름과 계좌번호는 어디에도 올라가지 않으며, 단일 원장 위에서 역할에 따라 최적화된 화면을 제공합니다.
+    </p>
+  </section>
+
+  <!-- 3개의 서비스 카드 -->
+  <div class="grid-section-head">
+    <span class="grid-label">단일 블록체인 원장 · 3개의 서비스 입구</span>
   </div>
 
-  <p class="note">
-    심사·시연용 프로토타입입니다. 외부기관 데이터는 모의 API와 시드로 대체했고,
+  <section class="roles-grid">
+    <!-- ① 근로자 모바일 지갑 (메인) -->
+    <div class="role-card role-worker">
+      <div class="card-header">
+        <div class="app-icon-squircle">📱</div>
+        <span class="badge-role">근로자 전용 · Blue</span>
+      </div>
+      <h2 class="card-title">근로자 모바일 지갑</h2>
+      <p class="card-desc">
+        내 스마트폰 안의 디지털 신분증. QR 체류자격 온체인 증명, 근태·급여 명세 실시간 확인, 본국 송금 및 외국인 특화 금융 상품을 이용합니다.
+      </p>
+      <div class="card-target-hint">
+        <span>📲 모바일 앱 환경 최적화</span>
+      </div>
+      <div class="card-actions">
+        <a class="btn-enter btn-enter-blue" href="people.html">지갑 열기 →</a>
+        <button class="btn-install-card" type="button" onclick="triggerInstall()">📲 앱 설치</button>
+      </div>
+    </div>
+
+    <!-- ② 기업 / 기관 스캐너 -->
+    <div class="role-card role-enterprise">
+      <div class="card-header">
+        <div class="app-icon-squircle">🏭</div>
+        <span class="badge-role">사업장·기업용 · Green</span>
+      </div>
+      <h2 class="card-title">기업 · 기관 스캐너</h2>
+      <p class="card-desc">
+        사업장 출입구 및 병원 접수대용 단말. 근로자의 QR을 고속 스캔하여 서명과 온체인 상태를 즉시 검증하고, 출퇴근 체크인 및 보험 접수를 처리합니다.
+      </p>
+      <div class="card-target-hint">
+        <span>📟 키오스크 · 현장 단말기</span>
+      </div>
+      <div class="card-actions">
+        <a class="btn-enter btn-enter-green" href="scan.html">스캐너 실행 →</a>
+      </div>
+    </div>
+
+    <!-- ③ 은행 / 발급기관 콘솔 -->
+    <div class="role-card role-bank">
+      <div class="card-header">
+        <div class="app-icon-squircle">🏦</div>
+        <span class="badge-role">은행·관리자 · Slate</span>
+      </div>
+      <h2 class="card-title">은행 · 발급기관 콘솔</h2>
+      <p class="card-desc">
+        체류자격 상태 통제 및 원장 관리 센터. 새로운 증명 발급, 체류자격 철회(Revoke) 및 복구 트랜잭션을 전송하여 현장의 즉각적 효력 정지를 확인합니다.
+      </p>
+      <div class="card-target-hint">
+        <span>💻 데스크톱 콘솔 화면</span>
+      </div>
+      <div class="card-actions">
+        <a class="btn-enter btn-enter-slate" href="admin.html">관리 콘솔 열기 →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 하단 앱 설치 안내 배너 -->
+  <div class="bottom-info">
+    <div class="bottom-info-left">
+      <div class="info-icon">📲</div>
+      <div>
+        <h4>스마트폰 홈 화면에 iM패스를 앱으로 설치하세요</h4>
+        <p>브라우저 주소창 없이 전체화면 네이티브 앱 형태로 빠르고 쾌적하게 시연할 수 있습니다.</p>
+      </div>
+    </div>
+    <button class="btn-install-big" type="button" onclick="triggerInstall()">
+      <span>📲 3초 만에 앱 설치하기</span>
+    </button>
+  </div>
+
+  <p class="footer-note">
+    iM Worker Pass 심사·시연용 프로토타입입니다. 외부기관 데이터는 모의 API와 시드로 대체했고,
     실제 원천 주체가 답하는 항목은 화면에서 <b>실제 발급기관</b> 배지로 구분해 표시합니다.
   </p>
 </div>
 
+<!-- 앱 다운로드/설치 모달 팝업 -->
+<div id="installModal" class="modal-backdrop" onclick="handleBackdropClick(event)">
+  <div class="modal-box">
+    <img src="icon-192.png" alt="iM Worker Pass" class="modal-icon" />
+    <h3 class="modal-title">iM Worker Pass 앱 설치</h3>
+    <p class="modal-desc">
+      홈 화면에 추가하면 브라우저 주소창 없는 <b>100% 전체화면 앱</b>으로 실행됩니다.
+    </p>
+
+    <div class="guide-tabs">
+      <button class="guide-tab active" id="tabAndroid" onclick="switchGuide('android')">안드로이드 / Chrome</button>
+      <button class="guide-tab" id="tabIos" onclick="switchGuide('ios')">아이폰 / Safari</button>
+    </div>
+
+    <!-- 안드로이드 / 크롬 안내 -->
+    <div id="guideAndroid" class="step-list">
+      <div class="step-item">
+        <span class="step-num">1</span>
+        <span class="step-text">아래 <strong>[지금 앱으로 설치하기]</strong> 버튼을 터치합니다.</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">2</span>
+        <span class="step-text">화면에 뜨는 <strong>"설치"</strong> 또는 <strong>"추가"</strong>를 누르면 끝납니다.</span>
+      </div>
+    </div>
+
+    <!-- 아이폰 안내 -->
+    <div id="guideIos" class="step-list" style="display: none;">
+      <div class="step-item">
+        <span class="step-num">1</span>
+        <span class="step-text">사파리 화면 하단 중앙의 <strong>[공유 버튼 (네모에 위쪽 화살표 ↑)]</strong>을 누릅니다.</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">2</span>
+        <span class="step-text">메뉴에서 <strong>[홈 화면에 추가]</strong>를 누른 후 우측 상단 <strong>[추가]</strong>를 누릅니다.</span>
+      </div>
+    </div>
+
+    <button id="btnDirectInstall" class="btn-modal-action" type="button" onclick="executeInstall()">
+      지금 앱으로 설치하기
+    </button>
+    <button class="btn-modal-close" type="button" onclick="closeInstallModal()">닫기</button>
+  </div>
+</div>
+
 <script>
+  // PWA Service Worker 등록
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     });
+  }
+
+  // PWA 설치 이벤트 캡처
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('[PWA] 설치 준비 완료');
+  });
+
+  // 기기 OS 감지
+  const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isIos) {
+    switchGuide('ios');
+  }
+
+  function triggerInstall() {
+    // 안드로이드/데스크톱 크롬에서 브라우저 설치창이 준비되어 있다면 원클릭 즉시 실행!
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choice) => {
+        console.log('[PWA] 사용자 선택:', choice.outcome);
+        deferredPrompt = null;
+      });
+      return;
+    }
+
+    // iOS 또는 이미 설치되었거나 프롬프트가 미지원인 경우 안내 팝업 오픈
+    openInstallModal();
+  }
+
+  function executeInstall() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choice) => {
+        deferredPrompt = null;
+        closeInstallModal();
+      });
+    } else if (isIos) {
+      alert("사파리 하단 공유 버튼 [↑]을 누르고 [홈 화면에 추가]를 눌러주세요!");
+    } else {
+      alert("이미 앱이 설치되어 있거나 브라우저 메뉴의 [앱 설치]를 통해 추가할 수 있습니다.");
+      closeInstallModal();
+    }
+  }
+
+  function openInstallModal() {
+    document.getElementById('installModal').classList.add('active');
+  }
+
+  function closeInstallModal() {
+    document.getElementById('installModal').classList.remove('active');
+  }
+
+  function handleBackdropClick(e) {
+    if (e.target.id === 'installModal') {
+      closeInstallModal();
+    }
+  }
+
+  function switchGuide(type) {
+    const tabAndroid = document.getElementById('tabAndroid');
+    const tabIos = document.getElementById('tabIos');
+    const guideAndroid = document.getElementById('guideAndroid');
+    const guideIos = document.getElementById('guideIos');
+    const btnAction = document.getElementById('btnDirectInstall');
+
+    if (type === 'ios') {
+      tabIos.classList.add('active');
+      tabAndroid.classList.remove('active');
+      guideIos.style.display = 'block';
+      guideAndroid.style.display = 'none';
+      btnAction.textContent = "확인 (사파리 공유 버튼 안내)";
+    } else {
+      tabAndroid.classList.add('active');
+      tabIos.classList.remove('active');
+      guideAndroid.style.display = 'block';
+      guideIos.style.display = 'none';
+      btnAction.textContent = "지금 앱으로 설치하기";
+    }
   }
 </script>
 </body>
