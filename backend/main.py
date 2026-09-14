@@ -39,6 +39,7 @@ from models import (
 import wallet as wallet_svc
 import attendance as att
 import products as prod
+import employer as emp
 import payroll as pay
 import savings as sav
 import settlement as stl
@@ -1076,6 +1077,24 @@ def attendance_worker(credential_id: str):
     rows = [r for r in att._records.values() if r["credential_id"] == credential_id]
     rows.sort(key=lambda r: r["server_time"], reverse=True)
     return {"last": rows[0] if rows else None}
+
+
+# ---------------------------------------------------------------------------
+# 은행 콘솔 — 기업·외환 규모 분석.
+# 신규등록/검증 시연용 A/B 기업과 섞지 않고, 이미 은행이 계약했다고 가정한
+# 별도 사업장 집계 데이터만 보여준다.
+# ---------------------------------------------------------------------------
+@app.get("/employer/sites")
+def employer_sites():
+    return {"sites": emp.list_sites()}
+
+
+@app.get("/employer/{site_id}/bank")
+def employer_bank(site_id: str):
+    view = emp.bank_view(site_id)
+    if not view:
+        raise HTTPException(status_code=404, detail="site not found")
+    return view
 
 
 # ---------------------------------------------------------------------------

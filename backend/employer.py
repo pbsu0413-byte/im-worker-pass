@@ -19,8 +19,8 @@
 기한 경과, 사업장 변경 신청기한). 지금은 회사가 일일이 챙기거나 아예 모르고 있다가
 과태료를 맞는 영역이다.
 
-은행에 생기는 것: ① 급여계좌 수백 개 ② **환헷지에 필요한 규모** — 개인 50만원은
-최소 계약 단위가 안 되지만 같은 급여일에 같은 통화로 나가는 300명분은 규모가 된다
+은행에 생기는 것: ① 급여계좌 수백 개 ② **환율보장보험에 필요한 보장 규모** — 개인 50만원은
+최소 계약 단위가 안 되지만 같은 급여일에 같은 통화로 나가는 300명분은 보험 포트폴리오 규모가 된다
 ③ 법인 접점 — 급여이체에서 기업계좌·외환·운전자금으로 이어지는 경로.
 """
 
@@ -32,6 +32,7 @@ import products
 
 SEED_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seeds")
 _cache = None
+FX_GUARD_PREMIUM_RATE = 0.008  # 환율보장보험 예상 보험료율. 시연용 가정값.
 
 
 def _employers():
@@ -57,6 +58,27 @@ def _days_until(d):
                 - datetime.now(timezone.utc).date()).days
     except Exception:
         return None
+
+
+def _fx_guard_summary(site, tiers, hedge_people):
+    """은행 콘솔용 환율보장보험 규모 요약. 모두 집계값이며 개인은 표시하지 않는다."""
+    coverage_monthly = tiers["A"]["amount"] + tiers["B"]["amount"]
+    coverage_annual = coverage_monthly * 12
+    premium_rate = site.get("fx_guard_premium_rate", FX_GUARD_PREMIUM_RATE)
+    premium_monthly = int(round(coverage_monthly * premium_rate))
+    premium_annual = premium_monthly * 12
+    ratio = (hedge_people / site["foreign_employees"] * 100) if site["foreign_employees"] else 0
+    return {
+        "product": "환율보장보험",
+        "covered_people": hedge_people,
+        "coverage_monthly": coverage_monthly,
+        "coverage_annual": coverage_annual,
+        "premium_rate_pct": round(premium_rate * 100, 2),
+        "premium_monthly": premium_monthly,
+        "premium_annual": premium_annual,
+        "covered_ratio_pct": round(ratio, 1),
+        "new_registration_demo_excluded": True,
+    }
 
 
 def _attention(site, local_db):
@@ -120,6 +142,7 @@ def bank_view(site_id: str):
 
     total = site["foreign_employees"] * avg
     hedge_people = tiers["A"]["people"] + tiers["B"]["people"]
+    fx_guard = _fx_guard_summary(site, tiers, hedge_people)
 
     return {
         "viewer": "은행 영업담당자",
@@ -131,6 +154,7 @@ def bank_view(site_id: str):
             "hedge_people": hedge_people,
             "currencies": sorted(by_currency.values(), key=lambda c: -c["people"]),
         },
+        "fx_guard": fx_guard,
         "tiers": tiers,
         "nationality_count": len(site["nationalities"]),
         "pipeline": {
@@ -142,7 +166,10 @@ def bank_view(site_id: str):
         },
         "expansion": [
             {"name": "급여이체", "value": f"{site['im_payroll_accounts']}계좌 · 월 {total:,}원 유입"},
-            {"name": "외환·송금", "value": f"월 {total:,}원 · 환헷지 대상 {hedge_people}명"},
+            {"name": "환율보장보험",
+             "value": (f"{hedge_people}명 · 월 보장 {fx_guard['coverage_monthly']:,}원 · "
+                       f"연 예상보험료 {fx_guard['premium_annual']:,}원")},
+            {"name": "외환·송금", "value": f"월 {total:,}원 · 통화별 보장 대상 {hedge_people}명"},
             {"name": "법인 접점",
              "value": (f"수출입 법인 — 연 외환거래 {site['fx_annual']:,}원 규모 · 기업계좌·운전자금·무역금융"
                        if site.get("export_company") else "기업계좌·운전자금 확장 가능")},
@@ -150,10 +177,10 @@ def bank_view(site_id: str):
         "pitch": [
             "직원 금융 민원이 앱으로 넘어갑니다 — 계좌 개설 동행, 송금 방법 설명, 서류 통역, 보험 조회 대행",
             "체류자격이 취소된 근로자는 다음 날 출근 스캔에서 자동으로 막힙니다",
-            "채용 공고·면접에서 제시할 수 있는 복지: 다국어 급여관리 · 해외송금 · 환율보장 · 귀국자산 적립 · 보험조회",
+            "채용 공고·면접에서 제시할 수 있는 복지: 다국어 급여관리 · 해외송금 · 환율보장보험 · 귀국자산 적립 · 보험조회",
         ],
         "note": (
-            "개인은 표시되지 않습니다. 국적별 인원 집계에서 산출한 규모입니다. "
+            "개인은 표시되지 않습니다. 신규등록 시연용 A/B 기업은 제외하고, 은행 계약기업의 국적별 인원 집계에서 산출한 규모입니다. "
             "인원과 평균 송금액은 시연용 가정값입니다."
         ),
     }

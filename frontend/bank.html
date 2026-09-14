@@ -37,17 +37,18 @@
     <div class="cs-main">
   <div class="cs-head">
     <span class="mark">iM</span>
-    <h1>기업 / 외환 규모 분석</h1>
+    <h1>계약기업 / 환율보장보험 규모 분석</h1>
     <span class="sub">iM뱅크 기업영업본부</span>
   </div>
 
   <div class="cs-wrap">
   <p class="tx-caption" style="margin:0 0 16px;max-width:760px;">
-    영업담당자가 보는 화면이에요. 개인 정보는 표시되지 않고, 국적별 인원 집계에서 산출한 규모만 보여드려요.
+    영업담당자가 보는 화면이에요. 신규등록 시연용 A/B 기업은 제외하고,
+    이미 은행과 계약된 대구·경북 사업장의 환율보장보험 규모만 집계해서 보여드려요.
   </p>
 
   <div class="card">
-    <label>사업장</label>
+    <label>계약 사업장</label>
     <select id="siteSel" onchange="load()"></select>
     <div id="box"></div>
   </div>
@@ -76,6 +77,15 @@
       if (!res.ok) return;
       const d = await res.json();
       const s = d.site, r = d.remit;
+      const g = d.fx_guard || {
+        covered_people: r.hedge_people,
+        coverage_monthly: r.total_monthly,
+        coverage_annual: r.total_monthly * 12,
+        premium_rate_pct: 0.8,
+        premium_monthly: r.total_monthly * 0.008,
+        premium_annual: r.total_monthly * 12 * 0.008,
+        covered_ratio_pct: 100,
+      };
 
       const tierRow = (name, t, color, desc) => !t || !t.people ? "" : `
         <div style="padding:8px 0;border-bottom:1px solid #eef2f7;">
@@ -89,25 +99,25 @@
 
       document.getElementById("box").innerHTML = `
         <div class="kpi" style="margin-top:12px;">
-          <div><b>${s.foreign_employees}</b><span>외국인 근로자</span></div>
-          <div><b>${s.im_payroll_accounts}</b><span>iM 급여계좌</span></div>
-          <div><b>${eok(r.total_monthly)}</b><span>월 송금 예정</span></div>
-          <div><b>${r.hedge_people}</b><span>환헷지 대상</span></div>
+          <div><b>${s.foreign_employees}</b><span>계약기업 근로자</span></div>
+          <div><b>${s.im_payroll_accounts}</b><span>연결 급여계좌</span></div>
+          <div><b>${eok(g.coverage_monthly)}</b><span>월 보장규모</span></div>
+          <div><b>${eok(g.premium_annual)}</b><span>연 보험료 추정</span></div>
         </div>
 
         <div class="box">
-          <div style="font-weight:600;font-size:13px;">환헷지 묶음 (매월 ${s.payday}일 급여)</div>
+          <div style="font-weight:600;font-size:13px;">환율보장보험 규모 (매월 ${s.payday}일 급여)</div>
           <div style="font-size:12px;color:#64748b;margin-bottom:4px;">
-            개인 ${won(r.avg_monthly)}은 최소 계약 규모가 나오지 않지만, 같은 급여일에 같은 통화로
-            나가는 ${r.hedge_people}명분은 규모가 됩니다. 나라는 ${d.nationality_count}곳이지만
-            등급은 둘뿐이라 상품을 나라마다 만들 필요가 없습니다.
+            계약기업 근로자 ${g.covered_people}명 기준 월 ${eok(g.coverage_monthly)}, 연 ${eok(g.coverage_annual)} 보장대상입니다.
+            예상 보험료율 ${g.premium_rate_pct}% 적용 시 월 ${won(g.premium_monthly)}, 연 ${won(g.premium_annual)} 규모로 잡힙니다.
+            신규등록 중인 A/B 기업은 이 집계에서 제외했습니다.
           </div>
-          ${tierRow("A", d.tiers.A, "#15803d", "자국통화가 달러에 연동 — 원화·달러만 고정해도 사실상 완전 헷지")}
+          ${tierRow("A", d.tiers.A, "#15803d", "자국통화가 달러에 연동 — 원화·달러 구간 보장 중심")}
           ${tierRow("B", d.tiers.B, "#b45309", "자국통화가 따로 움직임 — 원화·자국통화 직접 보장 필요")}
         </div>
 
         <div style="margin-top:14px;">
-          <div style="font-weight:600;font-size:13px;margin-bottom:4px;">통화별 송금 규모</div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:4px;">통화별 보장 대상액</div>
           ${r.currencies.map(c => `
             <div class="row">
               <span>${esc(c.name)} (${esc(c.currency)}) · 등급 ${esc(c.tier)}</span>
@@ -118,18 +128,18 @@
         <div class="box">
           <div style="font-weight:600;font-size:13px;">미가입 ${d.pipeline.payroll_gap}명</div>
           <div style="font-size:12px;color:#64748b;">
-            급여계좌를 아직 열지 않은 인원입니다. 전환 시 월 ${eok(d.pipeline.gap_amount)}이 추가로 들어옵니다.
+            계약기업 근로자 중 급여계좌가 아직 연결되지 않은 인원입니다. 전환 시 월 ${eok(d.pipeline.gap_amount)}이 추가 보장·송금 후보가 됩니다.
           </div>
         </div>
 
         <div class="box">
-          <div style="font-weight:600;font-size:13px;margin-bottom:4px;">계약 하나가 여는 것</div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:4px;">은행이 볼 영업 포인트</div>
           ${d.expansion.map(e => `
             <div class="row"><span>${esc(e.name)}</span><span style="color:#64748b;">${esc(e.value)}</span></div>
           `).join("")}
           <div style="font-size:11.5px;color:#64748b;margin-top:8px;line-height:1.6;">
             근로자 복지로 들어가 급여이체를 받고, 거기서 기업계좌·외환·운전자금으로 이어집니다.
-            외국인을 수백 명 고용하는 제조업체는 대개 수출입을 하므로 외환 수요가 실재합니다.
+            이 화면은 신규등록 흐름이 아니라 이미 계약된 기업의 보장보험·송금·외환 규모를 보는 자리입니다.
           </div>
         </div>
 

@@ -1,55 +1,75 @@
 {
-  "_agency": "사업장 인사 데이터",
+  "_agency": "은행 계약기업 규모 데이터",
   "_agency_id": "employer",
   "_authority": "mock",
-  "_note": "은행 영업담당자가 보는 사업장 규모 데이터. 회사용 대시보드는 만들지 않는다 — 회사는 이미 인사시스템이 있고, 이 서비스에서 얻는 것은 새 화면이 아니라 일이 줄어드는 것이다. 국적별 인원은 개인 식별 정보가 아닌 집계이며, 인원·평균 송금액·외환거래 규모는 시연용 가정값이다.",
+  "_note": "은행 영업담당자가 보는 계약기업 규모 데이터. 신규등록/검증 시연용 A/B 기업은 제외하고, 이미 은행이 계약했다고 가정한 대구·경북 사업장만 집계한다. 회사용 대시보드는 만들지 않는다 — 회사는 이미 인사시스템이 있고, 이 서비스에서 얻는 것은 새 화면이 아니라 일이 줄어드는 것이다. 국적별 인원은 개인 식별 정보가 아닌 집계이며, 인원·평균 송금액·환율보장보험 보장 규모·외환거래 규모는 시연용 가정값이다.",
   "records": [
     {
-      "site_id": "BIZ-001",
-      "site_name": "A제조 (주)대구정밀",
-      "industry": "제조업 (금속가공)",
-      "location": "대구 달성",
-      "total_employees": 1240,
-      "foreign_employees": 312,
+      "site_id": "BANK-101",
+      "site_name": "대구성서정밀 주식회사",
+      "industry": "제조업 (자동차 부품)",
+      "location": "대구 성서산단",
+      "total_employees": 860,
+      "foreign_employees": 184,
       "payday": 25,
-      "avg_monthly_remit": 800000,
-      "im_payroll_accounts": 298,
+      "avg_monthly_remit": 820000,
+      "im_payroll_accounts": 151,
       "nationalities": {
-        "베트남": 96,
-        "인도네시아": 54,
-        "네팔": 41,
-        "캄보디아": 33,
-        "태국": 28,
-        "필리핀": 22,
-        "몽골": 15,
-        "우즈베키스탄": 12,
-        "미얀마": 7,
-        "중국": 4
+        "베트남": 58,
+        "인도네시아": 37,
+        "네팔": 29,
+        "캄보디아": 24,
+        "태국": 18,
+        "필리핀": 12,
+        "우즈베키스탄": 6
       },
       "export_company": true,
-      "fx_annual": 42000000000
+      "fx_annual": 28000000000
     },
     {
-      "site_id": "BIZ-002",
-      "site_name": "B제조 (주)구미사출",
-      "industry": "제조업 (플라스틱 사출)",
+      "site_id": "BANK-102",
+      "site_name": "구미스마트부품 주식회사",
+      "industry": "제조업 (전자부품)",
       "location": "경북 구미",
-      "total_employees": 410,
-      "foreign_employees": 96,
+      "total_employees": 1320,
+      "foreign_employees": 276,
       "payday": 25,
-      "avg_monthly_remit": 750000,
-      "im_payroll_accounts": 71,
+      "avg_monthly_remit": 780000,
+      "im_payroll_accounts": 238,
       "nationalities": {
-        "베트남": 31,
-        "태국": 18,
-        "인도네시아": 14,
-        "카자흐스탄": 11,
-        "러시아": 9,
-        "네팔": 8,
-        "필리핀": 5
+        "베트남": 72,
+        "인도네시아": 48,
+        "네팔": 36,
+        "캄보디아": 31,
+        "태국": 29,
+        "필리핀": 23,
+        "우즈베키스탄": 17,
+        "미얀마": 12,
+        "몽골": 8
       },
       "export_company": true,
-      "fx_annual": 8500000000
+      "fx_annual": 61000000000
+    },
+    {
+      "site_id": "BANK-103",
+      "site_name": "경산푸드패키징 주식회사",
+      "industry": "식품·포장",
+      "location": "경북 경산",
+      "total_employees": 360,
+      "foreign_employees": 74,
+      "payday": 10,
+      "avg_monthly_remit": 700000,
+      "im_payroll_accounts": 52,
+      "nationalities": {
+        "베트남": 22,
+        "태국": 14,
+        "인도네시아": 13,
+        "네팔": 9,
+        "필리핀": 7,
+        "캄보디아": 6,
+        "몽골": 3
+      },
+      "export_company": false
     }
   ]
 }

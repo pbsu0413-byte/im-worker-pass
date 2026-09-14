@@ -14,6 +14,27 @@ from main import app
 def client():
     return TestClient(app)
 
+
+def test_bank_console_uses_separate_contract_companies(client):
+    sites_resp = client.get("/employer/sites")
+    assert sites_resp.status_code == 200
+    sites = sites_resp.json()["sites"]
+    assert sites
+
+    names = " ".join(f"{s['site_id']} {s['site_name']}" for s in sites)
+    assert "A제조" not in names
+    assert "B제조" not in names
+    assert all(s["site_id"].startswith("BANK-") for s in sites)
+
+    detail_resp = client.get(f"/employer/{sites[0]['site_id']}/bank")
+    assert detail_resp.status_code == 200
+    detail = detail_resp.json()
+    assert detail["fx_guard"]["product"] == "환율보장보험"
+    assert detail["fx_guard"]["coverage_monthly"] > 0
+    assert detail["fx_guard"]["premium_annual"] > 0
+    assert detail["fx_guard"]["new_registration_demo_excluded"] is True
+
+
 def test_full_scenario_flow(client):
     # 1. 자격증 발급 (온체인 스마트 컨트랙트 등록)
     issue_resp = client.post("/credentials", json={
