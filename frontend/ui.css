@@ -1,222 +1,822 @@
 /* =========================================================================
-   iM Worker Pass — 역할별 UI
-   한 서비스지만 보는 사람이 다르면 옷도 달라야 한다.
-     .role-phone   근로자   — 손에 쥐는 앱. 폰 폭, 하단 탭, 카드.
-     .role-kiosk   기업     — 벽에 붙은 단말. 어둡고 크게, 한 번에 한 가지만.
-     .role-console 은행·기관 — 책상 위 콘솔. 표 중심, 정보 밀도 높게.
-   파일명을 style.css 에서 바꾼 것은 브라우저 캐시를 피하기 위해서다.
+   iM PASS — Design System
+   iM뱅크 공식 앱 제품군의 시각 문법을 따르는 단일 토큰 체계.
+
+   역할 테마 (한 화면에는 한 역할만 노출한다)
+     .theme-worker      / .role-phone    근로자   — iM Blue,  모바일
+     .theme-business    / .role-kiosk    사업자   — iM Mint,  태블릿·키오스크
+     .theme-institution / .role-console  은행·기관 — Deep Navy, 데스크톱 콘솔
+
+   규칙
+     · 역할색은 주요 버튼 / 활성 메뉴 / 아이콘 배경 / 상태 표시에만 쓴다.
+     · 면을 넓게 칠하지 않는다. 밝은 배경 + 흰 카드가 기본이다.
+     · 구분은 그림자보다 배경색과 여백으로 만든다.
    ========================================================================= */
 
-:root {
-  --im: #0b8a5f;            /* iM 그린 */
-  --im-dark: #076c4a;
-  --ink: #0f172a;
-  --muted: #64748b;
-  --faint: #94a3b8;
-  --line: #e2e8f0;
-  --bg: #f1f5f9;
-  --card: #ffffff;
-  --ok: #15803d;
-  --ok-bg: #ecfdf5;
-  --bad: #a92c22;
-  --bad-bg: #fef2f2;
-  --warn: #b45309;
-  --warn-bg: #fffbeb;
-  --r: 14px;
+/* ── 서체 ────────────────────────────────────────────────────────────────
+   Pretendard : 모든 UI · 숫자 · 금융 정보
+   IM혜민체    : 브랜드 인사말 등 짧은 감성 문구에만 (.tx-brand)
+   ──────────────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "Pretendard"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("fonts/Pretendard-Regular.subset.woff2") format("woff2"), local("Pretendard");
+}
+@font-face {
+  font-family: "Pretendard"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url("fonts/Pretendard-Medium.subset.woff2") format("woff2"), local("Pretendard Medium");
+}
+@font-face {
+  font-family: "Pretendard"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("fonts/Pretendard-SemiBold.subset.woff2") format("woff2"), local("Pretendard SemiBold");
+}
+@font-face {
+  font-family: "Pretendard"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("fonts/Pretendard-Bold.subset.woff2") format("woff2"), local("Pretendard Bold");
+}
+@font-face {
+  font-family: "IM Hyemin"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("fonts/IM_Hyemin-Regular.subset.woff2") format("woff2"), local("IM_Hyemin-Regular");
+}
+@font-face {
+  font-family: "IM Hyemin"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("fonts/IM_Hyemin-Bold.subset.woff2") format("woff2"), local("IM_Hyemin-Bold");
 }
 
+/* ── 토큰 ─────────────────────────────────────────────────────────────── */
+:root {
+  /* 브랜드 — 민트는 세 앱을 잇는 공통 색이다 */
+  --im-mint: #00C7A9;
+  --im-mint-dark: #00A98F;
+  --im-mint-light: #E8FAF6;
+
+  --im-blue: #2878FF;
+  --im-blue-dark: #155ED4;
+  --im-blue-light: #EDF4FF;
+
+  --im-navy: #172B4D;
+  --im-navy-dark: #0D1B32;
+  --im-navy-light: #EEF2F7;
+
+  --im-red: #E5484D;
+  --im-red-light: #FDECEC;
+  --im-orange: #F59E0B;
+  --im-orange-light: #FEF5E7;
+
+  --im-black: #17191C;
+  --im-text: #25282D;
+  --im-subtext: #6B7280;
+  --im-disabled: #A9AFB8;
+
+  --im-background: #F5F7F9;
+  --im-surface: #FFFFFF;
+  --im-surface-soft: #F1F4F7;
+  --im-line: #E7EAEE;
+
+  /* 역할색 — 테마 클래스가 덮어쓴다. 기본값은 민트(브랜드 공통) */
+  --role: var(--im-mint);
+  --role-dark: var(--im-mint-dark);
+  --role-light: var(--im-mint-light);
+
+  /* 타이포 */
+  --font-display: 28px;
+  --font-title: 22px;
+  --font-section: 18px;
+  --font-body: 16px;
+  --font-caption: 13px;
+  --font-micro: 12px;
+
+  /* 모서리 */
+  --radius-app: 26px;
+  --radius-card: 20px;
+  --radius-button: 14px;
+  --radius-input: 14px;
+  --radius-chip: 999px;
+
+  /* 여백 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* 그림자 — 아주 약하게만 */
+  --shadow-card: 0 1px 2px rgba(23, 43, 77, 0.04), 0 4px 12px rgba(23, 43, 77, 0.04);
+  --shadow-float: 0 8px 24px rgba(23, 43, 77, 0.10);
+
+  /* 레거시 별칭 — 기존 화면이 참조하던 이름을 새 값으로 잇는다 */
+  --im: var(--im-mint);
+  --im-dark: var(--im-mint-dark);
+  --im-light: var(--im-mint-light);
+  --ink: var(--im-text);
+  --muted: var(--im-subtext);
+  --faint: var(--im-disabled);
+  --line: var(--im-line);
+  --bg: var(--im-background);
+  --card: var(--im-surface);
+  --ok: var(--im-mint-dark);
+  --ok-bg: var(--im-mint-light);
+  --bad: var(--im-red);
+  --bad-bg: var(--im-red-light);
+  --warn: #B45309;
+  --warn-bg: var(--im-orange-light);
+  --r: var(--radius-card);
+  --r-sm: var(--radius-button);
+  --r-lg: var(--radius-app);
+  --theme-worker: var(--im-blue);
+  --theme-worker-dark: var(--im-blue-dark);
+  --theme-worker-bg: var(--im-blue-light);
+  --theme-biz: var(--im-mint);
+  --theme-biz-dark: var(--im-mint-dark);
+  --theme-bank: var(--im-navy);
+}
+
+/* 역할 테마 */
+.theme-worker, .role-phone {
+  --role: var(--im-blue); --role-dark: var(--im-blue-dark); --role-light: var(--im-blue-light);
+}
+.theme-business, .role-kiosk {
+  --role: var(--im-mint); --role-dark: var(--im-mint-dark); --role-light: var(--im-mint-light);
+}
+.theme-institution, .role-console {
+  --role: var(--im-navy); --role-dark: var(--im-navy-dark); --role-light: var(--im-navy-light);
+}
+
+/* ── 기본 ─────────────────────────────────────────────────────────────── */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
-  background: var(--bg);
-  color: var(--ink);
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+               "Malgun Gothic", "Segoe UI", sans-serif;
+  background: var(--im-background);
+  color: var(--im-text);
+  font-size: var(--font-body);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.2px;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
-a { color: inherit; }
+a { color: inherit; text-decoration: none; }
+b, strong { font-weight: 700; }
 
-/* ── 공통 요소 ─────────────────────────────────────────── */
+/* 브랜드 인사말 전용 — 짧은 문구에만 */
+.tx-brand {
+  font-family: "IM Hyemin", "Pretendard", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.tx-display { font-size: var(--font-display); font-weight: 700; letter-spacing: -0.8px; line-height: 1.35; }
+.tx-title   { font-size: var(--font-title);   font-weight: 700; letter-spacing: -0.6px; line-height: 1.4; }
+.tx-section { font-size: var(--font-section); font-weight: 700; letter-spacing: -0.4px; line-height: 1.45; }
+.tx-body    { font-size: var(--font-body);    font-weight: 400; }
+.tx-caption { font-size: var(--font-caption); color: var(--im-subtext); line-height: 1.6; }
+.tx-micro   { font-size: var(--font-micro);   color: var(--im-disabled); line-height: 1.6; }
+.tx-num     { font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: -0.4px; }
+
+/* ── 아이콘 ───────────────────────────────────────────────────────────── */
+/* 2px 선형 SVG. currentColor를 쓰므로 부모 color로 색을 정한다. */
+.ico { width: 24px; height: 24px; flex: none; display: block; stroke: currentColor;
+       stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.ico-sm { width: 18px; height: 18px; }
+.ico-lg { width: 28px; height: 28px; }
+
+/* 아이콘 배경 — 옅은 역할색 위에 역할색 아이콘 */
+.ico-wrap {
+  width: 40px; height: 40px; border-radius: 12px; flex: none;
+  display: grid; place-items: center;
+  background: var(--role-light); color: var(--role);
+}
+.ico-wrap.round { border-radius: 999px; }
+.ico-wrap.lg { width: 56px; height: 56px; border-radius: 18px; }
+.ico-wrap.mint { background: var(--im-mint-light); color: var(--im-mint-dark); }
+.ico-wrap.blue { background: var(--im-blue-light); color: var(--im-blue); }
+.ico-wrap.navy { background: var(--im-navy-light); color: var(--im-navy); }
+.ico-wrap.red  { background: var(--im-red-light);  color: var(--im-red); }
+.ico-wrap.orange { background: var(--im-orange-light); color: #B45309; }
+
+/* ── 카드 ─────────────────────────────────────────────────────────────── */
 .card {
-  background: var(--card);
-  border-radius: var(--r);
-  padding: 16px;
-  margin-bottom: 14px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 1px 8px rgba(15, 23, 42, .04);
+  background: var(--im-surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--im-line);
+  box-shadow: var(--shadow-card);
 }
-.card h3 { margin: 0 0 10px; font-size: 15px; letter-spacing: -.3px; }
-label { display: block; font-size: 12.5px; color: var(--muted); margin: 12px 0 5px; font-weight: 600; }
+.card h3 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-section);
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--im-black);
+}
+.card > p:first-of-type { margin-top: 0; }
+
+/* 섹션 헤더 — 제목 왼쪽, 보조 조작 오른쪽 */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  margin: var(--space-6) 0 var(--space-3);
+}
+.section-head h2 {
+  margin: 0; font-size: var(--font-section); font-weight: 700;
+  letter-spacing: -0.4px; color: var(--im-black);
+}
+.section-head .more {
+  font-size: var(--font-caption); font-weight: 600; color: var(--im-subtext);
+  display: inline-flex; align-items: center; gap: 2px;
+}
+
+/* ── 폼 ───────────────────────────────────────────────────────────────── */
+label {
+  display: block; font-size: var(--font-caption); font-weight: 600;
+  color: var(--im-subtext); margin: var(--space-4) 0 var(--space-2);
+}
 input, select, textarea {
-  width: 100%; padding: 11px 12px; border: 1px solid var(--line);
-  border-radius: 10px; font-size: 14px; background: #fff; color: var(--ink);
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--im-line);
+  border-radius: var(--radius-input);
+  font-size: 15px;
   font-family: inherit;
+  font-weight: 500;
+  background: var(--im-surface);
+  color: var(--im-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-input:focus, select:focus, textarea:focus { outline: 2px solid var(--im); outline-offset: -1px; border-color: var(--im); }
+input::placeholder, textarea::placeholder { color: var(--im-disabled); font-weight: 400; }
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--role);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--role) 18%, transparent);
+}
+.field-error { display: block; margin-top: 6px; font-size: var(--font-micro); color: var(--im-red); font-weight: 600; }
+
+/* ── 버튼 ─────────────────────────────────────────────────────────────── */
 button {
-  margin-top: 14px; padding: 12px 16px; border: none; border-radius: 10px;
-  background: var(--im); color: #fff; font-size: 14px; font-weight: 600;
-  cursor: pointer; font-family: inherit; width: 100%;
+  width: 100%;
+  min-height: 54px;
+  margin-top: var(--space-4);
+  padding: 15px 20px;
+  border: none;
+  border-radius: var(--radius-button);
+  background: var(--role);
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  transition: background 0.15s, transform 0.08s, box-shadow 0.15s;
 }
-button:hover { background: var(--im-dark); }
-button.secondary { background: #fff; color: var(--ink); border: 1px solid var(--line); }
-button.secondary:hover { background: #f8fafc; border-color: var(--faint); }
-button.danger { background: var(--bad); }
-.muted { font-size: 12px; color: var(--faint); line-height: 1.7; margin-top: 10px; }
+button:hover { background: var(--role-dark); }
+button:active { transform: scale(0.99); }
+button:disabled { background: var(--im-surface-soft); color: var(--im-disabled); cursor: not-allowed; }
+
+button.secondary {
+  background: var(--im-surface);
+  color: var(--role);
+  border: 1.5px solid var(--im-line);
+  font-weight: 600;
+}
+button.secondary:hover { background: var(--role-light); border-color: var(--role); }
+button.ghost { background: var(--role-light); color: var(--role); border: none; }
+button.ghost:hover { background: color-mix(in srgb, var(--role) 16%, #fff); }
+button.danger { background: var(--im-red); }
+button.danger:hover { background: #C93A3F; }
+button.sm { min-height: 40px; padding: 0 14px; font-size: var(--font-caption); width: auto; margin-top: 0; border-radius: 10px; }
+
+/* 목록 우측에 붙는 작은 회색 액션 (iM뱅크 계좌 행의 '이체' 버튼) */
+.btn-inline {
+  min-height: 34px; width: auto; margin: 0; padding: 0 14px;
+  border-radius: 10px; background: var(--im-surface-soft); color: var(--im-text);
+  font-size: var(--font-caption); font-weight: 600; border: none; cursor: pointer;
+}
+.btn-inline:hover { background: #E6EBF0; }
+
+/* ── 배지 · 칩 ────────────────────────────────────────────────────────── */
+.badge, .chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: var(--radius-chip);
+  font-size: var(--font-micro); font-weight: 700; letter-spacing: -0.2px;
+  background: var(--im-surface-soft); color: var(--im-subtext);
+  border: 1px solid transparent;
+}
+.badge-valid, .badge.ok        { background: var(--im-mint-light);   color: var(--im-mint-dark); }
+.badge-revoked, .badge.revoked { background: var(--im-red-light);    color: var(--im-red); }
+.badge.check                   { background: var(--im-orange-light); color: #B45309; }
+.badge.expired                 { background: var(--im-surface-soft); color: var(--im-disabled); }
+.badge.chain                   { background: var(--im-navy-light);   color: var(--im-navy); }
+.badge.role                    { background: var(--role-light);      color: var(--role); }
+/* 채워진 원형 상태 아이콘 — 중요 상태에만 */
+.dot { width: 8px; height: 8px; border-radius: 999px; flex: none; background: currentColor; }
+
+/* ── 결과 피드백 ──────────────────────────────────────────────────────── */
+.result-pass, .result-fail {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-card);
+  font-size: 15px; font-weight: 600; line-height: 1.55;
+}
+.result-pass { background: var(--im-mint-light); color: #04705E; border: 1px solid #A9EADD; }
+.result-fail { background: var(--im-red-light);  color: #A5282C; border: 1px solid #F3BFC1; }
+.result-pass .ico, .result-fail .ico { margin-top: 1px; }
+
+/* ── 행 목록 ──────────────────────────────────────────────────────────── */
 .rows .row, .rows > div {
-  display: flex; justify-content: space-between; gap: 10px;
-  padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px;
+  display: flex; justify-content: space-between; align-items: center; gap: var(--space-3);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--im-line);
+  font-size: 14px;
 }
 .rows > :last-child { border-bottom: none; }
-.rows span:first-child { color: var(--muted); white-space: nowrap; }
-.rows span:last-child { text-align: right; }
-.result-pass { background: var(--ok-bg); border: 1px solid #a7f3d0; color: var(--ok); padding: 14px; border-radius: 12px; }
-.result-fail { background: var(--bad-bg); border: 1px solid #fca5a5; color: var(--bad); padding: 14px; border-radius: 12px; }
-.badge { padding: 2px 9px; border-radius: 999px; font-size: 11.5px; }
-.badge-valid { background: var(--ok-bg); color: var(--ok); }
-.badge-revoked { background: var(--bad-bg); color: var(--bad); }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); }
-th { color: var(--muted); font-weight: 600; font-size: 12px; }
+.rows span:first-child { color: var(--im-subtext); font-weight: 500; }
+.rows span:last-child { text-align: right; font-weight: 600; color: var(--im-text); }
+
+/* 아이콘 + 본문 + 우측값 한 줄 */
+.list-row {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 14px 0; border-bottom: 1px solid var(--im-line);
+}
+.list-row:last-child { border-bottom: none; }
+.list-row .body { flex: 1; min-width: 0; }
+.list-row .body .t { font-size: 14px; font-weight: 600; color: var(--im-text); }
+.list-row .body .s { font-size: var(--font-micro); color: var(--im-subtext); margin-top: 2px; }
+.list-row .tail { font-size: var(--font-micro); color: var(--im-disabled); white-space: nowrap; }
+
+.muted {
+  font-size: var(--font-caption); color: var(--im-subtext);
+  line-height: 1.65; margin-top: var(--space-3);
+}
+
+/* ── 표 ───────────────────────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 13px 12px; border-bottom: 1px solid var(--im-line); }
+th { color: var(--im-subtext); font-weight: 600; font-size: var(--font-micro);
+     background: var(--im-surface-soft); letter-spacing: 0; }
+tbody tr:last-child td { border-bottom: none; }
+
+/* ── 기술 정보 ────────────────────────────────────────────────────────── */
 pre {
-  white-space: pre-wrap; word-break: break-all; background: #0f172a; color: #cbd5e1;
-  padding: 12px; border-radius: 10px; font-size: 11.5px; line-height: 1.6;
+  white-space: pre-wrap; word-break: break-all;
+  background: var(--im-navy-dark); color: #C7D2E0;
+  padding: var(--space-4); border-radius: var(--radius-button);
+  font-size: var(--font-micro); line-height: 1.65;
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
-code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
-#qrImg { max-width: 220px; display: block; margin: 12px auto; }
+code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-micro); color: var(--im-subtext); }
+#qrImg { max-width: 220px; display: block; margin: var(--space-4) auto; border-radius: var(--radius-button); }
 
-/* ── ① 근로자 — 폰 ─────────────────────────────────────── */
-.role-phone {
-  --im: #1d6bf3;            /* 근로자 블루 */
-  --im-dark: #1557c0;
-  background: #0f172a;
-}
-
-.phone {
-  width: 100%; max-width: 412px; margin: 0 auto; background: var(--bg);
-  min-height: 100vh; position: relative; padding-bottom: 78px;
-}
-@media (min-width: 900px) {
-  .role-phone { display: flex; align-items: center; justify-content: center;
-                min-height: 100vh; padding: 28px 16px;
-                background: radial-gradient(1200px 600px at 50% -10%, #1e293b, #0f172a); }
-  .phone {
-    min-height: 780px; max-height: 88vh; border-radius: 40px; overflow-y: auto;
-    border: 10px solid #000; box-shadow: 0 30px 80px rgba(0,0,0,.55);
-  }
-  .phone::-webkit-scrollbar { width: 0; }
-}
-
-.ph-top {
-  position: sticky; top: 0; z-index: 5; background: var(--im); color: #fff;
-  padding: 14px 18px 16px;
-}
-.ph-top .brand { font-size: 12px; opacity: .85; letter-spacing: .3px; }
-.ph-top h1 { margin: 3px 0 0; font-size: 19px; font-weight: 700; letter-spacing: -.4px; }
-.ph-top .who { font-size: 12.5px; opacity: .9; margin-top: 3px; }
-.ph-body { padding: 16px 14px 8px; }
-.ph-body > p:first-child { margin-top: 0; }
-
-.ph-tabs {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 6;
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  background: #fff; border-top: 1px solid var(--line);
-  max-width: 412px; margin: 0 auto;
-}
-@media (min-width: 900px) {
-  .ph-tabs { position: sticky; bottom: 0; border-radius: 0 0 30px 30px; }
-}
-.ph-tabs a {
-  text-decoration: none; text-align: center; padding: 9px 2px 11px;
-  font-size: 10.5px; color: var(--faint); font-weight: 600;
-}
-.ph-tabs a b { display: block; font-size: 17px; font-weight: 400; line-height: 1.35; }
-.ph-tabs a.active { color: var(--im); }
-
-/* ── ② 기업 — 키오스크 ─────────────────────────────────── */
-.role-kiosk {
-  background: #0b1220; color: #e2e8f0;
-  min-height: 100vh; padding: 28px 24px 60px;
-}
-.role-kiosk .ks-head {
-  max-width: 1100px; margin: 0 auto 22px; display: flex;
-  align-items: baseline; justify-content: space-between; gap: 16px;
-  border-bottom: 1px solid #1e293b; padding-bottom: 14px;
-}
-.role-kiosk .ks-head h1 { margin: 0; font-size: 24px; letter-spacing: -.6px; }
-.role-kiosk .ks-head .site { font-size: 13px; color: #64748b; }
-.role-kiosk .ks-wrap { max-width: 1100px; margin: 0 auto; }
-.role-kiosk .card {
-  background: #111c31; border: 1px solid #1e293b; box-shadow: none; color: #e2e8f0;
-}
-.role-kiosk .card h3 { color: #f1f5f9; }
-.role-kiosk label { color: #94a3b8; }
-.role-kiosk input, .role-kiosk select, .role-kiosk textarea {
-  background: #0b1220; border-color: #1e293b; color: #e2e8f0;
-}
-.role-kiosk .rows .row, .role-kiosk .rows > div { border-bottom-color: #1e293b; }
-.role-kiosk .rows span:first-child { color: #94a3b8; }
-.role-kiosk table th { color: #94a3b8; }
-.role-kiosk th, .role-kiosk td { border-bottom-color: #1e293b; }
-.role-kiosk .muted { color: #64748b; }
-.role-kiosk pre { background: #060b16; }
-.role-kiosk .result-pass {
-  background: #052e1d; border-color: #14532d; color: #4ade80;
-  font-size: 17px; font-weight: 600;
-}
-.role-kiosk .result-fail {
-  background: #2a0d0a; border-color: #7f1d1d; color: #f87171;
-  font-size: 17px; font-weight: 600;
-}
-.role-kiosk button.secondary { background: #1e293b; color: #e2e8f0; border-color: #334155; }
-
-/* ── ③ 은행·기관 — 콘솔 ───────────────────────────────── */
-.role-console { background: #f8fafc; }
-.role-console .cs-head {
-  background: #fff; border-bottom: 1px solid var(--line); padding: 14px 24px;
-  display: flex; align-items: center; gap: 14px;
-}
-.role-console .cs-head .mark {
-  width: 28px; height: 28px; border-radius: 8px; background: var(--im); color: #fff;
-  display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none;
-}
-.role-console .cs-head h1 { margin: 0; font-size: 16px; letter-spacing: -.3px; }
-.role-console .cs-head .sub { font-size: 12px; color: var(--muted); margin-left: auto; }
-.role-console .cs-wrap { max-width: 1080px; margin: 0 auto; padding: 22px 24px 60px; }
-.role-console button { width: auto; }
-
-/* ── 역할 사이를 오가는 작은 고리 (시연용) ───────────────── */
-.rolebar {
-  display: flex; gap: 6px; align-items: center; justify-content: center;
-  padding: 10px; font-size: 11.5px; color: var(--faint);
-}
-.rolebar a {
-  text-decoration: none; padding: 4px 10px; border-radius: 999px;
-  border: 1px solid var(--line); color: var(--muted); background: #fff;
-}
-.role-kiosk .rolebar a { background: #111c31; border-color: #1e293b; color: #94a3b8; }
-
-/* ── 기관 세계 안의 자리 전환 (사업장 / 근태 / 보험사) ───────── */
-.orgbar {
-  max-width: 1100px; margin: 0 auto 18px; display: flex; gap: 8px; flex-wrap: wrap;
-}
-.orgbar a {
-  text-decoration: none; font-size: 13px; font-weight: 600; padding: 8px 14px;
-  border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--muted);
-}
-.orgbar a.on { background: var(--im); border-color: var(--im); color: #fff; }
-.role-kiosk .orgbar a { background: #111c31; border-color: #1e293b; color: #94a3b8; }
-.role-kiosk .orgbar a.on { background: var(--im); border-color: var(--im); color: #fff; }
-.role-console .orgbar { padding: 18px 24px 0; margin-bottom: 0; max-width: 1080px; }
-
-/* ── 필요할 때만 펼치는 영역 ────────────────────────────── */
-.fold { }
+/* ── 접기 ─────────────────────────────────────────────────────────────── */
 .fold > summary {
-  list-style: none; cursor: pointer; display: flex; align-items: center;
-  justify-content: space-between; gap: 10px;
-  font-size: 15px; font-weight: 700; letter-spacing: -.3px; color: var(--ink);
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  font-size: 15px; font-weight: 600; letter-spacing: -0.3px; color: var(--im-text);
 }
 .fold > summary::-webkit-details-marker { display: none; }
-.fold > summary .chev { color: var(--faint); font-size: 13px; transition: transform .15s; }
+.fold > summary .chev { color: var(--im-disabled); font-size: var(--font-caption); transition: transform 0.15s; }
 .fold[open] > summary .chev { transform: rotate(180deg); }
-.fold > summary:hover { color: var(--im); }
-.fold-body { margin-top: 12px; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+.fold > summary:hover { color: var(--role); }
+.fold-body { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--im-line); }
+
+/* =========================================================================
+   앱 런처 — iM PASS 서비스 선택
+   ========================================================================= */
+.launcher { background: var(--im-background); min-height: 100vh; }
+.launcher-top {
+  background: var(--im-surface); border-bottom: 1px solid var(--im-line);
+  padding: 16px var(--space-6);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.im-logo { display: inline-flex; align-items: center; gap: var(--space-2); }
+.im-logo svg { width: 26px; height: 22px; }
+.im-logo .wm { font-size: 19px; font-weight: 700; letter-spacing: -0.8px; color: var(--im-black); }
+.launcher-top .acts { gap: var(--space-5); }
+
+.launcher-body { max-width: 1040px; margin: 0 auto; padding: 64px var(--space-5) 80px; }
+.launcher-head { margin-bottom: var(--space-8); }
+.launcher-head .kicker { font-size: 15px; font-weight: 500; color: var(--im-subtext); }
+.launcher-head h1 {
+  margin: var(--space-2) 0 0; font-size: 32px; font-weight: 700;
+  letter-spacing: -1px; line-height: 1.35; color: var(--im-black);
+}
+
+.app-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
+.app-card {
+  position: relative;
+  display: flex; flex-direction: column;
+  aspect-ratio: 1 / 1;
+  background: var(--im-surface);
+  border: 1.5px solid var(--im-line);
+  border-radius: var(--radius-app);
+  padding: var(--space-6);
+  color: var(--im-text);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s, box-shadow 0.18s;
+}
+.app-card:hover { transform: translateY(-4px); border-color: var(--role); box-shadow: var(--shadow-float); }
+.app-card .app-icon {
+  width: 64px; height: 64px; border-radius: 22px;
+  display: grid; place-items: center;
+  background: var(--role); color: #FFFFFF;
+}
+.app-card .app-icon .ico { width: 32px; height: 32px; }
+.app-card .app-badge {
+  align-self: flex-start; margin-top: var(--space-5);
+  padding: 4px 10px; border-radius: var(--radius-chip);
+  font-size: var(--font-micro); font-weight: 700;
+  background: var(--role-light); color: var(--role);
+}
+.app-card .app-name {
+  margin-top: var(--space-3);
+  font-size: var(--font-title); font-weight: 700; letter-spacing: -0.6px; color: var(--im-black);
+}
+.app-card .app-desc {
+  margin-top: var(--space-2);
+  font-size: 14px; color: var(--im-subtext); line-height: 1.6;
+}
+.app-card .app-go {
+  margin-top: auto; align-self: flex-end;
+  width: 36px; height: 36px; border-radius: 999px;
+  display: grid; place-items: center;
+  background: var(--im-surface-soft); color: var(--im-subtext);
+  transition: background 0.18s, color 0.18s;
+}
+.app-card:hover .app-go { background: var(--role); color: #FFFFFF; }
+
+/* =========================================================================
+   ① 근로자 — 모바일 (iM Blue)
+   ========================================================================= */
+.role-phone { background: var(--im-navy-dark); }
+.phone {
+  width: 100%; max-width: 420px; margin: 0 auto;
+  background: var(--im-background);
+  height: 100dvh; min-height: 100vh; position: relative; padding-bottom: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.phone > .ph-body {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  overscroll-behavior: contain; scrollbar-width: none;
+}
+.phone > .ph-body::-webkit-scrollbar { width: 0; }
+@media (min-width: 900px) {
+  .role-phone {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 28px 16px;
+    background: radial-gradient(1200px 600px at 50% -10%, #1D3355, var(--im-navy-dark));
+  }
+  .phone {
+    height: min(820px, calc(100vh - 56px)); min-height: 0; max-height: none;
+    border-radius: 44px; overflow: hidden;
+    padding-bottom: 0;
+    border: 10px solid #000; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* 헤더 — 흰 배경, 앱 이름 왼쪽, 선형 아이콘 오른쪽 */
+.ph-top {
+  position: relative; flex: none; z-index: 10;
+  background: var(--im-surface);
+  border-bottom: 1px solid var(--im-line);
+  padding: 14px var(--space-5) var(--space-4);
+  color: var(--im-text);
+}
+.ph-top-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.ph-brand { display: inline-flex; align-items: baseline; gap: 6px; }
+.ph-brand .nm { font-size: 17px; font-weight: 700; letter-spacing: -0.6px; color: var(--im-black); }
+.ph-brand .role { font-size: var(--font-micro); font-weight: 600; color: var(--role); }
+.ph-top-badge {
+  display: inline-flex; align-items: center;
+  background: var(--role-light); color: var(--role);
+  font-size: var(--font-micro); font-weight: 700;
+  padding: 3px 10px; border-radius: var(--radius-chip);
+}
+.acts, .ph-top .acts { display: inline-flex; align-items: center; gap: var(--space-4); color: var(--im-text); }
+.btn-row { display: flex; gap: var(--space-2); margin-top: var(--space-4); }
+.btn-row button { margin-top: 0; flex: 1; }
+.ph-top .switch-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--im-surface-soft); color: var(--im-subtext);
+  font-size: var(--font-micro); font-weight: 600;
+  padding: 6px 12px; border-radius: var(--radius-chip);
+}
+.ph-top .switch-link:hover { background: #E6EBF0; color: var(--im-text); }
+.ph-top h1 {
+  margin: var(--space-4) 0 0;
+  font-size: var(--font-title); font-weight: 700; letter-spacing: -0.7px; color: var(--im-black);
+}
+.ph-top .who { font-size: 14px; color: var(--im-subtext); margin-top: var(--space-1); }
+
+.ph-body { padding: var(--space-4) var(--space-5) var(--space-3); }
+
+/* 디지털 패스 카드 — 실물 신분증의 문법을 빌린다.
+   신용카드처럼 장식하지 않는다. 개인정보 보호와 공식 신분 확인 수단이라는 인상이 우선. */
+.pass-card {
+  position: relative; overflow: hidden;
+  background: linear-gradient(145deg, var(--im-blue) 0%, var(--im-blue-dark) 100%);
+  color: #FFFFFF;
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  box-shadow: 0 10px 28px rgba(40, 120, 255, 0.26);
+  margin-bottom: var(--space-3);
+}
+/* 아주 옅은 광택 하나만. 그 이상 장식하지 않는다. */
+.pass-card::after {
+  content: ""; position: absolute; right: -60px; top: -80px;
+  width: 220px; height: 220px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07); pointer-events: none;
+}
+/* 자격이 정상이 아닐 때 — 한눈에 못 쓰는 카드로 보여야 한다 */
+.pass-card.off {
+  background: linear-gradient(145deg, #59606B 0%, #3A4049 100%);
+  box-shadow: 0 10px 28px rgba(23, 43, 77, 0.22);
+}
+.pass-card.off::after { background: rgba(255,255,255,0.04); }
+.pass-card.off .pc-state { background: var(--im-red); }
+.pass-card.off .pc-qr { opacity: 0.45; pointer-events: none; }
+
+.pass-card > * { position: relative; z-index: 1; }
+.pass-card .pc-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.pass-card .pc-issuer { font-size: var(--font-caption); font-weight: 600; letter-spacing: -0.2px; opacity: 0.92; }
+/* IC 칩 — 실물 카드라는 신호 */
+.pass-card .pc-chip {
+  width: 34px; height: 25px; border-radius: 6px; flex: none;
+  background: linear-gradient(145deg, #F6C560, #E0A63C);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.pass-card .pc-main { display: flex; align-items: flex-end; gap: var(--space-4); margin-top: var(--space-5); }
+.pass-card .pc-id { flex: 1; min-width: 0; }
+.pass-card .pc-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.6px;
+  text-transform: uppercase; opacity: 0.72;
+}
+.pass-card .pc-name {
+  font-size: var(--font-title); font-weight: 700; letter-spacing: -0.6px;
+  margin-top: 4px; word-break: break-word;
+}
+.pass-card .pc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-3); }
+.pass-card .pc-tag, .pass-card .pc-state {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: var(--radius-chip); padding: 5px 11px;
+  font-size: var(--font-micro); font-weight: 700; letter-spacing: -0.2px;
+}
+.pass-card .pc-tag { background: rgba(255, 255, 255, 0.18); }
+.pass-card .pc-state { background: rgba(0, 0, 0, 0.22); }
+.pass-card .pc-state .dot { width: 7px; height: 7px; background: #FFFFFF; }
+
+/* QR 제출 — 카드에 박힌 정적 QR이 아니다.
+   QR은 제출할 때마다 새로 만들고 60초 뒤 만료되므로, 여기 있는 것은 제출 화면으로 가는 버튼이다. */
+.pass-card .pc-qr {
+  width: 78px; height: 78px; flex: none; margin: 0; min-height: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  background: #FFFFFF; color: var(--im-blue);
+  border-radius: 16px; border: none; cursor: pointer;
+  font-size: 10.5px; font-weight: 700; letter-spacing: -0.2px;
+}
+.pass-card .pc-qr:hover { background: #EEF4FF; }
+.pass-card .pc-qr .ico { width: 32px; height: 32px; stroke-width: 1.9; }
+
+.pass-card .pc-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  margin-top: var(--space-5); padding-top: var(--space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: var(--font-micro); font-weight: 600;
+}
+.pass-card .pc-verified { display: inline-flex; align-items: center; gap: 6px; }
+.pass-card .pc-verified .ico { width: 15px; height: 15px; stroke-width: 2.6; }
+.pass-card .pc-expiry { opacity: 0.82; white-space: nowrap; }
+.pass-card .pc-expiry.near { color: #FFD9A0; opacity: 1; }
+
+/* 근로자 홈 상태 요약 */
+.worker-status-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.worker-status-head h3 { margin: 4px 0 0; font-size: 17px; }
+.worker-status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-top: var(--space-4); }
+.worker-status-grid > div { background: var(--im-blue-light); border-radius: 12px; padding: 11px 12px; }
+.worker-status-grid span, .worker-status-grid b { display: block; }
+.worker-status-grid span { font-size: var(--font-micro); color: var(--im-subtext); }
+.worker-status-grid b { margin-top: 3px; font-size: 14px; color: var(--im-text); }
+.worker-submit-link { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--im-line); }
+.worker-submit-link span, .worker-submit-link small { display: block; }
+.worker-submit-link b { font-size: 14px; color: var(--im-blue-dark); }
+.worker-submit-link small { margin-top: 2px; font-size: var(--font-micro); color: var(--im-subtext); }
+.worker-submit-link .ico { width: 20px; height: 20px; color: var(--im-blue); }
+
+/* 바로가기 4~6칸 */
+.quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
+.quick a { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: var(--space-2) 0; }
+.quick .lab { font-size: var(--font-micro); font-weight: 600; color: var(--im-text); text-align: center; }
+
+/* 하단 내비게이션 */
+.ph-tabs {
+  position: relative; flex: none; z-index: 15;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  background: var(--im-surface); border-top: 1px solid var(--im-line);
+  width: 100%; max-width: none; margin: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@media (min-width: 900px) {
+  .ph-tabs {
+    position: relative; left: auto; right: auto; bottom: auto;
+    width: 100%; transform: none;
+    border-radius: 0 0 34px 34px;
+  }
+}
+.ph-tabs a {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 2px 12px; min-height: 56px;
+  font-size: 11px; font-weight: 600; color: var(--im-disabled);
+  transition: color 0.15s;
+}
+.ph-tabs a .ico { width: 22px; height: 22px; }
+.ph-tabs a.active { color: var(--role); font-weight: 700; }
+
+/* =========================================================================
+   ② 사업자 — 태블릿·키오스크 (iM Mint)
+   밝은 배경 위 흰 카드. 기업 앱과 같은 문법.
+   ========================================================================= */
+.role-kiosk { background: var(--im-background); color: var(--im-text); min-height: 100vh; padding-bottom: 60px; }
+.role-kiosk .ks-top-bar {
+  background: var(--im-surface); border-bottom: 1px solid var(--im-line);
+  padding: 16px var(--space-6);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+}
+.role-kiosk .ks-head {
+  max-width: 1100px; margin: var(--space-8) auto var(--space-5); padding: 0 var(--space-6);
+  display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4);
+}
+.role-kiosk .ks-head h1 {
+  margin: 0; font-size: var(--font-display); font-weight: 700;
+  letter-spacing: -1px; color: var(--im-black);
+}
+.role-kiosk .ks-head .site { font-size: 14px; color: var(--im-subtext); }
+.role-kiosk .ks-wrap { max-width: 1100px; margin: 0 auto; padding: 0 var(--space-6); }
+.role-kiosk .card { box-shadow: var(--shadow-card); }
+.role-kiosk .result-pass, .role-kiosk .result-fail { font-size: 17px; font-weight: 700; padding: var(--space-5); }
+.business-stats { margin-bottom: var(--space-5); }
+.business-stats .stat .v { font-size: 24px; }
+.verification-details > summary, .proof-details > summary { font-size: 15px; }
+.verification-details .fold-body { overflow-x: auto; }
+.proof-details .proof-box { margin: 0; }
+
+.role-kiosk .orgbar, .role-console .orgbar {
+  max-width: 1100px; margin: 0 auto var(--space-5); padding: 0 var(--space-6);
+  display: flex; gap: var(--space-2); flex-wrap: wrap;
+}
+.orgbar a {
+  font-size: 14px; font-weight: 600; padding: 9px 18px;
+  border-radius: var(--radius-chip);
+  border: 1.5px solid var(--im-line); background: var(--im-surface); color: var(--im-subtext);
+  transition: all 0.15s;
+}
+.orgbar a:hover { border-color: var(--role); color: var(--role); }
+.orgbar a.on { background: var(--role); border-color: var(--role); color: #FFFFFF; }
+
+/* 검증 결과 대형 표시 */
+.verdict { text-align: center; padding: var(--space-8) var(--space-5); }
+.verdict .mark {
+  width: 88px; height: 88px; border-radius: 999px; margin: 0 auto var(--space-5);
+  display: grid; place-items: center;
+}
+.verdict.ok .mark   { background: var(--im-mint-light); color: var(--im-mint-dark); }
+.verdict.fail .mark { background: var(--im-red-light);  color: var(--im-red); }
+.verdict .mark .ico { width: 44px; height: 44px; stroke-width: 2.5; }
+.verdict h2 { margin: 0; font-size: var(--font-display); font-weight: 700; letter-spacing: -1px; color: var(--im-black); }
+.verdict p  { margin: var(--space-3) 0 0; font-size: 15px; color: var(--im-subtext); line-height: 1.65; }
+
+/* =========================================================================
+   ③ 은행·기관 — 데스크톱 콘솔 (Deep Navy)
+   ========================================================================= */
+.role-console { background: var(--im-background); }
+.role-console .cs-top-bar {
+  background: var(--im-navy); color: #FFFFFF;
+  padding: 14px var(--space-8);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+}
+.role-console .cs-top-bar .nav { display: flex; gap: var(--space-1); }
+.role-console .cs-top-bar .nav a {
+  padding: 8px 14px; border-radius: 10px;
+  font-size: var(--font-caption); font-weight: 600; color: #AEBACD;
+}
+.role-console .cs-top-bar .nav a:hover { background: rgba(255, 255, 255, 0.08); color: #FFFFFF; }
+.role-console .cs-top-bar .nav a.on { background: var(--im-mint); color: #06322A; }
+.role-console .cs-head {
+  background: var(--im-surface); border-bottom: 1px solid var(--im-line);
+  padding: var(--space-5) var(--space-8);
+  display: flex; align-items: center; gap: var(--space-4);
+}
+.role-console .cs-head .mark {
+  width: 36px; height: 36px; border-radius: 10px; flex: none;
+  background: var(--im-navy); color: #FFFFFF;
+  display: grid; place-items: center; font-size: var(--font-caption); font-weight: 700;
+}
+.role-console .cs-head h1 {
+  margin: 0; font-size: var(--font-section); font-weight: 700;
+  letter-spacing: -0.5px; color: var(--im-black);
+}
+.role-console .cs-head .sub { font-size: 14px; color: var(--im-subtext); margin-left: auto; }
+.role-console .cs-wrap { max-width: 1180px; margin: 0 auto; padding: var(--space-6) var(--space-8) 72px; }
+.role-console button { width: auto; min-height: 44px; padding: 0 20px; font-size: 15px; }
+.role-console .orgbar { max-width: 1180px; padding: var(--space-5) var(--space-8) 0; margin-bottom: 0; }
+
+/* 지표 타일 */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-3); }
+.stat {
+  background: var(--im-surface); border: 1px solid var(--im-line);
+  border-radius: var(--radius-card); padding: var(--space-5);
+}
+.stat .k { font-size: var(--font-caption); color: var(--im-subtext); font-weight: 500; }
+.stat .v { font-size: var(--font-display); font-weight: 700; letter-spacing: -1px; margin-top: 6px;
+           color: var(--im-black); font-variant-numeric: tabular-nums; }
+.stat .s { font-size: var(--font-micro); color: var(--im-disabled); margin-top: 4px; }
+.stat.accent .v { color: var(--im-mint-dark); }
+.stat.warn .v   { color: #B45309; }
+.stat.bad .v    { color: var(--im-red); }
+.admin-stats { margin-bottom: var(--space-6); }
+.table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.role-console .table-scroll table { min-width: 820px; }
+.role-console .table-scroll td:last-child button { white-space: nowrap; }
+
+/* 공통 상단 헤더(레거시) */
+.im-app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px var(--space-5);
+  border-bottom: 1px solid var(--im-line); background: var(--im-surface);
+}
+.im-app-brand { display: flex; align-items: center; gap: var(--space-2); }
+.im-app-badge { font-size: var(--font-micro); font-weight: 700; padding: 3px 10px; border-radius: var(--radius-chip); }
+.im-app-title { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; }
+.btn-switch-service {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--im-surface-soft); border: 1px solid var(--im-line);
+  border-radius: var(--radius-chip); padding: 6px 14px;
+  font-size: var(--font-micro); font-weight: 600; color: var(--im-subtext); cursor: pointer;
+}
+.btn-switch-service:hover { background: #E6EBF0; color: var(--im-text); }
+
+/* ── 반응형 ───────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .app-grid { grid-template-columns: 1fr; }
+  .app-card { aspect-ratio: auto; }
+  .launcher-head h1 { font-size: var(--font-display); }
+  .launcher-body { padding: 40px var(--space-5) 56px; }
+  .role-console .cs-wrap, .role-console .cs-head, .role-console .cs-top-bar { padding-left: var(--space-5); padding-right: var(--space-5); }
+  .role-kiosk .ks-head, .role-kiosk .ks-wrap, .role-kiosk .orgbar { padding-left: var(--space-5); padding-right: var(--space-5); }
+}
+@media (max-width: 400px) {
+  .ph-body { padding-left: var(--space-4); padding-right: var(--space-4); }
+  .ph-top { padding-left: var(--space-4); padding-right: var(--space-4); }
+}
+
+/* ── 콘솔 사이드바 ─────────────────────────────────────────────────────── */
+.cs-shell { display: flex; align-items: stretch; min-height: calc(100vh - 58px); }
+.cs-side {
+  width: 236px; flex: none;
+  background: var(--im-surface); border-right: 1px solid var(--im-line);
+  padding: var(--space-5) var(--space-3);
+}
+.cs-side .nav-grp {
+  font-size: var(--font-micro); font-weight: 600; color: var(--im-disabled);
+  padding: 0 12px; margin: var(--space-5) 0 var(--space-2);
+}
+.cs-side .nav-grp:first-child { margin-top: 0; }
+.cs-side a, .cs-side .soon {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px; border-radius: 10px; margin-bottom: 2px;
+  font-size: 14px; font-weight: 600; color: var(--im-subtext);
+}
+.cs-side a .ico, .cs-side .soon .ico { width: 19px; height: 19px; }
+.cs-side a:hover { background: var(--im-navy-light); color: var(--im-navy); }
+.cs-side a.on { background: var(--im-navy); color: #FFFFFF; }
+.cs-side a.on .ico { color: var(--im-mint); }
+.cs-side .soon { color: var(--im-disabled); cursor: default; }
+.cs-side .soon .badge { margin-left: auto; padding: 2px 7px; font-size: 11px; }
+.cs-main { flex: 1; min-width: 0; background: var(--im-background); }
+.cs-main .cs-wrap { padding-top: var(--space-6); }
+.cs-top-bar .wm { font-size: 16px; font-weight: 700; letter-spacing: -0.5px; }
+.cs-top-bar .wm .role { font-size: var(--font-micro); font-weight: 600; color: var(--im-mint); margin-left: 6px; }
+.cs-top-bar .btn-switch-service { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.18); color: #D6DEEA; }
+.cs-top-bar .btn-switch-service:hover { background: rgba(255,255,255,0.18); color: #FFFFFF; }
+.rolebar { padding: var(--space-4) var(--space-8) var(--space-6); }
+.rolebar a { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-caption); font-weight: 600; color: var(--im-subtext); }
+.rolebar a:hover { color: var(--im-text); }
+@media (max-width: 900px) {
+  .cs-shell { flex-direction: column; }
+  .cs-side { width: auto; border-right: none; border-bottom: 1px solid var(--im-line); display: flex; gap: 4px; overflow-x: auto; padding: var(--space-3) var(--space-4); }
+  .cs-side .nav-grp, .cs-side .soon { display: none; }
+  .cs-side a { margin-bottom: 0; white-space: nowrap; }
+}
+
+/* ── 바텀 시트 · 팝업 ──────────────────────────────────────────────────
+   .pop-mask는 position:fixed라 데스크톱에서 폰 목업 밖으로 번진다.
+   목업 안(420px 폭, 세로 92vh 중앙)에 맞춰 가둔다. */
+@media (min-width: 900px) {
+  .role-phone .pop-mask {
+    left: 50%; right: auto; transform: translateX(-50%);
+    width: 420px; top: 4vh; bottom: 4vh;
+    border-radius: 34px;
+  }
+}

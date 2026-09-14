@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass - 은행 콘솔</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="ui.css" />
 <style>
   .kpi { display:flex; gap:8px; margin-top:10px; }
   .kpi div { flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; text-align:center; }
@@ -15,23 +15,35 @@
   .box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-top:12px; }
 </style>
 </head>
-<body>
-  <nav>
-    <a href="index.html">🏠 홈</a>
-    <a href="wallet.html">① 지갑</a>
-    <a href="submit.html">② 제출</a>
-    <a href="scan.html">③ 스캐너</a>
-    <a href="attendance.html">④ 출입</a>
-    <a href="bank.html" class="active">⑤ 은행</a>
-    <a href="insurance.html">⑥ 보험</a>
-    <a href="insurer.html">⑦ 보험사</a>
-    <a href="admin.html">⑧ 관리자</a>
-  </nav>
+<body class="role-console">
+  <div class="cs-top-bar">
+    <span class="wm">iM PASS<span class="role">은행·기관</span></span>
+    <a href="home.html" class="btn-switch-service"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
+  </div>
 
-  <h1>은행 콘솔</h1>
-  <p style="font-size:13px;color:#64748b;margin-top:-6px;">
-    <b>은행 영업담당자</b>가 보는 화면입니다. 개인은 보이지 않고 국적별 인원 집계에서 산출한 규모만 봅니다.
-    회사용 대시보드는 만들지 않습니다 — 회사가 얻는 것은 새 화면이 아니라 <b>일이 줄어드는 것</b>입니다.
+  <div class="cs-shell">
+    <aside class="cs-side">
+      <div class="nav-grp">업무</div>
+      <a href="bank.html" class="on"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='3' y='3' width='7.5' height='8.5' rx='2'/><rect x='13.5' y='3' width='7.5' height='5.5' rx='2'/><rect x='13.5' y='11' width='7.5' height='10' rx='2'/><rect x='3' y='14' width='7.5' height='7' rx='2'/></svg>기업·외환 현황</a>
+      <a href="admin.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 3.2 19 6v6.2c0 4-2.8 7.6-7 8.6-4.2-1-7-4.6-7-8.6V6l7-2.8Z'/><path d='m9 12.2 2.2 2.2 4-4.2'/></svg>자격 상태 관리</a>
+      <a href="insurer.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 3.2 19 6v6.2c0 4-2.8 7.6-7 8.6-4.2-1-7-4.6-7-8.6V6l7-2.8Z'/><path d='M12 9.3v5.4M9.3 12h5.4'/></svg>보험 접수함</a>
+      <div class="nav-grp">자격 관리</div>
+      <span class="soon"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M6 3.5h8l4.5 4.5v12a1.5 1.5 0 0 1-1.5 1.5H6a1.5 1.5 0 0 1-1.5-1.5v-15A1.5 1.5 0 0 1 6 3.5Z'/><path d='M13.5 3.8V8.5H18'/><path d='M8.5 14.5h7M8.5 17.5h4.5'/></svg>자격 발급<span class="badge">Phase 2</span></span>
+      <span class="soon"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5'/></svg>자격 조회<span class="badge">Phase 2</span></span>
+      <div class="nav-grp">운영</div>
+      <span class="soon"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M3.5 20.5h17M5.5 20.5V9.5M18.5 20.5V9.5M12 3.5l7 5.5H5l7-5.5Z'/><path d='M9 13h1.5M13.5 13H15M9 16.5h1.5M13.5 16.5H15'/></svg>기관 관리<span class="badge">Phase 2</span></span>
+      <span class="soon"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M4.5 6.5h15M4.5 12h15M4.5 17.5h10'/></svg>처리 내역<span class="badge">Phase 2</span></span>
+    </aside>
+    <div class="cs-main">
+  <div class="cs-head">
+    <span class="mark">iM</span>
+    <h1>기업 / 외환 규모 분석</h1>
+    <span class="sub">iM뱅크 기업영업본부</span>
+  </div>
+
+  <div class="cs-wrap">
+  <p class="tx-caption" style="margin:0 0 16px;max-width:760px;">
+    영업담당자가 보는 화면이에요. 개인 정보는 표시되지 않고, 국적별 인원 집계에서 산출한 규모만 보여드려요.
   </p>
 
   <div class="card">
@@ -138,5 +150,8 @@
 
     loadList();
   </script>
+  </div>
+  </div></div>
+  <div class="rolebar"><a href="home.html"><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m15 18-6-6 6-6'/></svg>서비스 선택으로</a></div>
 </body>
 </html>

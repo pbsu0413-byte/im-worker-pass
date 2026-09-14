@@ -82,40 +82,53 @@
 </style>
 </head>
 <body class="role-kiosk">
-  <div class="ks-head">
-    <h1>검증 단말</h1>
-    <span class="site">사업장 · 병원 · 보험사 공용 스캐너</span>
+  <div class="ks-top-bar">
+    <span class="ph-brand"><span class="nm">iM PASS</span><span class="role">사업자</span></span>
+    <span class="acts">
+      <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='12' r='3.2'/><path d='M4.8 15.4a1.7 1.7 0 0 0-.4 1.9l.6 1a1.7 1.7 0 0 0 1.7.8l1.3-.2 1.6.9.5 1.2a1.7 1.7 0 0 0 1.6 1h1.2a1.7 1.7 0 0 0 1.6-1l.5-1.2 1.6-.9 1.3.2a1.7 1.7 0 0 0 1.7-.8l.6-1a1.7 1.7 0 0 0-.4-1.9l-.9-1v-1.8l.9-1a1.7 1.7 0 0 0 .4-1.9l-.6-1a1.7 1.7 0 0 0-1.7-.8l-1.3.2-1.6-.9-.5-1.2a1.7 1.7 0 0 0-1.6-1h-1.2a1.7 1.7 0 0 0-1.6 1l-.5 1.2-1.6.9-1.3-.2a1.7 1.7 0 0 0-1.7.8l-.6 1a1.7 1.7 0 0 0 .4 1.9l.9 1v1.8l-.9 1Z'/></svg>
+      <a href="home.html" class="btn-switch-service"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
+    </span>
   </div>
-    <div class="orgbar">
-      <a href="scan.html" class="on">사업장 · 병원 스캐너</a>
-      <a href="attendance.html">출퇴근 단말</a>
-      <a href="insurer.html">보험사 접수함</a>
-    </div>
+
+  <div class="ks-head">
+    <h1>근로자 자격 확인</h1>
+    <span class="site">제출된 QR을 읽어 근무 가능 여부를 바로 확인해요</span>
+  </div>
+  <div class="orgbar">
+    <a href="scan.html" class="on">자격 확인</a>
+    <a href="attendance.html">근태 등록</a>
+  </div>
   <div class="ks-wrap">
+
+  <div class="stat-grid business-stats" aria-label="이번 사용 현황">
+    <div class="stat accent"><div class="k">이번 사용에서 확인</div><div class="v" id="sessionTotal">0건</div><div class="s">브라우저를 연 뒤 확인한 건수</div></div>
+    <div class="stat"><div class="k">정상 확인</div><div class="v" id="sessionPass">0건</div><div class="s">근무 가능 자격</div></div>
+    <div class="stat warn"><div class="k">확인 필요</div><div class="v" id="sessionFail">0건</div><div class="s">불일치·만료·철회 포함</div></div>
+  </div>
 
 
   <div class="card">
-    <label>이 스캐너는 누구인가요? (verifier_id)</label>
+    <label>확인하는 곳</label>
     <select id="verifierId" onchange="onVerifierChange()">
-      <option value="company_A">company_A (A제조공장 - 이직 서류 대사 + 급여계좌 등록)</option>
-      <option value="company_B">company_B (B제조공장 - 오배송 테스트용)</option>
-      <option value="hospital_1">hospital_1 (거점 병원 - 신원+진료접수)</option>
+      <option value="company_A">A제조공장 · 이직 서류 확인과 급여계좌 등록</option>
+      <option value="company_B">B제조공장 · 다른 곳으로 제출된 QR 확인</option>
+      <option value="hospital_1">거점 병원 · 신원 확인과 진료 접수</option>
     </select>
   </div>
 
   <div class="card">
-    <h3>방법 1) 카메라로 QR 스캔</h3>
+    <h3>QR 스캔</h3>
     <div id="reader" style="width:100%"></div>
-    <div style="margin-top: 10px;">
-      <button class="secondary" onclick="startScan()">카메라 스캔 시작</button>
-      <button class="secondary" onclick="stopScan()">중지</button>
+    <div class="btn-row">
+      <button onclick="startScan()">QR 스캔 시작</button>
+      <button class="secondary" onclick="stopScan()" style="flex:0 0 120px;">중지</button>
     </div>
   </div>
 
   <div class="card">
-    <h3>방법 2) payload 직접 붙여넣기 (발표/테스트용)</h3>
-    <textarea id="pastedPayload" rows="5" placeholder='② 제출 화면에서 복사한 payload JSON을 여기에 붙여넣으세요'></textarea>
-    <button onclick="verifyPasted()">온체인 검증 실행</button>
+    <h3>QR을 읽기 어려울 때</h3>
+    <textarea id="pastedPayload" rows="5" placeholder='제출 화면에 표시된 코드를 붙여넣어 주세요'></textarea>
+    <button onclick="verifyPasted()">자격 확인하기</button>
   </div>
 
   <div id="resultBox"></div>
@@ -124,6 +137,16 @@
   <script>
     let html5QrCode;
     let _regNoFull = "", _regNoShown = false, _regNoTimer = null;
+    let sessionTotal = 0, sessionPass = 0, sessionFail = 0;
+
+    function paintSessionStats(isPass) {
+      sessionTotal += 1;
+      if (isPass) sessionPass += 1;
+      else sessionFail += 1;
+      document.getElementById("sessionTotal").textContent = sessionTotal + "건";
+      document.getElementById("sessionPass").textContent = sessionPass + "건";
+      document.getElementById("sessionFail").textContent = sessionFail + "건";
+    }
 
     function esc(v) {
       return String(v == null ? "" : v).replace(/[&<>"']/g,
@@ -206,26 +229,48 @@
       try {
         const val = document.getElementById("pastedPayload").value.trim();
         if (!val) {
-          alert("payload JSON을 입력해주세요.");
+          showResult({ result: "fail", message: "제출 화면에 표시된 코드를 먼저 붙여넣어 주세요." });
           return;
         }
         const payload = JSON.parse(val);
         runVerify(payload);
       } catch (e) {
-        showResult({ result: "fail", message: "붙여넣은 내용이 올바른 JSON 형식이 아닙니다." });
+        showResult({ result: "fail", message: "붙여넣은 내용을 읽을 수 없어요. 제출 화면의 복사 버튼으로 다시 복사해 주세요." });
       }
     }
 
     async function runVerify(payload) {
       const verifierId = document.getElementById("verifierId").value;
-      const res = await fetch(`${API_BASE_URL}/presentations/secure/consume`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ payload, verifier_id: verifierId }),
-      });
-      const data = await res.json();
+      const box = document.getElementById("resultBox");
+      // 눌렀는데 아무 반응이 없으면 고장으로 보인다. 진행 중임을 먼저 보여준다.
+      if (box) box.innerHTML = `<div class="card tx-caption">자격을 확인하고 있어요…</div>`;
+
+      let res;
+      try {
+        res = await fetch(`${API_BASE_URL}/presentations/secure/consume`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ payload, verifier_id: verifierId }),
+        });
+      } catch (e) {
+        // 네트워크 자체가 실패한 경우. 여기서 잡지 않으면 화면에 아무것도 남지 않는다.
+        showResult({
+          result: "fail",
+          reason: "NETWORK_ERROR",
+          message: "확인 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.",
+        }, verifierId);
+        return;
+      }
+
+      let data = {};
+      try { data = await res.json(); } catch (e) { data = {}; }
+
       if (!res.ok) {
-        showResult({ result: "fail", reason: data.detail || `HTTP_${res.status}`, message: data.detail || "검증에 실패했습니다." }, verifierId);
+        showResult({
+          result: "fail",
+          reason: data.detail || `HTTP_${res.status}`,
+          message: data.detail || "자격을 확인하지 못했어요.",
+        }, verifierId);
         return;
       }
       showResult(data, verifierId);
@@ -271,7 +316,7 @@
         return `
         <div class="rx-panel">
           <div class="rx-head">
-            <span>🏥 대구 ○○의원 · iM 제휴병원 ✓ · HOSP-001</span>
+            <span>대구 ○○의원 · iM 제휴병원 ✓ · HOSP-001</span>
             <span>${new Date().toLocaleTimeString('ko-KR')}</span>
           </div>
           <div class="rx-block" style="background:#fef2f2;border-left:4px solid #dc2626;">
@@ -348,7 +393,7 @@
       return `
         <div class="rx-panel">
           <div class="rx-head">
-            <span>🏥 대구 ○○의원 · iM 제휴병원 ✓ · HOSP-001</span>
+            <span>대구 ○○의원 · iM 제휴병원 ✓ · HOSP-001</span>
             <span>${new Date().toLocaleTimeString('ko-KR')} · 초진</span>
           </div>
           ${banner}
@@ -421,7 +466,7 @@
       const d = data.dossier;
       const head = `
         <div class="agency-card">
-          <div class="agency-title">🏢 사내 ERP 급여계좌 자동 연동 완료</div>
+          <div class="agency-title">사내 ERP 급여계좌 자동 연동 완료</div>
           <div>• 근로자: <b>${esc(data.worker_name)}</b> (${esc(data.nationality)})</div>
           <div>• 지급 계좌: <b>${esc(data.account_bank)} ${esc(data.account_number)}</b> (검증필)</div>
           <div style="font-size:12px;color:#16a34a;margin-top:4px;">✓ 인사/회계 시스템 자동 등록 완료 (수기입력 0건)</div>
@@ -445,7 +490,7 @@
       const verified = d.verified.map(v =>
         row(`✓ ${v.name}`, `${v.value}  ·  ${v.issuer}`, "#15803d")).join("");
       const attached = d.attached.map(v =>
-        row(`📎 ${v.name}`, v.note, "#64748b")).join("");
+        row(`${v.name}`, v.note, "#64748b")).join("");
       const required = d.required.map(v =>
         row(`○ ${v.name}`, v.note, "#b45309")).join("");
       const procedure = (d.procedure || []).map(v =>
@@ -453,14 +498,14 @@
 
       const notice = (d.notice && d.notice.length)
         ? `<div style="margin-top:10px;font-size:12px;color:#b45309;line-height:1.6;">
-             ${d.notice.map(n => "⚠ " + esc(n)).join("<br/>")}
+             ${d.notice.map(n => "· " + esc(n)).join("<br/>")}
            </div>`
         : "";
 
       return `
         ${head}
         <div class="agency-card" style="margin-top:10px;">
-          <div class="agency-title">📋 이직(사업장 변경) 서류 대사표</div>
+          <div class="agency-title">이직(사업장 변경) 서류 대사표</div>
           <div style="font-size:12px;color:#64748b;">
             본 사업장 기준 — 블록체인 검증 ${d.summary.verified}건 · 파일 동봉 ${d.summary.attached}건 · 별도 제출 ${d.summary.required}건
           </div>
@@ -498,27 +543,58 @@
       }
 
       const proofHtml = (data.onchain_proof && verifierId !== "hospital_1") ? `
-        <div class="proof-box">
-          <b>🔗 블록체인 온체인 증명 (On-Chain Proof)</b><br/>
-          • 상태: <b>${data.onchain_proof.status_name.toUpperCase()} (코드: ${data.onchain_proof.status_code})</b><br/>
-          • 식별 해시: <code>${data.onchain_proof.credential_hash}</code><br/>
-          • 검증 네트워크: ${data.onchain_proof.mode === 'live_testnet' ? 'Polygon Amoy Testnet' : 'EVM On-Chain Simulator'}<br/>
-        </div>
+        <details class="card fold proof-details">
+          <summary><span>분산원장 검증 상세</span><span class="chev">▾</span></summary>
+          <div class="fold-body proof-box">
+            <b>등록된 원본 정보와 일치합니다.</b><br/>
+            • 상태: <b>${data.onchain_proof.status_name.toUpperCase()} (코드: ${data.onchain_proof.status_code})</b><br/>
+            • 식별 해시: <code>${data.onchain_proof.credential_hash}</code><br/>
+            • 검증 네트워크: ${data.onchain_proof.mode === 'live_testnet' ? 'Polygon Amoy Testnet' : 'EVM On-Chain Simulator'}<br/>
+          </div>
+        </details>
       ` : '';
 
+      let failureExpl = "";
+      if (!isPass) {
+        const r = String(data.reason || "");
+        if (r.includes("SIGNATURE") || r.includes("INVALID")) {
+          failureExpl = `<div style="margin-top:6px;font-size:13.5px;color:#fca5a5;"><b>전자서명 불일치 (데이터 위변조 차단)</b><br/><span style="font-size:12px;opacity:0.9;">근로자 신원 정보 또는 급여계좌가 서명 시점과 일치하지 않아 차단되었습니다.</span></div>`;
+        } else if (r.includes("TARGET") || r.includes("MISMATCH")) {
+          failureExpl = `<div style="margin-top:6px;font-size:13.5px;color:#fde68a;"><b>제출 대상 기관 불일치 (오배송 차단)</b><br/><span style="font-size:12px;opacity:0.9;">이 QR은 다른 기관 제출용으로 생성되었습니다. 현재 단말의 식별자와 일치하지 않습니다.</span></div>`;
+        } else if (r.includes("REVOKED")) {
+          failureExpl = `<div style="margin-top:6px;font-size:13.5px;color:#fca5a5;"><b>체류자격 온체인 철회 (REVOKED)</b><br/><span style="font-size:12px;opacity:0.9;">스마트 컨트랙트 원장에 체류자격 철회 트랜잭션이 기록되어 즉시 무효화되었습니다.</span></div>`;
+        } else {
+          failureExpl = `<div style="margin-top:6px;font-size:13.5px;color:#fca5a5;"><b>${esc(data.message || "검증에 실패했습니다.")}</b></div>`;
+        }
+      }
+
+      const CHK = "<svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='m5 12.5 4.5 4.5L19 7.5'/></svg>";
+      const XMK = "<svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M6 6l12 12M18 6 6 18'/></svg>";
+      const agencySection = agencyHtml ? `
+        <details class="card fold verification-details">
+          <summary><span>이직 서류와 자격 항목 확인 결과</span><span class="chev">▾</span></summary>
+          <div class="fold-body">${agencyHtml}</div>
+        </details>` : "";
+      paintSessionStats(isPass);
       box.innerHTML = `
         <div class="${isPass ? "result-pass" : "result-fail"}">
-          <span class="${isPass ? 'onchain-badge' : 'onchain-fail-badge'}">
-            ${isPass ? '✓ 스마트 컨트랙트 원장 검증됨' : '⚠ 블록체인 검증 실패'}
-          </span><br/>
-          <b>${isPass ? "✅ 검사 통과" : "❌ 검사 실패"}</b><br/>
-          <span>${data.message || ""} ${data.reason ? `[${data.reason}]` : ""}</span>
-          ${agencyHtml}
-          ${proofHtml}
-        </div>`;
+          ${isPass ? CHK : XMK}
+          <div style="flex:1;min-width:0;">
+            <b style="display:block;font-size:19px;letter-spacing:-0.5px;">
+              ${isPass ? "근무 가능한 근로자입니다" : "현재 자격을 확인할 수 없어요"}
+            </b>
+            <span class="badge ${isPass ? "chain" : "revoked"}" style="margin-top:8px;">
+              ${isPass ? "분산원장 등록 확인됨" : "분산원장 대조 실패"}
+            </span>
+            ${failureExpl}
+            ${!isPass ? `<details class="fold" style="margin-top:10px;"><summary style="font-size:12px;color:var(--im-subtext);font-weight:600;"><span>자세한 검증 정보 보기</span><span class="chev">▾</span></summary><pre style="margin-top:8px;">${esc(data.reason || "UNKNOWN_ERROR")}</pre></details>` : ""}
+          </div>
+        </div>
+        ${agencySection}
+        ${proofHtml}`;
     }
   </script>
   </div>
-  <div class="rolebar"><a href="home.html">← 역할 선택으로</a></div>
+  <div class="rolebar"><a href="home.html"><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m15 18-6-6 6-6'/></svg>서비스 선택으로</a></div>
 </body>
 </html>

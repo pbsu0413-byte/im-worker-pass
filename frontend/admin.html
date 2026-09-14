@@ -35,24 +35,57 @@
 </style>
 </head>
 <body class="role-console">
-  <div class="cs-head">
+  <div class="cs-top-bar">
+    <span class="wm">iM PASS<span class="role">은행·기관</span></span>
+    <a href="home.html" class="btn-switch-service"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
+  </div>
+
+  <div class="cs-shell">
+    <aside class="cs-side">
+      <div class="nav-grp">업무</div>
+      <a href="bank.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='3' y='3' width='7.5' height='8.5' rx='2'/><rect x='13.5' y='3' width='7.5' height='5.5' rx='2'/><rect x='13.5' y='11' width='7.5' height='10' rx='2'/><rect x='3' y='14' width='7.5' height='7' rx='2'/></svg>기업·외환 현황</a>
+      <a href="admin.html" class="on"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 3.2 19 6v6.2c0 4-2.8 7.6-7 8.6-4.2-1-7-4.6-7-8.6V6l7-2.8Z'/><path d='m9 12.2 2.2 2.2 4-4.2'/></svg>자격 상태 관리</a>
+      <a href="insurer.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 3.2 19 6v6.2c0 4-2.8 7.6-7 8.6-4.2-1-7-4.6-7-8.6V6l7-2.8Z'/><path d='M12 9.3v5.4M9.3 12h5.4'/></svg>보험 접수함</a>
+      <div class="nav-grp">자격 관리</div>
+      <span class="soon"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M6 3.5h8l4.5 4.5v12a1.5 1.5 0 0 1-1.5 1.5H6a1.5 1.5 0 0 1-1.5-1.5v-15A1.5 1.5 0 0 1 6 3.5Z'/><path d='M13.5 3.8V8.5H18'/><path d='M8.5 14.5h7M8.5 17.5h4.5'/></svg>자격 발급<span class="badge">Phase 2</span></span>
+      <span class="soon"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5'/></svg>자격 조회<span class="badge">Phase 2</span></span>
+      <div class="nav-grp">운영</div>
+      <span class="soon"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M3.5 20.5h17M5.5 20.5V9.5M18.5 20.5V9.5M12 3.5l7 5.5H5l7-5.5Z'/><path d='M9 13h1.5M13.5 13H15M9 16.5h1.5M13.5 16.5H15'/></svg>기관 관리<span class="badge">Phase 2</span></span>
+      <span class="soon"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M4.5 6.5h15M4.5 12h15M4.5 17.5h10'/></svg>처리 내역<span class="badge">Phase 2</span></span>
+    </aside>
+    <div class="cs-main">
+    <div class="cs-head">
     <span class="mark">iM</span>
-    <h1>체류자격 온체인 상태 관리</h1>
-    <span class="sub">발급기관 콘솔</span>
+    <h1>자격 상태 관리</h1>
+    <span class="sub">법무부 출입국 · iM뱅크 행정 콘솔</span>
   </div>
   <div class="cs-wrap">
 
-  <p style="font-size:13px;color:#666;">
-    여기서 상태를 <b>철회(revoked)</b>로 바꾸면 스마트 컨트랙트에 <code>revoke</code> 트랜잭션이 전송되며,<br/>
-    이미 발급된 QR을 다시 스캔해도 <b>회사·병원·보험 세 곳 모두 즉시 거부</b>됩니다. (S9 블록체인 연동 시연)
+  <div class="stat-grid admin-stats" aria-label="자격 현황 요약">
+    <div class="stat accent"><div class="k">전체 자격</div><div class="v" id="statTotal">—</div><div class="s">현재 등록된 Worker Pass</div></div>
+    <div class="stat"><div class="k">정상 자격</div><div class="v" id="statValid">—</div><div class="s">현재 제출 가능한 상태</div></div>
+    <div class="stat bad"><div class="k">철회·확인 필요</div><div class="v" id="statRevoked">—</div><div class="s">제출이 제한된 상태</div></div>
+  </div>
+
+  <p class="tx-caption" style="margin:0 0 16px;max-width:760px;">
+    자격을 <b>철회</b>로 바꾸면 이미 발급된 QR도 그 즉시 쓸 수 없게 돼요.
+    회사·병원·보험 어느 곳에 제출하더라도 바로 거절됩니다.
   </p>
+  <details class="fold" style="margin-bottom:20px;max-width:760px;">
+    <summary><span>자세한 처리 정보 보기</span><span class="chev">▾</span></summary>
+    <div class="fold-body tx-caption">
+      철회는 스마트 컨트랙트의 <code>revoke</code> 트랜잭션으로 기록되며, 분산원장에 남은 기존 기록은 지워지지 않고
+      상태값만 갱신됩니다. 철회는 되돌릴 수 없고, 일시 중지는 <b>정지</b> 상태로 처리한 뒤 다시 <b>정상</b>으로 되돌릴 수 있어요.
+    </div>
+  </details>
 
   <div id="statusNotify" class="notification"></div>
 
   <div style="margin-bottom: 12px;">
-    <button class="secondary" onclick="loadList()">목록 새로고침</button>
+    <button class="secondary" onclick="loadList()">새로고침</button>
   </div>
 
+  <div class="table-scroll">
   <table id="table">
     <thead>
       <tr>
@@ -60,13 +93,14 @@
         <th>국적</th>
         <th>계좌</th>
         <th style="text-align:right;">퇴직연금 잔액</th>
-        <th>온체인 상태</th>
-        <th>최근 Tx Hash</th>
+        <th>자격 상태</th>
+        <th>분산원장 기록</th>
         <th>동작</th>
       </tr>
     </thead>
     <tbody id="tbody"></tbody>
   </table>
+  </div>
 
   <script src="config.js"></script>
   <script>
@@ -75,7 +109,7 @@
       box.className = "notification " + (isSuccess ? "notify-success" : "");
       let html = msg;
       if (explorerUrl) {
-        html += `<br/>🔗 <a href="${explorerUrl}" target="_blank" class="tx-link">블록체인 탐색기에서 온체인 트랜잭션 조회</a>`;
+        html += `<br/><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><path d='M10.5 13.5a4 4 0 0 0 5.7 0l2.3-2.3a4 4 0 1 0-5.7-5.7L11.6 6.7'/><path d='M13.5 10.5a4 4 0 0 0-5.7 0l-2.3 2.3a4 4 0 1 0 5.7 5.7l1.2-1.2'/></svg> <a href="${explorerUrl}" target="_blank" class="tx-link">블록체인 탐색기에서 온체인 트랜잭션 조회</a>`;
       }
       box.innerHTML = html;
       box.style.display = "block";
@@ -85,6 +119,10 @@
       try {
         const res = await fetch(`${API_BASE_URL}/credentials`);
         const rows = await res.json();
+        const validCount = rows.filter(r => r.status === "valid").length;
+        document.getElementById("statTotal").textContent = rows.length.toLocaleString("ko-KR") + "건";
+        document.getElementById("statValid").textContent = validCount.toLocaleString("ko-KR") + "건";
+        document.getElementById("statRevoked").textContent = (rows.length - validCount).toLocaleString("ko-KR") + "건";
         const tbody = document.getElementById("tbody");
         tbody.innerHTML = rows.map(r => `
           <tr>
@@ -95,7 +133,7 @@
               r.pension_balance
                 ? Number(r.pension_balance).toLocaleString("ko-KR") + "원"
                 : '<span style="color:#94a3b8;">—</span>'}</td>
-            <td><span class="badge ${r.status === "valid" ? "badge-valid" : "badge-revoked"}">${r.status.toUpperCase()}</span></td>
+            <td><span class="badge ${r.status === "valid" ? "badge-valid" : "badge-revoked"}">${r.status === "valid" ? "정상" : "철회"}</span></td>
             <td class="tx-cell" title="${r.last_tx_hash || r.tx_hash || '-'}">
               ${r.explorer_url 
                 ? `<a href="${r.explorer_url}" target="_blank" class="tx-link">${(r.last_tx_hash || r.tx_hash || '').substring(0, 10)}...</a>`
@@ -103,8 +141,8 @@
             </td>
             <td>
               ${r.status === "valid"
-                ? `<button class="danger" onclick="revoke('${r.credential_id}', '${r.worker_name}')">온체인 철회</button>`
-                : `<button class="secondary" onclick="restore('${r.credential_id}', '${r.worker_name}')">온체인 복구</button>`}
+                ? `<button class="danger" onclick="revoke('${r.credential_id}', '${r.worker_name}')">자격 철회</button>`
+                : `<button class="secondary" onclick="restore('${r.credential_id}', '${r.worker_name}')">자격 복구</button>`}
             </td>
           </tr>
         `).join("");
@@ -114,11 +152,14 @@
     }
 
     async function revoke(id, name) {
-      showNotification(`⏳ <b>${name}</b> 근로자의 체류자격 철회 트랜잭션을 블록체인에 전송 중...`, null);
+      if (!confirm(`[온체인 철회 확인]\n\n정말로 ${name} 근로자의 체류자격을 철회하시겠습니까?\n\n철회 시 스마트 컨트랙트에 revoke 트랜잭션이 전송되며, 사업장·병원·보험 등 모든 단말에서 즉시 무효 처리됩니다.`)) {
+        return;
+      }
+      showNotification(`<svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><circle cx='12' cy='12' r='9'/><path d='M12 7v5.3l3.2 1.9'/></svg> <b>${name}</b> 근로자의 체류자격 철회 트랜잭션을 블록체인에 전송 중...`, null);
       try {
         const res = await fetch(`${API_BASE_URL}/admin/credentials/${id}/revoke`, { method: "POST" });
         const data = await res.json();
-        showNotification(`⚡ <b>${name}</b> 체류자격 철회 완료 (Tx: <code>${data.tx_hash}</code>)`, data.explorer_url);
+        showNotification(`<b>${name}</b> 체류자격 철회 완료 (Tx: <code>${data.tx_hash}</code>)`, data.explorer_url);
         loadList();
       } catch (e) {
         alert("철회 처리 중 오류가 발생했습니다.");
@@ -126,11 +167,11 @@
     }
 
     async function restore(id, name) {
-      showNotification(`⏳ <b>${name}</b> 근로자의 체류자격 복구 트랜잭션을 블록체인에 전송 중...`, null);
+      showNotification(`<svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><circle cx='12' cy='12' r='9'/><path d='M12 7v5.3l3.2 1.9'/></svg> <b>${name}</b> 근로자의 체류자격 복구 트랜잭션을 블록체인에 전송 중...`, null);
       try {
         const res = await fetch(`${API_BASE_URL}/admin/credentials/${id}/restore`, { method: "POST" });
         const data = await res.json();
-        showNotification(`⚡ <b>${name}</b> 체류자격 복구 완료 (Tx: <code>${data.tx_hash}</code>)`, data.explorer_url);
+        showNotification(`<b>${name}</b> 체류자격 복구 완료 (Tx: <code>${data.tx_hash}</code>)`, data.explorer_url);
         loadList();
       } catch (e) {
         alert("복구 처리 중 오류가 발생했습니다.");
@@ -140,6 +181,7 @@
     loadList();
   </script>
   </div>
-  <div class="rolebar"><a href="home.html">← 역할 선택으로</a></div>
+  </div></div>
+  <div class="rolebar"><a href="home.html"><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m15 18-6-6 6-6'/></svg>서비스 선택으로</a></div>
 </body>
 </html>

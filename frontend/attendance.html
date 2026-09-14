@@ -19,15 +19,22 @@
 </style>
 </head>
 <body class="role-kiosk">
+  <div class="ks-top-bar">
+    <span class="ph-brand"><span class="nm">iM PASS</span><span class="role">사업자</span></span>
+    <span class="acts">
+      <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='12' r='3.2'/><path d='M4.8 15.4a1.7 1.7 0 0 0-.4 1.9l.6 1a1.7 1.7 0 0 0 1.7.8l1.3-.2 1.6.9.5 1.2a1.7 1.7 0 0 0 1.6 1h1.2a1.7 1.7 0 0 0 1.6-1l.5-1.2 1.6-.9 1.3.2a1.7 1.7 0 0 0 1.7-.8l.6-1a1.7 1.7 0 0 0-.4-1.9l-.9-1v-1.8l.9-1a1.7 1.7 0 0 0 .4-1.9l-.6-1a1.7 1.7 0 0 0-1.7-.8l-1.3.2-1.6-.9-.5-1.2a1.7 1.7 0 0 0-1.6-1h-1.2a1.7 1.7 0 0 0-1.6 1l-.5 1.2-1.6.9-1.3-.2a1.7 1.7 0 0 0-1.7.8l-.6 1a1.7 1.7 0 0 0 .4 1.9l.9 1v1.8l-.9 1Z'/></svg>
+      <a href="home.html" class="btn-switch-service"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
+    </span>
+  </div>
+
   <div class="ks-head">
     <h1>사업장 근태 시스템</h1>
-    <span class="site">출입구 단말 · 회사 소유 기록</span>
+    <span class="site">출입구 단말 · 실시간 근태 및 온체인 출입 검증</span>
   </div>
-    <div class="orgbar">
-      <a href="scan.html">사업장 · 병원 스캐너</a>
-      <a href="attendance.html" class="on">출퇴근 단말</a>
-      <a href="insurer.html">보험사 접수함</a>
-    </div>
+  <div class="orgbar">
+    <a href="scan.html">자격 확인</a>
+    <a href="attendance.html" class="on">근태 등록</a>
+  </div>
   <div class="ks-wrap">
 
   <p style="font-size:13px;color:#64748b;margin-top:-6px;">
@@ -78,13 +85,13 @@
       const d = await res.json();
 
       if (!res.ok) {
-        box.innerHTML = `<div class="no"><b>❌ 스캔 실패</b><br/>${esc(d.detail)}</div>`;
+        box.innerHTML = `<div class="no"><b><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><path d='M6 6l12 12M18 6 6 18'/></svg> 스캔 실패</b><br/>${esc(d.detail)}</div>`;
         return;
       }
       if (d.result !== "pass") {
         box.innerHTML = `
           <div class="no">
-            <b>⛔ 출근 차단 — ${esc(d.reason)}</b><br/>
+            <b><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><circle cx='12' cy='12' r='9'/><path d='M12 7.5v5.2M12 16.2v.2'/></svg> 출근 차단 — ${esc(d.reason)}</b><br/>
             ${esc(d.worker_name)}<br/>
             <span style="font-size:12.5px;">${esc(d.message)}</span><br/>
             <span style="font-size:12px;">온체인 상태: <b>${esc(d.onchain_proof?.status_name).toUpperCase()}</b></span>
@@ -100,7 +107,7 @@
       const r = d.record;
       box.innerHTML = `
         <div class="ok">
-          <b>✅ ${r.check_type === "in" ? "출근" : "퇴근"} 기록됨</b><br/>
+          <b><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><path d='m5 12.5 4.5 4.5L19 7.5'/></svg> ${r.check_type === "in" ? "출근" : "퇴근"} 기록됨</b><br/>
           ${esc(r.worker_name)} · ${esc(r.site_name)}<br/>
           <span style="font-size:12.5px;">${hhmm(r.server_time)} (회사 스캐너 기준 시각)</span>
           ${r.worked_minutes != null ? `<br/><span style="font-size:12.5px;">근무 ${Math.floor(r.worked_minutes/60)}시간 ${r.worked_minutes%60}분</span>` : ""}
@@ -138,6 +145,6 @@
     setInterval(loadSite, 10000);
   </script>
   </div>
-  <div class="rolebar"><a href="home.html">← 역할 선택으로</a></div>
+  <div class="rolebar"><a href="home.html"><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m15 18-6-6 6-6'/></svg>서비스 선택으로</a></div>
 </body>
 </html>

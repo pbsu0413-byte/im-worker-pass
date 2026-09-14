@@ -2,663 +2,138 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>iM 워커패스 — 외국인 근로자 분산신원인증(DID)</title>
-
-<!-- PWA 메타태그 -->
-<link rel="manifest" href="manifest.json" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="iM패스" />
-<meta name="theme-color" content="#ffffff" />
-<link rel="apple-touch-icon" href="apple-touch-icon.png" />
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iM PASS — 서비스 선택</title>
+<link rel="stylesheet" href="ui.css" />
 <style>
-  :root {
-    --im-green: #0b8a5f;
-    --im-green-dark: #075e40;
-    --im-green-light: #e8f7f0;
-    --im-blue: #1d6bf3;
-    --ink: #0f172a;
-    --muted: #475569;
-    --faint: #94a3b8;
-    --line: #e2e8f0;
-    --bg: #f8fafc;
-    --card: #ffffff;
+  .trust {
+    margin-top: 40px;
+    background: var(--im-surface);
+    border: 1px solid var(--im-line);
+    border-radius: var(--radius-card);
+    padding: var(--space-6);
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    letter-spacing: -0.025em;
-    min-height: 100vh;
+  .trust h2 {
+    margin: 0 0 var(--space-4);
+    font-size: var(--font-section); font-weight: 700;
+    letter-spacing: -0.4px; color: var(--im-black);
   }
-
-  .container {
-    max-width: 1140px;
-    margin: 0 auto;
-    padding: 0 24px;
+  .trust-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+  .trust-step { display: flex; gap: var(--space-3); align-items: flex-start; }
+  .trust-step .n {
+    width: 26px; height: 26px; border-radius: 999px; flex: none;
+    display: grid; place-items: center;
+    background: var(--im-mint-light); color: var(--im-mint-dark);
+    font-size: var(--font-micro); font-weight: 700;
   }
-
-  /* ── 상단 GNB ── */
-  .header-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 22px 0;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
-  }
-  .brand-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-    color: inherit;
-  }
-  .brand-logo {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    background: var(--im-green);
-    color: #ffffff;
-    display: grid;
-    place-items: center;
-    font-size: 14px;
-    font-weight: 800;
-    box-shadow: 0 4px 10px rgba(11, 138, 95, 0.25);
-  }
-  .brand-title {
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: var(--ink);
-  }
-  .brand-by {
-    font-size: 12.5px;
-    color: var(--faint);
-    font-weight: 600;
-    margin-left: 2px;
-  }
-
-  .nav-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-  .nav-link {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--muted);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-  .nav-link:hover { color: var(--ink); }
-  .btn-nav-primary {
-    background: var(--ink);
-    color: #ffffff;
-    text-decoration: none;
-    padding: 9px 20px;
-    border-radius: 999px;
-    font-size: 13.5px;
-    font-weight: 700;
-    transition: all 0.15s;
-  }
-  .btn-nav-primary:hover {
-    background: #1e293b;
-    transform: translateY(-1px);
-  }
-
-  /* ── 2단 히어로 섹션 ── */
-  .hero-section {
-    padding: 56px 0 68px;
-    display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 48px;
-    align-items: center;
-  }
-
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--im-green);
-    background: var(--im-green-light);
-    padding: 5px 12px;
-    border-radius: 999px;
-    margin-bottom: 20px;
-  }
-  .hero-badge .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--im-green);
-  }
-
-  .hero-heading {
-    font-size: 42px;
-    line-height: 1.25;
-    font-weight: 850;
-    letter-spacing: -1.5px;
-    color: var(--ink);
-    margin-bottom: 20px;
-  }
-
-  .hero-desc {
-    font-size: 16px;
-    line-height: 1.8;
-    color: var(--muted);
-    margin-bottom: 34px;
-    max-width: 520px;
-  }
-
-  .hero-buttons {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .btn-hero-primary {
-    background: var(--im-green);
-    color: #ffffff;
-    text-decoration: none;
-    padding: 14px 28px;
-    border-radius: 999px;
-    font-size: 14.5px;
-    font-weight: 750;
-    transition: all 0.15s;
-    box-shadow: 0 4px 14px rgba(11, 138, 95, 0.3);
-  }
-  .btn-hero-primary:hover {
-    background: var(--im-green-dark);
-    transform: translateY(-1px);
-  }
-  .btn-hero-secondary {
-    background: #ffffff;
-    color: var(--ink);
-    text-decoration: none;
-    padding: 14px 26px;
-    border-radius: 999px;
-    font-size: 14.5px;
-    font-weight: 700;
-    border: 1px solid #cbd5e1;
-    transition: all 0.15s;
-  }
-  .btn-hero-secondary:hover {
-    background: #f1f5f9;
-    transform: translateY(-1px);
-  }
-
-  /* ── 우측: 깔쌈한 iM 디지털 신분증 카드 (모바일 패스 목업) ── */
-  .pass-mockup-wrap {
-    position: relative;
-    perspective: 1000px;
-  }
-  .pass-card-visual {
-    background: linear-gradient(145deg, #0b8a5f 0%, #064e3b 100%);
-    color: #ffffff;
-    border-radius: 24px;
-    padding: 26px 26px 22px;
-    box-shadow: 0 20px 40px -12px rgba(11, 138, 95, 0.4), 0 0 0 1px rgba(255,255,255,0.15) inset;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-  }
-  .pass-card-visual:hover {
-    transform: translateY(-4px) rotate(-0.5deg);
-  }
-  .pass-card-visual::after {
-    content: "";
-    position: absolute;
-    top: -50px;
-    right: -50px;
-    width: 180px;
-    height: 180px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .pass-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-  }
-  .pass-brand-tag {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12.5px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    opacity: 0.95;
-  }
-  .pass-ic-chip {
-    width: 36px;
-    height: 26px;
-    border-radius: 6px;
-    background: linear-gradient(135deg, #fcd34d 0%, #d97706 100%);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.3);
-  }
-
-  .pass-body {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 22px;
-  }
-  .pass-user-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    opacity: 0.75;
-    margin-bottom: 4px;
-  }
-  .pass-user-name {
-    font-size: 22px;
-    font-weight: 850;
-    letter-spacing: -0.5px;
-    margin-bottom: 8px;
-  }
-  .pass-badge-pills {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .pill-visa {
-    background: rgba(255,255,255,0.2);
-    font-size: 11.5px;
-    font-weight: 700;
-    padding: 3px 9px;
-    border-radius: 999px;
-    backdrop-filter: blur(4px);
-  }
-  .pill-status {
-    background: #ecfdf5;
-    color: #065f46;
-    font-size: 11.5px;
-    font-weight: 800;
-    padding: 3px 9px;
-    border-radius: 999px;
-  }
-
-  /* QR 코드 그래픽 */
-  .pass-qr-box {
-    width: 76px;
-    height: 76px;
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 6px;
-    display: grid;
-    place-items: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    flex-shrink: 0;
-  }
-  .pass-qr-svg {
-    width: 100%;
-    height: 100%;
-  }
-
-  .pass-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 14px;
-    border-top: 1px solid rgba(255,255,255,0.15);
-    font-size: 12px;
-    opacity: 0.85;
-  }
-  .pass-verified-badge {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-weight: 600;
-  }
-  .pass-verified-badge::before {
-    content: "✓";
-    display: inline-grid;
-    place-items: center;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #10b981;
-    color: #fff;
-    font-size: 9px;
-    font-weight: 800;
-  }
-
-  /* ── 3. 역할별 3개 서비스 카드 (깔쌈한 카드 디자인) ── */
-  .roles-section {
-    padding: 40px 0 60px;
-    border-top: 1px solid var(--line);
-  }
-  .section-label {
-    font-size: 13.5px;
-    font-weight: 750;
-    color: var(--im-green);
-    margin-bottom: 8px;
-  }
-  .section-title {
-    font-size: 26px;
-    font-weight: 850;
-    letter-spacing: -0.7px;
-    color: var(--ink);
-    margin-bottom: 28px;
-  }
-
-  .roles-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-
-  .role-card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    padding: 26px 24px 22px;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
-  }
-  .role-card:hover {
-    border-color: var(--im-green);
-    transform: translateY(-4px);
-    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
-  }
-
-  .card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-  .card-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    display: grid;
-    place-items: center;
-    font-size: 24px;
-  }
-  .icon-worker { background: #eff6ff; }
-  .icon-scanner { background: #ecfdf5; }
-  .icon-console { background: #f1f5f9; }
-
-  .card-pill {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 9px;
-    border-radius: 999px;
-    color: var(--muted);
-    background: #f1f5f9;
-  }
-
-  .card-nm {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--ink);
-    margin-bottom: 8px;
-    letter-spacing: -0.4px;
-  }
-  .card-de {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.7;
-    margin-bottom: 20px;
-    flex-grow: 1;
-  }
-  .card-foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid #f1f5f9;
-    padding-top: 14px;
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--im-green);
-  }
-  .card-target {
-    font-size: 11.5px;
-    color: var(--faint);
-    font-weight: 500;
-  }
-
-  .site-disclaimer {
-    margin: 20px 0 60px;
-    font-size: 12px;
-    color: var(--faint);
-    line-height: 1.7;
-  }
-
-  /* ── 반응형 모바일 (768px 이하) ── */
-  @media (max-width: 768px) {
-    .container {
-      padding: 0 18px;
-    }
-    .header-nav {
-      padding: max(14px, env(safe-area-inset-top)) 0 14px;
-    }
-    .nav-link { display: none; }
-    .brand-by { display: none; }
-    .btn-nav-primary {
-      padding: 7px 15px;
-      font-size: 12.5px;
-    }
-
-    .hero-section {
-      grid-template-columns: 1fr;
-      gap: 32px;
-      padding: 28px 0 38px;
-    }
-    .hero-heading {
-      font-size: 28px;
-      line-height: 1.35;
-      margin-bottom: 14px;
-    }
-    .hero-desc {
-      font-size: 14.5px;
-      margin-bottom: 24px;
-    }
-    .hero-buttons {
-      gap: 10px;
-    }
-    .btn-hero-primary,
-    .btn-hero-secondary {
-      flex: 1;
-      text-align: center;
-      padding: 12px 14px;
-      font-size: 13.5px;
-    }
-
-    .pass-card-visual {
-      padding: 20px;
-      border-radius: 20px;
-    }
-    .pass-user-name {
-      font-size: 19px;
-    }
-    .pass-qr-box {
-      width: 68px;
-      height: 68px;
-    }
-
-    .roles-section {
-      padding: 28px 0 40px;
-    }
-    .section-title {
-      font-size: 22px;
-      margin-bottom: 18px;
-    }
-    .roles-grid {
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    .role-card {
-      padding: 20px 18px 18px;
-      border-radius: 16px;
-    }
-  }
+  .trust-step > span:last-child { display: block; }
+  .trust-step .t { display: block; font-size: 14px; font-weight: 600; color: var(--im-text); }
+  .trust-step .d { display: block; font-size: var(--font-caption); color: var(--im-subtext); line-height: 1.6; margin-top: 3px; }
+  @media (max-width: 860px) { .trust-steps { grid-template-columns: 1fr; } }
 </style>
 </head>
-<body>
+<body class="launcher">
 
-<div class="container">
-  <!-- 상단 GNB -->
-  <header class="header-nav">
-    <a class="brand-wrap" href="home.html">
-      <div class="brand-logo">iM</div>
-      <span class="brand-title">워커패스</span>
-      <span class="brand-by">by iM뱅크</span>
+<header class="launcher-top">
+  <span class="im-logo">
+    <svg viewBox="0 0 26 23" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M3 19.5V8.2c0-1.9 2.4-2.8 3.6-1.3L13 14.8l6.4-7.9C20.6 5.4 23 6.3 23 8.2v11.3"
+            stroke="#00C7A9" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="wm">iM뱅크</span>
+  </span>
+  <span class="acts">
+    <svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5'/></svg>
+    <svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
+    <svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 7h16M4 12h16M4 17h16'/></svg>
+  </span>
+</header>
+
+<main class="launcher-body">
+  <div class="launcher-head">
+    <div class="kicker tx-brand" style="font-size:17px;color:var(--im-text);">생활과 금융을 연결하는 새로운 신원지갑</div>
+    <h1>이용할 서비스를 선택해 주세요</h1>
+  </div>
+
+  <div class="app-grid">
+
+    <a class="app-card theme-worker" href="people.html">
+      <span class="app-icon">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="2" y="4" width="20" height="16" rx="3"/>
+          <circle cx="9" cy="10.5" r="2.2"/>
+          <path d="M5.6 16.4c.6-1.5 1.9-2.3 3.4-2.3s2.8.8 3.4 2.3"/>
+          <path d="M16 9.5h4M16 13.5h3"/>
+        </svg>
+      </span>
+      <span class="app-badge">개인</span>
+      <span class="app-name">iM PASS 근로자</span>
+      <span class="app-desc">내 자격을 보관하고 필요한 곳에 제출해요</span>
+      <span class="app-go">
+        <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m9 18 6-6-6-6'/></svg>
+      </span>
     </a>
-    <nav class="nav-right">
-      <a class="nav-link" href="#roles">이용 안내</a>
-      <a class="nav-link" href="#disclaimer">개인정보 보호</a>
-      <a class="btn-nav-primary" href="people.html">지갑 열기 →</a>
-    </nav>
-  </header>
 
-  <!-- 2단 히어로 섹션 -->
-  <section class="hero-section">
-    <div class="hero-content">
-      <div class="hero-badge">
-        <span class="dot"></span>
-        <span>iM뱅크 × 블록체인 분산신원인증 (DID)</span>
+    <a class="app-card theme-business" href="scan.html">
+      <span class="app-icon">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 8V5.5A2.5 2.5 0 0 1 5.5 3H8M16 3h2.5A2.5 2.5 0 0 1 21 5.5V8M21 16v2.5a2.5 2.5 0 0 1-2.5 2.5H16M8 21H5.5A2.5 2.5 0 0 1 3 18.5V16"/>
+          <path d="M6 12h12"/>
+          <rect x="8.5" y="7" width="3.5" height="3"/>
+        </svg>
+      </span>
+      <span class="app-badge">기업</span>
+      <span class="app-name">iM PASS 사업자</span>
+      <span class="app-desc">근로자의 자격을 빠르고 안전하게 확인해요</span>
+      <span class="app-go">
+        <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m9 18 6-6-6-6'/></svg>
+      </span>
+    </a>
+
+    <a class="app-card theme-institution" href="admin.html">
+      <span class="app-icon">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3.5 20.5h17M5 20.5V10M19 20.5V10M12 3l8 5.5H4L12 3z"/>
+          <path d="M12 11.8l3 1v2.4c0 1.7-1.2 3.1-3 3.6-1.8-.5-3-1.9-3-3.6v-2.4l3-1z"/>
+        </svg>
+      </span>
+      <span class="app-badge">관리자</span>
+      <span class="app-name">iM PASS 은행·기관</span>
+      <span class="app-desc">자격을 발급하고 변경 상태를 관리해요</span>
+      <span class="app-go">
+        <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m9 18 6-6-6-6'/></svg>
+      </span>
+    </a>
+
+  </div>
+
+  <section class="trust">
+    <h2>안심하고 쓸 수 있는 이유</h2>
+    <div class="trust-steps">
+      <div class="trust-step">
+        <span class="n">1</span>
+        <span>
+          <span class="t">자격을 원장에 등록해요</span>
+          <span class="d">은행 창구에서 본인 확인을 마치면 자격이 분산원장에 등록돼요. 등록 이후 변경 이력이 안전하게 보호돼요.</span>
+        </span>
       </div>
-      <h1 class="hero-heading">
-        체류자격은,<br/>
-        지갑 하나로 증명합니다.
-      </h1>
-      <p class="hero-desc">
-        외국인 근로자의 체류자격을 블록체인 원장에 기록하고, 회사·병원·보험사가 QR 한 장으로 실시간 검증합니다. 이름과 계좌번호는 어디에도 올라가지 않습니다.
-      </p>
-      <div class="hero-buttons">
-        <a class="btn-hero-primary" href="people.html">근로자 지갑 발급</a>
-        <a class="btn-hero-secondary" href="scan.html">기관용 검증 스캐너</a>
+      <div class="trust-step">
+        <span class="n">2</span>
+        <span>
+          <span class="t">필요한 정보만 골라 제출해요</span>
+          <span class="d">제출할 곳을 정하면 그곳에 필요한 항목만 담긴 QR이 만들어져요. 이름과 계좌는 원장에 올라가지 않아요.</span>
+        </span>
       </div>
-    </div>
-
-    <!-- 우측: 모바일 패스 디지털 카드 목업 (깔쌈한 핀테크 그래픽) -->
-    <div class="pass-mockup-wrap">
-      <div class="pass-card-visual">
-        <div class="pass-header">
-          <div class="pass-brand-tag">
-            <span>iM뱅크</span>
-            <span>·</span>
-            <span>Worker Pass</span>
-          </div>
-          <div class="pass-ic-chip"></div>
-        </div>
-
-        <div class="pass-body">
-          <div class="pass-user-info">
-            <div class="pass-user-title">DIGITAL IDENTITY</div>
-            <div class="pass-user-name">NGUYEN VAN A</div>
-            <div class="pass-badge-pills">
-              <span class="pill-visa">E-9 비전문취업</span>
-              <span class="pill-status">● 유효 (Valid)</span>
-            </div>
-          </div>
-
-          <!-- 미니멀 QR 그래픽 -->
-          <div class="pass-qr-box">
-            <svg class="pass-qr-svg" viewBox="0 0 24 24" fill="#0f172a">
-              <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 0h-2v2h2v-2zm-4 0h2v2h-2v-2zm2 4h-2v2h2v-2zm2 0h2v2h-2v-2zm0-2h2v-2h-2v2zm-2-2h-2v-2h2v2zm-4-4h2v2h-2v-2zm2 2h2v2h-2v-2z"/>
-            </svg>
-          </div>
-        </div>
-
-        <div class="pass-footer">
-          <span class="pass-verified-badge">Polygon On-Chain Verified</span>
-          <span>D-183일 만료예정</span>
-        </div>
+      <div class="trust-step">
+        <span class="n">3</span>
+        <span>
+          <span class="t">받는 곳에서 바로 확인해요</span>
+          <span class="d">사업장 단말이 자격 상태를 그 자리에서 대조해요. 철회되거나 만료된 자격은 즉시 걸러져요.</span>
+        </span>
       </div>
     </div>
   </section>
+</main>
 
-  <!-- 하단 3대 역할 분기 카드 그리드 -->
-  <section class="roles-section" id="roles">
-    <div class="section-label">누가, 어떻게 쓰나요</div>
-    <h2 class="section-title">세 가지 관점에서 하나의 원장을 봅니다</h2>
-
-    <div class="roles-grid">
-      <!-- 1. 근로자 -->
-      <a class="role-card" href="people.html">
-        <div>
-          <div class="card-top">
-            <div class="card-icon icon-worker">📱</div>
-            <span class="card-pill">모바일 지갑</span>
-          </div>
-          <h3 class="card-nm">근로자 모바일 지갑</h3>
-          <p class="card-de">내 지갑에서 QR 체류자격 증명, 근태·급여 명세 확인, 본국 실시간 송금 및 외국인 맞춤 금융 서비스를 이용합니다.</p>
-        </div>
-        <div class="card-foot">
-          <span class="card-target">휴대폰 · 전용 앱</span>
-          <span>지갑 열기 →</span>
-        </div>
-      </a>
-
-      <!-- 2. 기업 · 기관 -->
-      <a class="role-card" href="scan.html">
-        <div>
-          <div class="card-top">
-            <div class="card-icon icon-scanner">🏢</div>
-            <span class="card-pill">검증 단말기</span>
-          </div>
-          <h3 class="card-nm">사업장 · 병원 스캐너</h3>
-          <p class="card-de">출입구와 접수대의 단말이 QR을 읽어 서명과 온체인 상태를 즉시 확인하고, 출퇴근 기록 및 보험 접수를 처리합니다.</p>
-        </div>
-        <div class="card-foot">
-          <span class="card-target">현장 키오스크 단말</span>
-          <span>스캐너 실행 →</span>
-        </div>
-      </a>
-
-      <!-- 3. 은행 · 발급기관 -->
-      <a class="role-card" href="admin.html">
-        <div>
-          <div class="card-top">
-            <div class="card-icon icon-console">🏦</div>
-            <span class="card-pill">관리 콘솔</span>
-          </div>
-          <h3 class="card-nm">은행 · 발급기관 콘솔</h3>
-          <p class="card-de">체류자격 상태를 관리하고, 비자 만료 시 온체인 철회(Revoke)를 전송하여 현장에서 즉시 효력이 막히는 것을 확인합니다.</p>
-        </div>
-        <div class="card-foot">
-          <span class="card-target">데스크톱 관리 콘솔</span>
-          <span>콘솔 열기 →</span>
-        </div>
-      </a>
-    </div>
-  </section>
-
-  <p class="site-disclaimer" id="disclaimer">
-    심사·시연용 프로토타입입니다. 외부기관 데이터는 모의 API와 시드로 대체했고,
-    실제 원천 주체가 답하는 항목은 화면에서 <b>실제 발급기관</b> 배지로 구분해 표시합니다.
-  </p>
-</div>
-
-<!-- PWA 백그라운드 서비스 워커 -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    });
-  }
-</script>
 </body>
 </html>

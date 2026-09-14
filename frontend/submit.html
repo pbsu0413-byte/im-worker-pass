@@ -28,9 +28,15 @@
 <body class="role-phone">
 <div class="phone">
   <header class="ph-top">
-    <div class="brand">iM Worker Pass</div>
-    <h1>증명 제출</h1>
-    <div class="who">필요한 곳에 필요한 것만</div>
+    <div class="ph-top-bar">
+      <span class="ph-brand"><span class="nm">iM PASS</span><span class="role">근로자</span></span>
+      <span class="acts">
+        <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
+        <a href="home.html" class="switch-link"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
+      </span>
+    </div>
+    <h1>증명 QR 제출</h1>
+    <div class="who">필요한 기관에 필요한 자격만 안전하게 제출</div>
   </header>
   <main class="ph-body">
 
@@ -48,8 +54,7 @@
     <div id="whoBox" style="margin-bottom:12px;"></div>
     <div class="card">
       <h3>1) 어디에 낼지 고르기</h3>
-      <label>credential_id</label>
-      <input id="credentialId" readonly />
+      <input id="credentialId" type="hidden" />
       <label>제출 대상</label>
       <select id="targetId" onchange="toggleSymptom()">
         <option value="company_A">company_A (A제조공장 — 이직 서류 대사 + 급여계좌 등록)</option>
@@ -192,7 +197,7 @@
         const t = new Date(last.server_time).toLocaleString("ko-KR", { hour12: false });
         document.getElementById("attendBox").innerHTML = `
           <div style="background:#e6f7ee;border:1px solid #2ecc71;color:#1e7e45;padding:12px;border-radius:10px;margin-top:10px;">
-            <b>✅ ${last.check_type === "in" ? "출근" : "퇴근"} ${t}</b><br/>
+            <b><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><path d='m5 12.5 4.5 4.5L19 7.5'/></svg> ${last.check_type === "in" ? "출근" : "퇴근"} ${t}</b><br/>
             <span style="font-size:12.5px;">${esc(last.site_name)} · 회사 스캐너 기준 시각으로 기록되었습니다.</span>
             ${last.worked_minutes != null
               ? `<br/><span style="font-size:12.5px;">근무 ${Math.floor(last.worked_minutes/60)}시간 ${last.worked_minutes%60}분</span>` : ""}
@@ -268,7 +273,10 @@
       const log = data.agency_lookups || [];
       document.getElementById("refreshBox").innerHTML = !log.length ? "" : `
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-top:10px;">
-          <div style="font-weight:600;font-size:13px;">🔄 제출 시점 재조회 ${log.length}건</div>
+          <div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;">
+            <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='width:16px;height:16px;'><path d='M20 7v5h-5'/><path d='M4 17v-5h5'/><path d='M6.1 8.2A7 7 0 0 1 18.7 10M5.3 14A7 7 0 0 0 17.9 15.8'/></svg>
+            제출 시점 재조회 ${log.length}건
+          </div>
           <div style="font-size:12px;color:#64748b;margin-bottom:4px;">${esc(data.refreshed_at)}</div>
           ${log.map(l => `
             <div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12.5px;">
@@ -318,11 +326,9 @@
   </script>
   </main>
   <nav class="ph-tabs">
-    <a href="wallet.html"><b>◎</b>홈</a>
-    <a href="submit.html" class="active"><b>❒</b>제출</a>
-    <a href="products.html"><b>◈</b>상품</a>
-    <a href="insurance.html"><b>✚</b>보험</a>
-    <a href="home.html"><b>⌂</b>역할</a>
+      <a href="wallet.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5' width='19' height='14' rx='3'/><circle cx='9' cy='11' r='2'/><path d='M6 15.8c.5-1.2 1.7-1.9 3-1.9s2.5.7 3 1.9'/><path d='M15.5 10.2h3.2M15.5 13.6h2.4'/></svg>내 패스</a>
+      <a href="submit.html" class="active"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 15.5V4'/><path d='m8 7.6 4-3.6 4 3.6'/><path d='M4.5 14v4.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V14'/></svg>제출</a>
+      <a href="products.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5.5' width='19' height='13' rx='3'/><path d='M2.5 10h19'/><path d='M6.5 14.6h3'/></svg>금융생활</a>
   </nav>
 </div>
 </body>
