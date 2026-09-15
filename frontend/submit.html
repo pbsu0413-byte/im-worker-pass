@@ -335,10 +335,7 @@
           </div>`;
       }).catch(() => {});
       I18N.renderSelector("langSelectorArea");
-      window.addEventListener("imwp-lang-change", (e) => {
-        const lang = e.detail?.lang || I18N.getLang();
-        I18N.translatePage(lang, true);
-      });
+      window.addEventListener("imwp-lang-change", () => I18N.apply());
     })();
   </script>
   </main>
