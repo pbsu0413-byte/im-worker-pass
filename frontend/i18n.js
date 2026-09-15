@@ -972,8 +972,16 @@ const I18N = {
   // 실패 시 기존 사전(data-i18n) 방식으로 폴백.
   // ─────────────────────────────────────────────────────────────
   _SKIP_TAGS: new Set(["SCRIPT", "STYLE", "NOSCRIPT", "IFRAME", "TEMPLATE", "CODE", "PRE"]),
-  _SKIP_CLASSES: ["lang-picker-box", "lang-select-dropdown", "lang-flag"],
+  _SKIP_CLASSES: ["lang-picker-box", "lang-select-dropdown", "lang-flag", "no-translate"],
 
+  /**
+   * 개인정보·건강정보 격리:
+   * 실명·계좌번호·외국인등록번호·체류자격·증상 진술 등 사용자별 동적 값은
+   * 절대 LLM(Gemini) 번역 API로 보내지 않는다. 해당 값을 렌더링하는 요소에
+   * data-no-translate 속성(또는 no-translate 클래스)을 붙이면 이 값들은
+   * _collectTextNodes()가 아예 수집하지 않으므로 서버로 전송되지 않는다.
+   * (번역이 필요 없는 고유명사·숫자·코드값이기도 하다.)
+   */
   /** 번역 대상 텍스트 노드를 DOM에서 수집한다. */
   _collectTextNodes() {
     const nodes = [];
@@ -990,6 +998,8 @@ const I18N = {
           while (parent && parent !== document.body) {
             if (this._SKIP_TAGS.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
             if (this._SKIP_CLASSES.some(c => parent.classList.contains(c))) return NodeFilter.FILTER_REJECT;
+            // 개인정보/건강정보 격리 — data-no-translate가 붙은 요소(및 그 하위)는 전송 대상에서 제외
+            if (parent.hasAttribute && parent.hasAttribute("data-no-translate")) return NodeFilter.FILTER_REJECT;
             // 언어 선택기 자체는 번역 제외
             if (parent.id === "langSelectorArea" || parent.id === "imLangSelect") return NodeFilter.FILTER_REJECT;
             parent = parent.parentElement;

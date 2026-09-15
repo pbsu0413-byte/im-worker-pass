@@ -330,7 +330,7 @@
         if (el) el.innerHTML = `
           <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;
                       padding:10px 12px;font-size:13px;">
-            현재 지갑: <b>${esc(w.worker_name)}</b> · ${esc(w.nationality)} · ${esc(w.visa_type)}
+            현재 지갑: <span data-no-translate><b>${esc(w.worker_name)}</b> · ${esc(w.nationality)} · ${esc(w.visa_type)}</span>
             <a href="wallet.html" style="float:right;font-size:12px;">다른 인물로 바꾸기</a>
           </div>`;
       }).catch(() => {});

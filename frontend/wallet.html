@@ -277,9 +277,9 @@
         <div class="step done" style="margin-top:12px;">
           <h4><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><path d='m5 12.5 4.5 4.5L19 7.5'/></svg> 실명확인 완료</h4>
           <div class="rows">
-            <div class="row"><span>확인 기관</span><span>${esc(data.bank_name)} (${esc(data.verified_by)})</span></div>
+            <div class="row"><span>확인 기관</span><span data-no-translate>${esc(data.bank_name)} (${esc(data.verified_by)})</span></div>
             <div class="row"><span>확인 방법</span><span>${esc(data.id_document)}</span></div>
-            <div class="row"><span>급여계좌</span><span>${esc(data.bank_name)} ${esc(data.account_number)}</span></div>
+            <div class="row"><span>급여계좌</span><span data-no-translate>${esc(data.bank_name)} ${esc(data.account_number)}</span></div>
             <div class="row"><span>최초 실명확인</span><span>${esc(data.kyc_date)}</span></div>
           </div>
           <div class="muted">이 확인은 30분간 유효하며 지갑 등록에 1회만 사용됩니다.</div>
@@ -472,9 +472,9 @@
           <div class="pc-main">
             <div class="pc-id">
               <div class="pc-label">${I18N.t("digital_identity", "Digital Identity")}</div>
-              <div class="pc-name">${esc(w.worker_name)}</div>
+              <div class="pc-name" data-no-translate>${esc(w.worker_name)}</div>
               <div class="pc-tags">
-                <span class="pc-tag">${esc(w.visa_type)}</span>
+                <span class="pc-tag" data-no-translate>${esc(w.visa_type)}</span>
                 <span class="pc-state"><span class="dot"></span>${statusText}</span>
               </div>
             </div>
@@ -520,8 +520,8 @@
             </span>
           </div>
           <div class="worker-status-grid">
-            <div><span>${I18N.t("label_visa_type", "체류자격")}</span><b>${esc(w.visa_type)}</b></div>
-            <div><span>${I18N.t("label_valid_until", "유효기간")}</span><b>${esc(w.visa_valid_until)}</b></div>
+            <div><span>${I18N.t("label_visa_type", "체류자격")}</span><b data-no-translate>${esc(w.visa_type)}</b></div>
+            <div><span>${I18N.t("label_valid_until", "유효기간")}</span><b data-no-translate>${esc(w.visa_valid_until)}</b></div>
           </div>
           <a class="worker-submit-link" href="submit.html">
             <span><b>${I18N.t("submit_lead", "제출할 서류가 있나요?")}</b><small>${I18N.t("submit_sub", "필요한 정보만 담은 60초 QR을 만들어요")}</small></span>
@@ -537,11 +537,11 @@
         <div class="card">
           <h3>내 지갑</h3>
           <div class="rows">
-            <div class="row"><span>대상자</span><span><b>${esc(w.worker_name)}</b></span></div>
-            <div class="row"><span>체류자격</span><span>${esc(w.visa_type)} · 만료 ${esc(w.visa_valid_until)}</span></div>
-            <div class="row"><span>급여계좌</span><span>${esc(w.account_bank)} ${esc(w.account_number)}</span></div>
+            <div class="row"><span>대상자</span><span data-no-translate><b>${esc(w.worker_name)}</b></span></div>
+            <div class="row"><span>체류자격</span><span data-no-translate>${esc(w.visa_type)} · 만료 ${esc(w.visa_valid_until)}</span></div>
+            <div class="row"><span>급여계좌</span><span data-no-translate>${esc(w.account_bank)} ${esc(w.account_number)}</span></div>
             <div class="row"><span>본인확인</span>
-              <span>${esc(w.wallet?.bank_name)} · ${esc(w.wallet?.id_document)}</span></div>
+              <span data-no-translate>${esc(w.wallet?.bank_name)} · ${esc(w.wallet?.id_document)}</span></div>
             <div class="row"><span>단말 키</span>
               <span style="color:${w.holder_registered ? '#15803d' : '#a92c22'};">
                 ${w.holder_registered ? '등록됨 ✓ 개인키는 단말 보관' : '미등록'}</span></div>
