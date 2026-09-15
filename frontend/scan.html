@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>iM Worker Pass - 스캐너 (회사/병원/보험)</title>
 <link rel="stylesheet" href="ui.css" />
+<script src="i18n.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
   .onchain-badge {
@@ -85,6 +86,7 @@
   <div class="ks-top-bar">
     <span class="ph-brand"><span class="nm">iM PASS</span><span class="role">사업자</span></span>
     <span class="acts">
+      <div id="langSelectorArea"></div>
       <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='12' r='3.2'/><path d='M4.8 15.4a1.7 1.7 0 0 0-.4 1.9l.6 1a1.7 1.7 0 0 0 1.7.8l1.3-.2 1.6.9.5 1.2a1.7 1.7 0 0 0 1.6 1h1.2a1.7 1.7 0 0 0 1.6-1l.5-1.2 1.6-.9 1.3.2a1.7 1.7 0 0 0 1.7-.8l.6-1a1.7 1.7 0 0 0-.4-1.9l-.9-1v-1.8l.9-1a1.7 1.7 0 0 0 .4-1.9l-.6-1a1.7 1.7 0 0 0-1.7-.8l-1.3.2-1.6-.9-.5-1.2a1.7 1.7 0 0 0-1.6-1h-1.2a1.7 1.7 0 0 0-1.6 1l-.5 1.2-1.6.9-1.3-.2a1.7 1.7 0 0 0-1.7.8l-.6 1a1.7 1.7 0 0 0 .4 1.9l.9 1v1.8l-.9 1Z'/></svg>
       <a href="home.html" class="btn-switch-service"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
     </span>
@@ -190,11 +192,14 @@
       }).catch(() => alert("복사에 실패했습니다."));
     }
 
-    function rxRow(label, value, copyable) {
+    function rxRow(label, value, copyable, sensitive) {
       const v = esc(val(value));
       const btn = copyable && v !== "—"
         ? `<button class="rx-mini" onclick="rxCopy('${v.replace(/'/g, "\\'")}', this)">복사</button>` : "";
-      return `<div class="rx-row"><span class="rx-label">${esc(label)}</span><span class="rx-val">${v}</span>${btn}</div>`;
+      // sensitive=true: 이 값은 환자/근로자 개인 식별정보·건강정보이므로
+      // LLM 번역 API로 절대 전송하지 않는다 (data-no-translate).
+      const valAttr = sensitive ? ' data-no-translate' : '';
+      return `<div class="rx-row"><span class="rx-label">${esc(label)}</span><span class="rx-val"${valAttr}>${v}</span>${btn}</div>`;
     }
 
     function onVerifierChange() {
@@ -375,17 +380,17 @@
       // ② 환자 진술
       const sym = data.symptom;
       const symBody = sym
-        ? rxRow("호소 내용", sym, isPass) +
+        ? rxRow("호소 내용", sym, isPass, true) +
           (data.symptom_original
-            ? rxRow("환자 원문", data.symptom_original + (data.symptom_locale ? " (" + data.symptom_locale + ")" : ""), false)
+            ? rxRow("환자 원문", data.symptom_original + (data.symptom_locale ? " (" + data.symptom_locale + ")" : ""), false, true)
             : "")
         : '<div class="rx-row"><span class="rx-val" style="color:#94a3b8;font-weight:500;">환자가 선택한 증상이 없습니다</span></div>';
 
       // ③ 보험 확인
       const insActive = data.insurance_active === true || !!data.insurance_product;
       const insBody = insActive
-        ? rxRow("가입 상태", val(data.insurance_product, "일상 상해보험") + " 가입 유효 ✓", false) +
-          rxRow("보험사", val(data.insurance_company, "제휴 손해보험사"), false)
+        ? rxRow("가입 상태", val(data.insurance_product, "일상 상해보험") + " 가입 유효 ✓", false, true) +
+          rxRow("보험사", val(data.insurance_company, "제휴 손해보험사"), false, true)
         : '<div class="rx-row"><span class="rx-val" style="color:#94a3b8;font-weight:500;">가입 정보 없음 — 접수는 그대로 진행됩니다</span></div>';
 
       const dim = isPass ? "" : ' style="opacity:.55;"';
@@ -403,17 +408,17 @@
               <span>[환자 기본정보]</span>
               ${isPass ? '<button class="rx-mini" onclick="rxCopyAll(this)">전체 복사</button>' : ""}
             </div>
-            ${rxRow("성명", name, isPass)}
+            ${rxRow("성명", name, isPass, true)}
             <div class="rx-row">
               <span class="rx-label">외국인등록번호</span>
-              <span class="rx-val" id="rxRegNo">${esc(rxMask(regNo))}</span>
+              <span class="rx-val" id="rxRegNo" data-no-translate>${esc(rxMask(regNo))}</span>
               ${regBtns}
             </div>
-            ${rxRow("생년월일 / 성별", (birth === "—" && gender === "—") ? "—" : (birth + " / " + gender), isPass)}
-            ${rxRow("국적", nat, isPass)}
+            ${rxRow("생년월일 / 성별", (birth === "—" && gender === "—") ? "—" : (birth + " / " + gender), isPass, true)}
+            ${rxRow("국적", nat, isPass, true)}
             <div class="rx-row">
               <span class="rx-label">체류자격 확인</span>
-              <span class="rx-val">
+              <span class="rx-val" data-no-translate>
                 <span class="${isPass ? "rx-ok" : "rx-bad"}">${esc(visa)} ${isPass ? "✓" : "✗"}</span>${visaEnd === "—" ? "" : " · 만료 " + esc(visaEnd)}
               </span>
             </div>
@@ -467,16 +472,16 @@
       const head = `
         <div class="agency-card">
           <div class="agency-title">사내 ERP 급여계좌 자동 연동 완료</div>
-          <div>• 근로자: <b>${esc(data.worker_name)}</b> (${esc(data.nationality)})</div>
-          <div>• 지급 계좌: <b>${esc(data.account_bank)} ${esc(data.account_number)}</b> (검증필)</div>
+          <div>• 근로자: <b data-no-translate>${esc(data.worker_name)}</b> (<span data-no-translate>${esc(data.nationality)}</span>)</div>
+          <div>• 지급 계좌: <b data-no-translate>${esc(data.account_bank)} ${esc(data.account_number)}</b> (검증필)</div>
           <div style="font-size:12px;color:#16a34a;margin-top:4px;">✓ 인사/회계 시스템 자동 등록 완료 (수기입력 0건)</div>
         </div>`;
       if (!d) return head;
 
-      const row = (left, right, color) => `
+      const row = (left, right, color, sensitive) => `
         <div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #eef2f7;font-size:13px;">
           <span style="color:#334155;white-space:nowrap;">${esc(left)}</span>
-          <span style="color:${color};text-align:right;">${esc(right)}</span>
+          <span style="color:${color};text-align:right;"${sensitive ? " data-no-translate" : ""}>${esc(right)}</span>
         </div>`;
 
       const block = (title, badge, badgeColor, bg, items) => `
@@ -487,8 +492,11 @@
           ${items}
         </div>`;
 
+      // verified 항목은 계좌번호·건강진단일·시험 응시일 등 근로자 개인 정보를 값에
+      // 담고 있으므로 번역 API로 보내지 않는다. attached/required/procedure는
+      // 서류명·행정절차 설명뿐이라 번역 대상으로 둔다.
       const verified = d.verified.map(v =>
-        row(`✓ ${v.name}`, `${v.value}  ·  ${v.issuer}`, "#15803d")).join("");
+        row(`✓ ${v.name}`, `${v.value}  ·  ${v.issuer}`, "#15803d", true)).join("");
       const attached = d.attached.map(v =>
         row(`${v.name}`, v.note, "#64748b")).join("");
       const required = d.required.map(v =>
@@ -592,7 +600,20 @@
         </div>
         ${agencySection}
         ${proofHtml}`;
+
+      // 새로 그려진 결과 패널에도 현재 언어의 번역을 적용한다 (PII/건강정보는
+      // data-no-translate로 이미 제외됨).
+      const lang = I18N.getLang();
+      if (lang !== "ko") I18N.translatePage(lang, true);
     }
+
+    (function boot() {
+      I18N.renderSelector("langSelectorArea");
+      window.addEventListener("imwp-lang-change", (e) => {
+        const lang = e.detail?.lang || I18N.getLang();
+        I18N.translatePage(lang, true);
+      });
+    })();
   </script>
   </div>
   <div class="rolebar"><a href="home.html"><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m15 18-6-6 6-6'/></svg>서비스 선택으로</a></div>
