@@ -177,7 +177,7 @@
       </span>
     </div>
     <h1 data-i18n="tab_finance">금융생활</h1>
-    <div class="who" id="whoLine" data-no-translate>불러오는 중…</div>
+    <div class="who" id="whoLine">불러오는 중…</div>
   </header>
   <main class="ph-body">
     <p class="sec-lead">
@@ -548,6 +548,13 @@
       document.body.appendChild(mask);
       fitToPhone(mask);
 
+      // 이 팝업은 최초 로드 이후에(슬라이더 조작·다시 열기 등으로) 새로 생길 수 있으므로
+      // 그때마다 현재 언어로 다시 번역한다.
+      {
+        const lang = I18N.getLang();
+        if (lang !== "ko") I18N.translatePage(lang, true);
+      }
+
       // 목표 금액 ↔ 월 납입 역산. 슬라이더와 입력칸이 서로를 따라간다.
       chosen = card.calc ? card.calc.target_default : null;
       if (card.calc) {
@@ -772,6 +779,12 @@
         // ④ 해외송금 구획도 같은 금액으로 다시 그린다
         const sec = document.getElementById("secFx");
         if (sec) sec.innerHTML = `<div class="sec-no">④ 지금 보내는 돈</div>${hedgeBlock(h)}`;
+        // 방금 새로 그린 내용에도 번역을 적용한다 (최초 로드 시점 이후에 생긴 DOM이라
+        // boot()의 1회성 translatePage 호출 범위 밖에 있었음).
+        {
+          const lang = I18N.getLang();
+          if (lang !== "ko") I18N.translatePage(lang, true);
+        }
 
         if (h.tier === "C") {
           adv.className = "advice";
