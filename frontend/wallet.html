@@ -599,7 +599,11 @@
         </div>`;
 
       paintKeyWarning(w.credential_id);
-      loadPassport(w.credential_id);
+      // loadPassport가 DOM을 채운 뒤 translatePage를 다시 호출해 동적 콘텐츠까지 번역
+      loadPassport(w.credential_id).then(() => {
+        const lang = I18N.getLang();
+        if (lang !== "ko") I18N.translatePage(lang, true);
+      });
     }
 
     // 이 브라우저에 이 지갑의 단말 키가 없으면 제출 단계에서 서명이 안 된다.
@@ -648,9 +652,15 @@
 
     (function boot() {
       I18N.renderSelector("langSelectorArea");
-      window.addEventListener("imwp-lang-change", () => {
-        I18N.apply();
-        if (activeWalletCid) loadWallet(activeWalletCid);
+      window.addEventListener("imwp-lang-change", (e) => {
+        const lang = e.detail?.lang || I18N.getLang();
+        // 동적 카드 재렌더링 → 완료 후 LLM 번역
+        if (activeWalletCid) {
+          loadWallet(activeWalletCid);
+          // loadWallet은 내부에서 loadPassport 완료 후 translatePage를 호출함
+        } else {
+          I18N.translatePage(lang, true);
+        }
       });
 
       // issue.html 에서 인물을 고르고 왔으면 그 사람으로 발급 화면부터 시작한다.
