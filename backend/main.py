@@ -33,6 +33,7 @@ from models import (
     PensionAllocationRequest,
     PresentationRequest,
     SavingsEnrollRequest,
+    TranslateRequest,
     VerifyRequest,
     WalletRegisterRequest,
 )
@@ -1408,6 +1409,100 @@ async def _no_cache(request, call_next):
         if h in response.headers:
             del response.headers[h]
     return response
+
+
+
+# ─────────────────────────────────────────────────────────────
+# /api/translate — LLM 기반 UI 번역 (Gemini gemini-2.0-flash)
+# 프론트에서 텍스트 배열과 목적 언어를 받아 Gemini API로 번역 후 배열로 돌려준다.
+# GEMINI_API_KEY 환경변수가 없으면 503을 반환해 프론트가 기존 사전으로 폴백하도록 한다.
+# ─────────────────────────────────────────────────────────────
+_LANG_NAMES = {
+    "en": "English",
+    "vi": "Vietnamese",
+    "th": "Thai",
+    "id": "Indonesian (Bahasa Indonesia)",
+    "uz": "Uzbek (Oʻzbekcha)",
+    "zh": "Simplified Chinese",
+    "ko": "Korean",
+}
+
+@app.post("/api/translate")
+async def translate_texts(req: TranslateRequest):
+    """
+    화면 텍스트 배열을 Gemini gemini-2.0-flash로 번역한다.
+    - 요청: { lang: "en", texts: ["안녕", "근로자", ...] }
+    - 응답: { translations: ["Hello", "Worker", ...] }
+    - ko 요청 또는 빈 배열은 원문 그대로 반환(API 호출 없음).
+    - GEMINI_API_KEY 미설정 시 503 반환 → 프론트가 기존 사전 폴백 사용.
+    """
+    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not gemini_key:
+        raise HTTPException(
+            status_code=503,
+            detail="GEMINI_API_KEY not configured. Falling back to dictionary."
+        )
+
+    texts = req.texts
+    lang_code = req.lang.lower()
+
+    # 한국어 요청이거나 빈 배열이면 원문 그대로
+    if lang_code == "ko" or not texts:
+        return {"translations": texts}
+
+    # 최대 200개 제한 (토큰 폭증 방지)
+    if len(texts) > 200:
+        raise HTTPException(status_code=400, detail="Too many texts (max 200 per request).")
+
+    lang_name = _LANG_NAMES.get(lang_code, lang_code)
+
+    # 빈 문자열·공백만 있는 항목은 건너뛰고 위치 기억
+    indices_to_translate = [i for i, t in enumerate(texts) if t and t.strip()]
+    texts_to_translate = [texts[i] for i in indices_to_translate]
+
+    if not texts_to_translate:
+        return {"translations": texts}
+
+    prompt = (
+        f"You are a UI localization expert. Translate the following Korean app UI texts to {lang_name}.\n"
+        "Rules:\n"
+        "- Return ONLY a valid JSON array of translated strings.\n"
+        "- Preserve the exact count and order.\n"
+        "- Keep proper nouns and brand names unchanged: iM뱅크, iM PASS, iM Worker Pass, Worker Pass.\n"
+        "- Keep numbers, dates, currency symbols, and HTML tags unchanged.\n"
+        "- Use natural, short UI-friendly phrasing (buttons, labels, short sentences).\n"
+        "- Do NOT add explanations, markdown, or extra text outside the JSON array.\n\n"
+        f"Texts to translate:\n{json.dumps(texts_to_translate, ensure_ascii=False)}"
+    )
+
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel("gemini-2.0-flash")
+        response = model.generate_content(prompt)
+        raw = response.text.strip()
+
+        # Gemini가 ```json ... ``` 블록으로 감싸는 경우 처리
+        if raw.startswith("```"):
+            lines = raw.split("\n")
+            raw = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+
+        translated = json.loads(raw)
+        if not isinstance(translated, list) or len(translated) != len(texts_to_translate):
+            raise ValueError("Unexpected response shape from Gemini.")
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"LLM translation failed: {str(e)}"
+        )
+
+    # 번역 결과를 원래 위치에 합치기 (빈 항목은 원문 유지)
+    result = list(texts)
+    for idx, translated_text in zip(indices_to_translate, translated):
+        result[idx] = translated_text
+
+    return {"translations": result}
 
 
 if os.path.isdir(_frontend_dir):
