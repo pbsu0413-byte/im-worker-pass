@@ -151,32 +151,19 @@
   .advice.ok { background:#ecfdf5; border-color:#a7f3d0; color:#047857; }
   .advice .hint { display:block; color:#94a3b8; font-size:11px; margin-top:5px; }
   .sec-lead { font-size:12px; color:#94a3b8; line-height:1.7; margin:0 0 14px; }
-  .lang-picker-box {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: var(--im-surface-soft, #f1f5f9); border: 1px solid var(--im-line, #e2e8f0);
-    padding: 3px 8px; border-radius: var(--radius-chip, 999px);
-  }
-  .lang-picker-box .lang-flag { font-size: 13px; line-height: 1; }
-  .lang-select-dropdown {
-    background: transparent; border: none; outline: none;
-    font-size: 11.5px; font-weight: 600; color: var(--im-text, #0f172a);
-    cursor: pointer; padding: 0; margin: 0; font-family: inherit;
-  }
 </style>
-<script src="i18n.js"></script>
 </head>
 <body class="role-phone">
 <div class="phone">
   <header class="ph-top">
     <div class="ph-top-bar">
-      <span class="ph-brand"><span class="nm">iM PASS</span><span class="role" data-i18n="worker_role">근로자</span></span>
+      <span class="ph-brand"><span class="nm">iM PASS</span><span class="role">근로자</span></span>
       <span class="acts">
-        <div id="langSelectorArea"></div>
         <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
-        <a href="home.html" class="switch-link"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg><span data-i18n="switch_service">서비스 전환</span></a>
+        <a href="home.html" class="switch-link"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
       </span>
     </div>
-    <h1 data-i18n="tab_finance">금융생활</h1>
+    <h1>금융생활</h1>
     <div class="who" id="whoLine">불러오는 중…</div>
   </header>
   <main class="ph-body">
@@ -790,31 +777,17 @@
     }
 
     (function boot() {
-      // i18n 언어 선택기 렌더링
-      I18N.renderSelector("langSelectorArea");
-      window.addEventListener("imwp-lang-change", (e) => {
-        const lang = e.detail?.lang || I18N.getLang();
-        I18N.translatePage(lang, true);
-      });
-
       let cid = null;
       try { cid = localStorage.getItem(CID_STORE); } catch (e) {}
       if (!cid) { location.replace("wallet.html"); return; }
-
-      // 동적 콘텐츠(상품 카드) 렌더 완료 후 LLM 번역 시작
-      loadRecommendations(cid)
-        .then(() => loadProducts(cid))
-        .then(() => {
-          const lang = I18N.getLang();
-          if (lang !== "ko") I18N.translatePage(lang, true);
-        });
+      loadRecommendations(cid).then(() => loadProducts(cid));
     })();
 </script>
   </main>
   <nav class="ph-tabs">
-      <a href="wallet.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5' width='19' height='14' rx='3'/><circle cx='9' cy='11' r='2'/><path d='M6 15.8c.5-1.2 1.7-1.9 3-1.9s2.5.7 3 1.9'/><path d='M15.5 10.2h3.2M15.5 13.6h2.4'/></svg><span data-i18n="tab_mypass">내 패스</span></a>
-      <a href="submit.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 15.5V4'/><path d='m8 7.6 4-3.6 4 3.6'/><path d='M4.5 14v4.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V14'/></svg><span data-i18n="tab_submit">제출</span></a>
-      <a href="products.html" class="active"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5.5' width='19' height='13' rx='3'/><path d='M2.5 10h19'/><path d='M6.5 14.6h3'/></svg><span data-i18n="tab_finance">금융생활</span></a>
+      <a href="wallet.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5' width='19' height='14' rx='3'/><circle cx='9' cy='11' r='2'/><path d='M6 15.8c.5-1.2 1.7-1.9 3-1.9s2.5.7 3 1.9'/><path d='M15.5 10.2h3.2M15.5 13.6h2.4'/></svg>내 패스</a>
+      <a href="submit.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 15.5V4'/><path d='m8 7.6 4-3.6 4 3.6'/><path d='M4.5 14v4.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V14'/></svg>제출</a>
+      <a href="products.html" class="active"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5.5' width='19' height='13' rx='3'/><path d='M2.5 10h19'/><path d='M6.5 14.6h3'/></svg>금융생활</a>
   </nav>
 </div>
 </body>
