@@ -95,6 +95,48 @@ const I18N_DICT = {
     dest_insurer: "보험사 가입",
     dest_insurer_desc: "출국만기보험 및 상해보험 청구/가입",
     btn_generate_qr: "60초 일회용 QR 생성",
+    submit_page_title: "iM Worker Pass - 제출",
+    submit_h1: "증명 QR 제출",
+    submit_who_desc: "필요한 기관에 필요한 자격만 안전하게 제출",
+    submit_lead_desc: "제출은 낼 때마다 합니다. 체인에는 아무것도 쓰지 않고, 기관에 다시 물어 최신 값으로 만듭니다.",
+    no_wallet_title: "지갑이 없습니다",
+    no_wallet_desc: "먼저 지갑을 발급받아야 합니다. 발급은 최초 1회입니다.",
+    btn_goto_wallet: "지갑 발급하러 가기 →",
+    submit_step1_title: "1) 어디에 낼지 고르기",
+    label_submit_target: "제출 대상",
+    label_symptom: "병원에 전달할 증상",
+    symptom_note: "환자 본인의 진술이며 진단이 아닙니다.",
+    symptom_cough: "기침이 있어요",
+    symptom_back_pain: "허리가 아파요",
+    symptom_fever: "열이 나는 것 같아요",
+    symptom_stomach: "속이 불편해요",
+    symptom_itchy: "피부가 가려워요",
+    attend_hint: "출퇴근은 기관 재조회를 하지 않습니다. 매일 두 번 물어볼 일이 아니고, 필요한 것은 체류자격이 살아 있는지뿐이며 그것은 스캔 시 체인 조회로 확인됩니다. <b>시각은 회사 스캐너가 읽는 순간 회사 근태 시스템이 찍습니다.</b>",
+    insurance_redirect_note: "보험은 상품 선택이 곧 수령처 선택이라 QR이 필요 없습니다 — <a href=\"insurance.html\">④ 보험</a> 화면에서 진행합니다.",
+    btn_sign_and_generate_qr: "단말 서명 & QR 생성",
+    submit_step2_title: "2) 제출용 QR",
+    btn_renew_qr: "QR 다시 생성",
+    payload_copy_note: "아래 payload를 복사해 <b>③ 스캐너</b>의 붙여넣기 창에 넣으면 카메라 없이도 검증을 테스트할 수 있습니다. 계좌번호를 한 글자 바꿔 넣으면 위변조 시연이 됩니다.",
+    copy_payload_title: "payload 복사",
+    copy_done_title: "복사됨",
+    copy_fail_title: "복사 실패 — 직접 선택하세요",
+    submit_rejected: "제출이 거부되었습니다.",
+    sig_verified_msg: "✓ 단말 서명 검증 통과 — 이 지갑의 주인이 보낸 요청입니다.",
+    sig_not_registered_msg: "단말 키가 등록되지 않은 지갑입니다. 서명 검증을 건너뛰었습니다.",
+    attend_wait_msg: "사업장 스캐너가 이 QR을 읽으면 결과가 여기에 표시됩니다.",
+    checkin_label: "출근",
+    checkout_label: "퇴근",
+    worked_time_label: "근무",
+    site_scanner_time_note: "회사 스캐너 기준 시각으로 기록되었습니다.",
+    lookup_count_label: "제출 시점 재조회",
+    lookup_real_badge: "실제 발급기관",
+    lookup_mock_badge: "모의 API",
+    lookup_footer_note: "카드를 미리 받아 보관하지 않고 낼 때마다 다시 물으므로, 낡은 버전이라는 것이 존재하지 않습니다. 목적에 필요 없는 기관에는 묻지 않습니다.",
+    qr_time_left_label: "QR 유효시간: ",
+    qr_expired_label: "QR 만료됨",
+    current_wallet_label: "현재 지갑: ",
+    switch_person_link: "다른 인물로 바꾸기",
+    qr_expired_payload_msg: "만료된 QR은 사용할 수 없습니다.",
   },
 
   en: {
@@ -180,6 +222,48 @@ const I18N_DICT = {
     dest_insurer: "Insurance Claim",
     dest_insurer_desc: "Departure guarantee insurance & accident compensation",
     btn_generate_qr: "Generate 60-second One-Time QR",
+    submit_page_title: "iM Worker Pass - Submit",
+    submit_h1: "Submit Proof QR",
+    submit_who_desc: "Safely submit only the credentials each institution needs",
+    submit_lead_desc: "You submit fresh each time. Nothing is written on-chain — the latest values are re-checked with each institution.",
+    no_wallet_title: "No wallet found",
+    no_wallet_desc: "You need to issue a wallet first. This is a one-time step.",
+    btn_goto_wallet: "Go issue a wallet →",
+    submit_step1_title: "1) Choose where to submit",
+    label_submit_target: "Submit to",
+    label_symptom: "Symptom to tell the hospital",
+    symptom_note: "This is the patient's own statement, not a diagnosis.",
+    symptom_cough: "I have a cough",
+    symptom_back_pain: "My back hurts",
+    symptom_fever: "I think I have a fever",
+    symptom_stomach: "My stomach feels upset",
+    symptom_itchy: "My skin is itchy",
+    attend_hint: "Clock-in/out doesn't re-query institutions. There's no need to ask twice a day — all that's needed is whether the stay status is still valid, checked on-chain at scan time. <b>The time itself is stamped by the company's own attendance system the instant its scanner reads the QR.</b>",
+    insurance_redirect_note: "For insurance, choosing the product is the same as choosing the recipient, so no QR is needed — proceed on the <a href=\"insurance.html\">④ Insurance</a> screen.",
+    btn_sign_and_generate_qr: "Sign on device & Generate QR",
+    submit_step2_title: "2) QR to submit",
+    btn_renew_qr: "Regenerate QR",
+    payload_copy_note: "Copy the payload below and paste it into the <b>③ Scanner</b> screen to test verification without a camera. Changing one digit of the account number demonstrates tampering.",
+    copy_payload_title: "Copy payload",
+    copy_done_title: "Copied",
+    copy_fail_title: "Copy failed — please select manually",
+    submit_rejected: "Submission was rejected.",
+    sig_verified_msg: "✓ Device signature verified — this request came from this wallet's owner.",
+    sig_not_registered_msg: "This wallet has no registered device key. Signature verification was skipped.",
+    attend_wait_msg: "The result will appear here once the site scanner reads this QR.",
+    checkin_label: "Clock-in",
+    checkout_label: "Clock-out",
+    worked_time_label: "Worked",
+    site_scanner_time_note: "Recorded using the time from the company's own scanner.",
+    lookup_count_label: "Re-checked at submission",
+    lookup_real_badge: "Real issuer",
+    lookup_mock_badge: "Mock API",
+    lookup_footer_note: "Nothing is pre-fetched and stored — every submission asks again, so there is no such thing as a stale copy. Institutions not needed for the purpose are never asked.",
+    qr_time_left_label: "QR valid for: ",
+    qr_expired_label: "QR expired",
+    current_wallet_label: "Current wallet: ",
+    switch_person_link: "Switch person",
+    qr_expired_payload_msg: "This QR has expired and can no longer be used.",
   },
 
   vi: {
@@ -265,6 +349,48 @@ const I18N_DICT = {
     dest_insurer: "Hồ sơ bảo hiểm",
     dest_insurer_desc: "Bảo hiểm mãn hạn xuất cảnh và bảo hiểm tai nạn",
     btn_generate_qr: "Tạo mã QR 60 giây",
+    submit_page_title: "iM Worker Pass - Nộp hồ sơ",
+    submit_h1: "Gửi mã QR chứng minh",
+    submit_who_desc: "Chỉ gửi an toàn thông tin cần thiết cho từng cơ quan",
+    submit_lead_desc: "Bạn gửi lại mỗi lần nộp. Không có gì được ghi lên blockchain — dữ liệu mới nhất được kiểm tra lại với từng cơ quan.",
+    no_wallet_title: "Chưa có ví",
+    no_wallet_desc: "Bạn cần cấp ví trước. Đây là bước chỉ thực hiện một lần.",
+    btn_goto_wallet: "Đi cấp ví →",
+    submit_step1_title: "1) Chọn nơi nộp",
+    label_submit_target: "Nơi nhận",
+    label_symptom: "Triệu chứng cần báo cho bệnh viện",
+    symptom_note: "Đây là lời khai của bệnh nhân, không phải chẩn đoán.",
+    symptom_cough: "Tôi bị ho",
+    symptom_back_pain: "Tôi đau lưng",
+    symptom_fever: "Tôi có vẻ bị sốt",
+    symptom_stomach: "Tôi khó chịu ở bụng",
+    symptom_itchy: "Da tôi bị ngứa",
+    attend_hint: "Chấm công không cần hỏi lại cơ quan. Không cần hỏi hai lần mỗi ngày — điều cần biết chỉ là tư cách cư trú còn hiệu lực hay không, được xác nhận qua blockchain khi quét. <b>Thời gian được hệ thống chấm công của công ty ghi lại ngay khi máy quét đọc mã.</b>",
+    insurance_redirect_note: "Với bảo hiểm, chọn sản phẩm cũng là chọn nơi nhận, nên không cần mã QR — thực hiện ở màn hình <a href=\"insurance.html\">④ Bảo hiểm</a>.",
+    btn_sign_and_generate_qr: "Ký trên thiết bị & Tạo QR",
+    submit_step2_title: "2) Mã QR để nộp",
+    btn_renew_qr: "Tạo lại mã QR",
+    payload_copy_note: "Sao chép payload bên dưới và dán vào màn hình <b>③ Máy quét</b> để thử xác minh mà không cần camera. Đổi một chữ số của số tài khoản để minh họa việc giả mạo.",
+    copy_payload_title: "Sao chép payload",
+    copy_done_title: "Đã sao chép",
+    copy_fail_title: "Sao chép thất bại — vui lòng chọn thủ công",
+    submit_rejected: "Việc nộp đã bị từ chối.",
+    sig_verified_msg: "✓ Đã xác minh chữ ký thiết bị — yêu cầu này đến từ chủ sở hữu ví.",
+    sig_not_registered_msg: "Ví này chưa đăng ký khóa thiết bị. Đã bỏ qua xác minh chữ ký.",
+    attend_wait_msg: "Kết quả sẽ hiện ở đây khi máy quét tại công trường đọc mã QR này.",
+    checkin_label: "Vào ca",
+    checkout_label: "Tan ca",
+    worked_time_label: "Đã làm",
+    site_scanner_time_note: "Được ghi nhận theo thời gian của máy quét công ty.",
+    lookup_count_label: "Đã kiểm tra lại lúc nộp",
+    lookup_real_badge: "Cơ quan cấp thực tế",
+    lookup_mock_badge: "API giả lập",
+    lookup_footer_note: "Không có gì được lấy trước và lưu trữ — mỗi lần nộp đều hỏi lại, nên không tồn tại bản cũ. Các cơ quan không cần thiết cho mục đích sẽ không bị hỏi.",
+    qr_time_left_label: "QR còn hiệu lực: ",
+    qr_expired_label: "Mã QR đã hết hạn",
+    current_wallet_label: "Ví hiện tại: ",
+    switch_person_link: "Đổi người khác",
+    qr_expired_payload_msg: "Mã QR đã hết hạn và không thể sử dụng.",
   },
 
   id: {
@@ -350,6 +476,48 @@ const I18N_DICT = {
     dest_insurer: "Pengajuan Asuransi",
     dest_insurer_desc: "Asuransi kepulangan dan asuransi kecelakaan",
     btn_generate_qr: "Buat QR 60 Detik",
+    submit_page_title: "iM Worker Pass - Kirim",
+    submit_h1: "Kirim QR Bukti",
+    submit_who_desc: "Kirim dengan aman hanya kredensial yang dibutuhkan setiap lembaga",
+    submit_lead_desc: "Anda mengirim ulang setiap kali. Tidak ada yang ditulis on-chain — nilai terbaru diperiksa ulang ke setiap lembaga.",
+    no_wallet_title: "Dompet tidak ditemukan",
+    no_wallet_desc: "Anda perlu menerbitkan dompet terlebih dahulu. Ini hanya dilakukan sekali.",
+    btn_goto_wallet: "Buat dompet →",
+    submit_step1_title: "1) Pilih tujuan pengiriman",
+    label_submit_target: "Kirim ke",
+    label_symptom: "Gejala untuk disampaikan ke rumah sakit",
+    symptom_note: "Ini pernyataan pasien sendiri, bukan diagnosis.",
+    symptom_cough: "Saya batuk",
+    symptom_back_pain: "Punggung saya sakit",
+    symptom_fever: "Sepertinya saya demam",
+    symptom_stomach: "Perut saya tidak nyaman",
+    symptom_itchy: "Kulit saya gatal",
+    attend_hint: "Absensi tidak melakukan query ulang ke lembaga. Tidak perlu ditanyakan dua kali sehari — yang dibutuhkan hanyalah apakah status tinggal masih berlaku, dicek on-chain saat pemindaian. <b>Waktu dicatat oleh sistem absensi perusahaan sendiri saat pemindai membaca QR.</b>",
+    insurance_redirect_note: "Untuk asuransi, memilih produk sama dengan memilih penerima, jadi QR tidak diperlukan — lanjutkan di layar <a href=\"insurance.html\">④ Asuransi</a>.",
+    btn_sign_and_generate_qr: "Tanda tangan perangkat & Buat QR",
+    submit_step2_title: "2) QR untuk dikirim",
+    btn_renew_qr: "Buat ulang QR",
+    payload_copy_note: "Salin payload di bawah dan tempel di layar <b>③ Pemindai</b> untuk menguji verifikasi tanpa kamera. Mengubah satu digit nomor rekening mendemonstrasikan pemalsuan.",
+    copy_payload_title: "Salin payload",
+    copy_done_title: "Tersalin",
+    copy_fail_title: "Gagal menyalin — silakan pilih manual",
+    submit_rejected: "Pengiriman ditolak.",
+    sig_verified_msg: "✓ Tanda tangan perangkat terverifikasi — permintaan ini dari pemilik dompet ini.",
+    sig_not_registered_msg: "Dompet ini belum mendaftarkan kunci perangkat. Verifikasi tanda tangan dilewati.",
+    attend_wait_msg: "Hasil akan muncul di sini setelah pemindai lokasi membaca QR ini.",
+    checkin_label: "Masuk kerja",
+    checkout_label: "Pulang kerja",
+    worked_time_label: "Bekerja",
+    site_scanner_time_note: "Dicatat berdasarkan waktu dari pemindai perusahaan.",
+    lookup_count_label: "Diperiksa ulang saat pengiriman",
+    lookup_real_badge: "Penerbit asli",
+    lookup_mock_badge: "API simulasi",
+    lookup_footer_note: "Tidak ada yang diambil dan disimpan sebelumnya — setiap pengiriman selalu bertanya ulang, sehingga tidak ada versi usang. Lembaga yang tidak diperlukan tidak akan ditanya.",
+    qr_time_left_label: "QR berlaku: ",
+    qr_expired_label: "QR kedaluwarsa",
+    current_wallet_label: "Dompet saat ini: ",
+    switch_person_link: "Ganti orang",
+    qr_expired_payload_msg: "QR ini sudah kedaluwarsa dan tidak dapat digunakan.",
   },
 
   uz: {
@@ -435,6 +603,48 @@ const I18N_DICT = {
     dest_insurer: "Sugʻurta arizasi",
     dest_insurer_desc: "Chiqish muddati sugʻurtasi va baxtsiz hodisa sugʻurtasi",
     btn_generate_qr: "60 soniyalik QR yaratish",
+    submit_page_title: "iM Worker Pass - Topshirish",
+    submit_h1: "Tasdiqlovchi QR yuborish",
+    submit_who_desc: "Har bir muassasaga faqat kerakli ma'lumotni xavfsiz yuboring",
+    submit_lead_desc: "Har safar yangidan yuborasiz. Zanjirga hech narsa yozilmaydi — eng so'nggi qiymatlar har bir muassasadan qayta so'raladi.",
+    no_wallet_title: "Hamyon topilmadi",
+    no_wallet_desc: "Avval hamyon ochishingiz kerak. Bu faqat bir marta bajariladi.",
+    btn_goto_wallet: "Hamyon ochishga o'tish →",
+    submit_step1_title: "1) Qayerga topshirishni tanlang",
+    label_submit_target: "Kimga topshiriladi",
+    label_symptom: "Kasalxonaga aytiladigan alomat",
+    symptom_note: "Bu bemorning o'z bayonoti, tashxis emas.",
+    symptom_cough: "Yo'talim bor",
+    symptom_back_pain: "Belim og'rimoqda",
+    symptom_fever: "Isitmam bor shekilli",
+    symptom_stomach: "Qornim behuzur",
+    symptom_itchy: "Terim qichimoqda",
+    attend_hint: "Kelish/ketishni qayd etishda muassasalardan qayta so'ralmaydi. Kuniga ikki marta so'rash shart emas — faqat turar joy maqomi hali kuchdami, skanerlashda zanjirdan tekshiriladi. <b>Vaqtning o'zini kompaniyaning davomat tizimi skaner QR ni o'qigan zahoti belgilaydi.</b>",
+    insurance_redirect_note: "Sug'urta uchun mahsulotni tanlash qabul qiluvchini tanlash bilan bir xil, shuning uchun QR shart emas — <a href=\"insurance.html\">④ Sug'urta</a> ekranida davom eting.",
+    btn_sign_and_generate_qr: "Qurilmada imzolash va QR yaratish",
+    submit_step2_title: "2) Topshiriladigan QR",
+    btn_renew_qr: "QR ni qayta yaratish",
+    payload_copy_note: "Quyidagi payload'ni nusxalab, <b>③ Skaner</b> ekraniga joylashtiring — kamerasiz tekshirishni sinab ko'rasiz. Hisob raqamining bitta raqamini o'zgartirish soxtalashtirishni namoyish etadi.",
+    copy_payload_title: "Payload nusxalash",
+    copy_done_title: "Nusxalandi",
+    copy_fail_title: "Nusxalash muvaffaqiyatsiz — qo'lda tanlang",
+    submit_rejected: "Topshirish rad etildi.",
+    sig_verified_msg: "✓ Qurilma imzosi tasdiqlandi — bu so'rov ushbu hamyon egasidan kelgan.",
+    sig_not_registered_msg: "Bu hamyonda qurilma kaliti ro'yxatdan o'tmagan. Imzo tekshiruvi o'tkazib yuborildi.",
+    attend_wait_msg: "Ish joyi skaneri ushbu QR ni o'qigach, natija shu yerda ko'rinadi.",
+    checkin_label: "Ishga kelish",
+    checkout_label: "Ishdan ketish",
+    worked_time_label: "Ishlangan",
+    site_scanner_time_note: "Kompaniya skaneri vaqti bo'yicha qayd etildi.",
+    lookup_count_label: "Topshirish vaqtida qayta tekshirildi",
+    lookup_real_badge: "Haqiqiy beruvchi",
+    lookup_mock_badge: "Sinov API",
+    lookup_footer_note: "Hech narsa oldindan olib saqlanmaydi — har topshirishda qayta so'raladi, shuning uchun eskirgan nusxa bo'lmaydi. Maqsad uchun kerak bo'lmagan muassasalardan so'ralmaydi.",
+    qr_time_left_label: "QR amal qilish muddati: ",
+    qr_expired_label: "QR muddati tugadi",
+    current_wallet_label: "Joriy hamyon: ",
+    switch_person_link: "Boshqa shaxsga almashtirish",
+    qr_expired_payload_msg: "Ushbu QR muddati tugagan va endi ishlatib bo'lmaydi.",
   },
 
   zh: {
@@ -520,6 +730,175 @@ const I18N_DICT = {
     dest_insurer: "保险理赔与加入",
     dest_insurer_desc: "出国期满保险及意外伤害险",
     btn_generate_qr: "生成60秒一次性QR码",
+    submit_page_title: "iM Worker Pass - 提交",
+    submit_h1: "提交证明二维码",
+    submit_who_desc: "只向相关机构安全提交所需的资格信息",
+    submit_lead_desc: "每次提交都会重新生成。区块链上不会写入任何内容，系统会向各机构重新查询最新状态。",
+    no_wallet_title: "尚未开通钱包",
+    no_wallet_desc: "请先开通数字钱包，此步骤仅需一次。",
+    btn_goto_wallet: "前往开通钱包 →",
+    submit_step1_title: "1）选择提交对象",
+    label_submit_target: "提交对象",
+    label_symptom: "需告知医院的症状",
+    symptom_note: "此为患者本人陈述，并非诊断结果。",
+    symptom_cough: "我咳嗽",
+    symptom_back_pain: "我腰痛",
+    symptom_fever: "我好像发烧了",
+    symptom_stomach: "我肚子不舒服",
+    symptom_itchy: "我皮肤发痒",
+    attend_hint: "打卡不会重新查询各机构。不需要每天问两次——只需确认停留资格是否仍然有效，扫码时通过链上查询确认。<b>时间由公司自己的考勤系统在扫描仪读取二维码的瞬间记录。</b>",
+    insurance_redirect_note: "保险业务中选择产品即选择接收方，因此不需要二维码——请在<a href=\"insurance.html\">④ 保险</a>页面办理。",
+    btn_sign_and_generate_qr: "设备签名并生成二维码",
+    submit_step2_title: "2）提交用二维码",
+    btn_renew_qr: "重新生成二维码",
+    payload_copy_note: "复制下方的 payload 并粘贴到<b>③ 扫描仪</b>的输入框，即可在没有摄像头的情况下测试验证。将账号中的一位数字改动即可演示篡改检测。",
+    copy_payload_title: "复制payload",
+    copy_done_title: "已复制",
+    copy_fail_title: "复制失败——请手动选择",
+    submit_rejected: "提交被拒绝。",
+    sig_verified_msg: "✓ 设备签名验证通过——该请求来自此钱包的所有者。",
+    sig_not_registered_msg: "该钱包尚未注册设备密钥，已跳过签名验证。",
+    attend_wait_msg: "工地扫描仪读取此二维码后，结果将显示在此处。",
+    checkin_label: "上班",
+    checkout_label: "下班",
+    worked_time_label: "工作时长",
+    site_scanner_time_note: "以公司扫描仪的时间为准记录。",
+    lookup_count_label: "提交时重新查询",
+    lookup_real_badge: "真实发证机构",
+    lookup_mock_badge: "模拟接口",
+    lookup_footer_note: "不会预先获取并保存任何信息——每次提交都会重新查询，因此不存在过期版本。与目的无关的机构不会被查询。",
+    qr_time_left_label: "二维码有效时间：",
+    qr_expired_label: "二维码已过期",
+    current_wallet_label: "当前钱包：",
+    switch_person_link: "切换其他人员",
+    qr_expired_payload_msg: "该二维码已过期，无法使用。",
+  },
+
+  th: {
+    lang_name: "ไทย",
+    app_title: "iM PASS",
+    worker_role: "แรงงาน",
+    switch_service: "เปลี่ยนบริการ",
+    wallet_heading: "กระเป๋าเงินดิจิทัลของฉัน",
+    wallet_subheading: "สถานะการพำนัก การทำงาน และพาสปอร์ตการเงิน",
+    first_time_notice: "การออกกระเป๋าเงินทำเพียง <b>ครั้งแรกครั้งเดียว</b> เท่านั้น เมื่อต้องการยื่นเอกสาร ให้ใช้แท็บ <b>ส่ง QR</b> ด้านล่าง",
+
+    home_kicker: "กระเป๋าเงินระบุตัวตนดิจิทัลใหม่ เชื่อมโยงชีวิตและการเงิน",
+    home_heading: "โปรดเลือกบริการที่คุณต้องการใช้งาน",
+    badge_worker: "บุคคล",
+    app_worker_name: "iM PASS แรงงาน",
+    app_worker_desc: "เก็บรักษาเอกสารสิทธิ์ของคุณอย่างปลอดภัย และยื่นส่งเมื่อจำเป็น",
+    badge_biz: "สถานประกอบการ",
+    app_biz_name: "iM PASS สถานประกอบการ",
+    app_biz_desc: "ตรวจสอบคุณสมบัติของแรงงานได้อย่างรวดเร็วและปลอดภัย",
+    badge_admin: "ผู้ดูแลระบบ",
+    app_admin_name: "iM PASS ธนาคารและหน่วยงาน",
+    app_admin_desc: "ออกเอกสารรับรองและจัดการสถานะการเปลี่ยนแปลง",
+    trust_title: "เหตุผลที่คุณมั่นใจและใช้งานได้อย่างปลอดภัย",
+    trust_1_t: "ลงทะเบียนคุณสมบัติบนบัญชีแยกประเภท",
+    trust_1_d: "เมื่อยืนยันตัวตนที่เคาน์เตอร์ธนาคารแล้ว ข้อมูลจะถูกบันทึกบนบัญชีแยกประเภทแบบกระจายศูนย์ ประวัติการเปลี่ยนแปลงได้รับการปกป้องอย่างปลอดภัย",
+    trust_2_t: "เลือกส่งเฉพาะข้อมูลที่จำเป็นเท่านั้น",
+    trust_2_d: "เมื่อเลือกปลายทาง ระบบจะสร้าง QR ที่มีเฉพาะข้อมูลที่จำเป็นเท่านั้น ชื่อและบัญชีจะไม่ถูกบันทึกบนบล็อกเชน",
+    trust_3_t: "ตรวจสอบได้ทันที ณ จุดรับเรื่อง",
+    trust_3_d: "เครื่องปลายทางของสถานประกอบการจะตรวจสอบสถานะทันที คุณสมบัติที่ถูกเพิกถอนหรือหมดอายุจะถูกคัดกรองทันที",
+
+    people_title: "เลือกโปรไฟล์เพื่อดูการทำงาน",
+    people_sub: "เลือกโปรไฟล์แรงงานต่างชาติ (E-9 / H-2)",
+    people_desc: "ในบริการจริง แรงงานจะมีกระเป๋าเงินเพียงใบเดียว เมื่อเลือกแล้ว จะเริ่มตั้งแต่ขั้นตอนการออกกระเป๋าเงินของบุคคลนั้น",
+
+    pass_title: "ธนาคาร iM · Worker Pass",
+    digital_identity: "Digital Identity",
+    status_active: "ใช้งานได้",
+    status_disabled: "ใช้งานไม่ได้",
+    btn_qr_submit: "ส่ง QR",
+    chain_verified: "ยืนยันบนบล็อกเชนแล้ว",
+    chain_not_verified: "ไม่พบการยืนยันบนบล็อกเชน",
+    expiry_left: "หมดอายุ D-",
+    expiry_expired: "ระยะเวลาการพำนักหมดอายุแล้ว",
+    expiry_suffix: " หมดอายุ",
+
+    today_status_caption: "สถานะคุณสมบัติวันนี้",
+    today_status_safe: "ถูกต้อง ปลอดภัย พร้อมใช้งาน",
+    today_status_check: "ขณะนี้ไม่สามารถยื่นเอกสารได้",
+    badge_normal: "ปกติ",
+    badge_check_needed: "ต้องตรวจสอบ",
+    label_visa_type: "ประเภทวีซ่า (สถานะพำนัก)",
+    label_valid_until: "วันหมดอายุ",
+    submit_lead: "มีเอกสารที่ต้องยื่นหรือไม่?",
+    submit_sub: "สร้าง QR ชั่วคราว 60 วินาที ที่มีเฉพาะข้อมูลที่จำเป็น",
+
+    this_month_title: "เดือนนี้",
+    loading: "กำลังโหลด…",
+    tab_mypass: "พาสของฉัน",
+    tab_submit: "ส่ง QR",
+    tab_finance: "การเงิน",
+
+    step1_title: "1) ยืนยันตัวตนที่เคาน์เตอร์ธนาคาร",
+    step1_desc: "กระเป๋าเงินนี้สร้างขึ้นบน <b>การยืนยันตัวตนด้วยชื่อจริงของธนาคาร</b> แรงงานต่างชาติได้ผ่านการตรวจสอบหนังสือเดินทางและบัตรลงทะเบียนคนต่างด้าวเมื่อเปิดบัญชีเงินเดือนแล้ว จึงไม่มีขั้นตอนที่ซับซ้อนเพิ่มเติม",
+    label_worker_name: "ชื่อแรงงาน",
+    btn_bank_verify: "ยืนยันตัวตนที่เคาน์เตอร์",
+    step2_title: "2) ลงทะเบียนกระเป๋าเงิน",
+    step2_key_title: "สร้างคีย์บนอุปกรณ์",
+    step2_key_desc: "สร้างคู่คีย์บนเบราว์เซอร์นี้ <b>ไพรเวตคีย์จะถูกเก็บไว้ในอุปกรณ์เท่านั้นและไม่ถูกส่งไปยังเซิร์ฟเวอร์</b>",
+    step2_immi_title: "ตรวจสอบสำนักงานตรวจคนเข้าเมือง (จำเป็น)",
+    step2_immi_desc: "หากไม่มีบันทึกการพำนัก จะไม่ออกกระเป๋าเงิน เพื่อป้องกันบัตรคนต่างด้าวปลอมหรือถูกเพิกถอน",
+    step2_etc_title: "ตรวจสอบหน่วยงานและบันทึกบนบล็อกเชน",
+    step2_etc_desc: "ข้อมูลการจ้างงาน การแพทย์ และการศึกษาจะถูกบันทึกแฮชไว้บนบล็อกเชนอย่างปลอดภัย",
+    btn_register_wallet: "ออกกระเป๋าเงินและลงทะเบียนบนบล็อกเชน",
+
+    submit_dest_title: "คุณต้องการยื่นเอกสารที่ใด?",
+    submit_dest_desc: "สร้าง QR ใช้ครั้งเดียว 60 วินาที ที่มีเฉพาะข้อมูลขั้นต่ำตามที่ปลายทางต้องการ",
+    dest_biz: "การลงเวลาทำงาน",
+    dest_biz_desc: "บันทึกเวลาเข้าออกงานและตรวจสอบความถูกต้องของสถานะการพำนัก",
+    dest_clinic: "โรงพยาบาลและร้านขายยา",
+    dest_clinic_desc: "ตรวจสอบสิทธิ์ประกันสุขภาพและการตรวจสุขภาพ",
+    dest_bank: "ธุรกรรมธนาคาร",
+    dest_bank_desc: "เปิดบัญชีเงินเดือน ประกันอัตราแลกเปลี่ยน และโอนเงินไปต่างประเทศ",
+    dest_insurer: "การยื่นประกันภัย",
+    dest_insurer_desc: "ประกันการเดินทางกลับและประกันอุบัติเหตุ",
+    btn_generate_qr: "สร้าง QR ใช้ครั้งเดียว 60 วินาที",
+    submit_page_title: "iM Worker Pass - ยื่นเอกสาร",
+    submit_h1: "ยื่น QR ยืนยันตัวตน",
+    submit_who_desc: "ส่งเฉพาะข้อมูลที่จำเป็นให้แต่ละหน่วยงานอย่างปลอดภัย",
+    submit_lead_desc: "ยื่นใหม่ทุกครั้งที่ส่ง ไม่มีการบันทึกใด ๆ ลงบล็อกเชน ระบบจะสอบถามหน่วยงานอีกครั้งเพื่อดึงค่าล่าสุด",
+    no_wallet_title: "ยังไม่มีกระเป๋าเงิน",
+    no_wallet_desc: "คุณต้องออกกระเป๋าเงินก่อน ขั้นตอนนี้ทำเพียงครั้งเดียว",
+    btn_goto_wallet: "ไปออกกระเป๋าเงิน →",
+    submit_step1_title: "1) เลือกสถานที่ยื่นเอกสาร",
+    label_submit_target: "ส่งถึง",
+    label_symptom: "อาการที่จะแจ้งโรงพยาบาล",
+    symptom_note: "นี่คือคำบอกเล่าของผู้ป่วยเอง ไม่ใช่การวินิจฉัย",
+    symptom_cough: "ฉันมีอาการไอ",
+    symptom_back_pain: "ฉันปวดหลัง",
+    symptom_fever: "ฉันน่าจะมีไข้",
+    symptom_stomach: "ฉันรู้สึกไม่สบายท้อง",
+    symptom_itchy: "ผิวหนังฉันคัน",
+    attend_hint: "การสแกนเข้า-ออกงานไม่ต้องสอบถามหน่วยงานซ้ำ ไม่จำเป็นต้องถามวันละสองครั้ง สิ่งที่ต้องรู้คือสถานะการพำนักยังใช้ได้หรือไม่ ซึ่งตรวจสอบผ่านบล็อกเชนตอนสแกน <b>เวลาจะถูกบันทึกโดยระบบลงเวลาของบริษัทเองทันทีที่เครื่องสแกนอ่าน QR</b>",
+    insurance_redirect_note: "สำหรับประกัน การเลือกผลิตภัณฑ์ก็คือการเลือกผู้รับ จึงไม่ต้องใช้ QR — ดำเนินการที่หน้าจอ <a href=\"insurance.html\">④ ประกัน</a>",
+    btn_sign_and_generate_qr: "ลงลายเซ็นบนเครื่องและสร้าง QR",
+    submit_step2_title: "2) QR สำหรับยื่น",
+    btn_renew_qr: "สร้าง QR ใหม่",
+    payload_copy_note: "คัดลอก payload ด้านล่างไปวางที่หน้าจอ <b>③ เครื่องสแกน</b> เพื่อทดสอบการตรวจสอบโดยไม่ต้องใช้กล้อง การเปลี่ยนเลขบัญชีหนึ่งหลักจะสาธิตการปลอมแปลงข้อมูล",
+    copy_payload_title: "คัดลอก payload",
+    copy_done_title: "คัดลอกแล้ว",
+    copy_fail_title: "คัดลอกไม่สำเร็จ — กรุณาเลือกด้วยตนเอง",
+    submit_rejected: "การยื่นเอกสารถูกปฏิเสธ",
+    sig_verified_msg: "✓ ตรวจสอบลายเซ็นอุปกรณ์ผ่าน — คำขอนี้มาจากเจ้าของกระเป๋าเงินนี้จริง",
+    sig_not_registered_msg: "กระเป๋าเงินนี้ยังไม่ได้ลงทะเบียนคีย์อุปกรณ์ ข้ามการตรวจสอบลายเซ็น",
+    attend_wait_msg: "ผลลัพธ์จะแสดงที่นี่เมื่อเครื่องสแกนของสถานประกอบการอ่าน QR นี้",
+    checkin_label: "เข้างาน",
+    checkout_label: "เลิกงาน",
+    worked_time_label: "ทำงาน",
+    site_scanner_time_note: "บันทึกตามเวลาของเครื่องสแกนบริษัท",
+    lookup_count_label: "ตรวจสอบซ้ำตอนยื่นเอกสาร",
+    lookup_real_badge: "หน่วยงานผู้ออกจริง",
+    lookup_mock_badge: "API จำลอง",
+    lookup_footer_note: "ไม่มีการดึงข้อมูลมาเก็บไว้ล่วงหน้า ทุกการยื่นจะสอบถามใหม่เสมอ จึงไม่มีข้อมูลที่ล้าสมัย หน่วยงานที่ไม่จำเป็นต่อวัตถุประสงค์จะไม่ถูกสอบถาม",
+    qr_time_left_label: "QR ใช้ได้อีก: ",
+    qr_expired_label: "QR หมดอายุแล้ว",
+    current_wallet_label: "กระเป๋าเงินปัจจุบัน: ",
+    switch_person_link: "เปลี่ยนบุคคล",
+    qr_expired_payload_msg: "QR นี้หมดอายุแล้วและไม่สามารถใช้งานได้",
   },
 };
 
@@ -539,8 +918,9 @@ const I18N = {
     try {
       localStorage.setItem(this.LANG_KEY, lang);
     } catch (e) {}
-    this.apply(lang);
-    // 언어 변경 이벤트 디스패치
+    // LLM 번역 시도 (비동기). 실패 시 내부에서 apply()로 폴백됨.
+    this.translatePage(lang);
+    // 언어 변경 이벤트 디스패치 (동적 카드 리렌더링 등 페이지별 후처리용)
     window.dispatchEvent(new CustomEvent("imwp-lang-change", { detail: { lang } }));
   },
 
@@ -568,10 +948,176 @@ const I18N = {
       }
     });
 
+    // title / aria-label 속성 번역 (예: 아이콘 버튼의 툴팁)
+    document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-title");
+      if (dict[key] != null) el.setAttribute("title", dict[key]);
+    });
+    document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-aria");
+      if (dict[key] != null) el.setAttribute("aria-label", dict[key]);
+    });
+
     // 선택기 UI 값 동기화
     const sel = document.getElementById("imLangSelect");
     if (sel && sel.value !== lang) {
       sel.value = lang;
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // LLM 기반 동적 번역 (알리페이 방식)
+  // 현재 페이지의 텍스트 노드를 수집해 /api/translate 에 배치 요청.
+  // sessionStorage에 캐시 → 같은 페이지·언어 조합은 API 미호출.
+  // 실패 시 기존 사전(data-i18n) 방식으로 폴백.
+  // ─────────────────────────────────────────────────────────────
+  _SKIP_TAGS: new Set(["SCRIPT", "STYLE", "NOSCRIPT", "IFRAME", "TEMPLATE", "CODE", "PRE"]),
+  _SKIP_CLASSES: ["lang-picker-box", "lang-select-dropdown", "lang-flag"],
+
+  /** 번역 대상 텍스트 노드를 DOM에서 수집한다. */
+  _collectTextNodes() {
+    const nodes = [];
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (node) => {
+          const text = node.nodeValue.trim();
+          if (!text || text.length < 2) return NodeFilter.FILTER_REJECT;
+
+          // 부모 태그 확인
+          let parent = node.parentElement;
+          while (parent && parent !== document.body) {
+            if (this._SKIP_TAGS.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
+            if (this._SKIP_CLASSES.some(c => parent.classList.contains(c))) return NodeFilter.FILTER_REJECT;
+            // 언어 선택기 자체는 번역 제외
+            if (parent.id === "langSelectorArea" || parent.id === "imLangSelect") return NodeFilter.FILTER_REJECT;
+            parent = parent.parentElement;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    let node;
+    while ((node = walker.nextNode())) {
+      nodes.push(node);
+    }
+    return nodes;
+  },
+
+  /** sessionStorage 캐시 키 생성 */
+  _cacheKey(lang) {
+    const path = location.pathname.replace(/\//g, "_").replace(/\.html$/, "") || "root";
+    return `imwp_tr_${path}_${lang}`;
+  },
+
+  /** 스피너를 언어 선택기 옆에 표시/숨김 */
+  _setLoading(on) {
+    const box = document.querySelector(".lang-picker-box");
+    if (!box) return;
+    let spinner = box.querySelector(".lang-spinner");
+    if (on) {
+      if (!spinner) {
+        spinner = document.createElement("span");
+        spinner.className = "lang-spinner";
+        spinner.textContent = "⏳";
+        spinner.style.cssText = "font-size:12px;animation:spin 1s linear infinite;display:inline-block;";
+        box.appendChild(spinner);
+      }
+      const sel = box.querySelector("select");
+      if (sel) sel.disabled = true;
+    } else {
+      if (spinner) spinner.remove();
+      const sel = box.querySelector("select");
+      if (sel) sel.disabled = false;
+    }
+  },
+
+  /**
+   * LLM으로 현재 페이지 전체를 번역한다.
+   * @param {string} lang - 목적 언어 코드 (en, vi, th, id, uz, zh)
+   * @param {boolean} force - true면 캐시 무시하고 재번역
+   */
+  async translatePage(lang, force = false) {
+    if (!lang) lang = this.getLang();
+
+    // 한국어는 원문 = 번역이므로 기존 사전 방식만 적용
+    if (lang === "ko") {
+      this.apply("ko");
+      return;
+    }
+
+    // 캐시 확인
+    const cacheKey = this._cacheKey(lang);
+    if (!force) {
+      try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          const { originals, translations } = JSON.parse(cached);
+          const nodes = this._collectTextNodes();
+          // 원문 매칭으로 캐시 적용
+          const origMap = new Map(originals.map((o, i) => [o, translations[i]]));
+          nodes.forEach(n => {
+            const t = origMap.get(n.nodeValue.trim());
+            if (t) n.nodeValue = t;
+          });
+          this.apply(lang); // data-i18n 사전도 함께 적용
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // 기존 사전 우선 적용 (즉각 반응)
+    this.apply(lang);
+
+    // 텍스트 노드 수집
+    const nodes = this._collectTextNodes();
+    const originals = nodes.map(n => n.nodeValue.trim());
+    const unique = [...new Set(originals.filter(Boolean))];
+
+    if (unique.length === 0) return;
+
+    this._setLoading(true);
+
+    try {
+      // 200개 초과 시 청크로 분할
+      const CHUNK = 150;
+      const allTranslated = [];
+      for (let i = 0; i < unique.length; i += CHUNK) {
+        const chunk = unique.slice(i, i + CHUNK);
+        const res = await fetch(`${window.API_BASE_URL || ""}/api/translate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lang, texts: chunk }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        allTranslated.push(...data.translations);
+      }
+
+      // 번역 맵 구성 (원문 → 번역)
+      const trMap = new Map(unique.map((orig, i) => [orig, allTranslated[i]]));
+
+      // DOM 텍스트 노드 교체
+      nodes.forEach(n => {
+        const trimmed = n.nodeValue.trim();
+        const translated = trMap.get(trimmed);
+        if (translated && translated !== trimmed) {
+          n.nodeValue = n.nodeValue.replace(trimmed, translated);
+        }
+      });
+
+      // 캐시 저장 (페이지 재방문 시 재사용)
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify({ originals: unique, translations: allTranslated }));
+      } catch (e) {}
+
+    } catch (err) {
+      // 실패 시 기존 사전 폴백 (이미 apply() 호출됨)
+      console.warn("[i18n] LLM translation failed, using dictionary fallback:", err.message);
+    } finally {
+      this._setLoading(false);
     }
   },
 
@@ -587,6 +1133,7 @@ const I18N = {
       id: "🇮🇩",
       uz: "🇺🇿",
       zh: "🇨🇳",
+      th: "🇹🇭",
     };
 
     el.innerHTML = `
@@ -596,6 +1143,7 @@ const I18N = {
           <option value="ko"${current === "ko" ? " selected" : ""}>한국어</option>
           <option value="en"${current === "en" ? " selected" : ""}>English</option>
           <option value="vi"${current === "vi" ? " selected" : ""}>Tiếng Việt</option>
+          <option value="th"${current === "th" ? " selected" : ""}>ไทย</option>
           <option value="id"${current === "id" ? " selected" : ""}>Indonesia</option>
           <option value="uz"${current === "uz" ? " selected" : ""}>Oʻzbekcha</option>
           <option value="zh"${current === "zh" ? " selected" : ""}>中文</option>
@@ -611,8 +1159,16 @@ const I18N = {
 };
 
 // DOM 로드 완료 시 자동 적용
+// 저장된 언어가 한국어이면 사전 방식, 외국어이면 LLM 번역 시작
 if (typeof window !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
-    I18N.apply();
+    const lang = I18N.getLang();
+    if (lang === "ko") {
+      I18N.apply("ko");
+    } else {
+      // 사전 즉시 적용 (즉각 반응) + LLM 번역 비동기 시작
+      I18N.apply(lang);
+      I18N.translatePage(lang);
+    }
   });
 }
