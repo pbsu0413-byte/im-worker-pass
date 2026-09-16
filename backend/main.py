@@ -1520,13 +1520,13 @@ async def translate_texts(req: TranslateRequest):
         # generate_content()는 동기(blocking) 호출이라 그대로 두면 이 요청이 끝날 때까지
         # 서버 전체(이벤트 루프)가 다른 요청을 처리하지 못한다. 별도 스레드로 돌리고,
         # 행(hang) 상태로 서버 전체를 물고 늘어지지 않도록 타임아웃도 건다.
-        translated = await asyncio.wait_for(asyncio.to_thread(_call_gemini), timeout=25.0)
+        translated = await asyncio.wait_for(asyncio.to_thread(_call_gemini), timeout=60.0)
 
     except asyncio.TimeoutError as e:
         logger.exception("[/api/translate] Gemini 호출 타임아웃 (lang=%s, %d개 항목)", lang_code, len(still_missing))
         if cached:
             return {"translations": result}
-        raise HTTPException(status_code=504, detail="LLM translation timed out after 25s.")
+        raise HTTPException(status_code=504, detail="LLM translation timed out after 60s.")
 
     except Exception as e:
         # 실패 원인을 서버 로그(Render 대시보드 Logs 탭)에 반드시 남긴다.
