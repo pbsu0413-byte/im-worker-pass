@@ -1044,12 +1044,31 @@ const I18N = {
     }
   },
 
+  async translatePage(lang, force = false) {
+    if (!lang) lang = this.getLang();
+
+    // setLang()이 직접 호출하는 것과, 대부분 화면이 imwp-lang-change 이벤트를 받아
+    // 다시 호출하는 것이 거의 동시에 겹친다. 같은 언어로 이미 진행 중인 번역이 있으면
+    // 새로 fetch를 또 쏘지 않고 그 결과를 같이 기다린다 (번역 시간이 매번 2배로
+    // 걸리던 원인).
+    if (this._inFlight && this._inFlight.lang === lang) {
+      return this._inFlight.promise;
+    }
+    const promise = this._doTranslatePage(lang, force);
+    this._inFlight = { lang, promise };
+    try {
+      return await promise;
+    } finally {
+      if (this._inFlight && this._inFlight.promise === promise) this._inFlight = null;
+    }
+  },
+
   /**
    * LLM으로 현재 페이지 전체를 번역한다.
    * @param {string} lang - 목적 언어 코드 (en, vi, th, id, uz, zh)
    * @param {boolean} force - true면 캐시 무시하고 재번역
    */
-  async translatePage(lang, force = false) {
+  async _doTranslatePage(lang, force = false) {
     if (!lang) lang = this.getLang();
 
     // 한국어는 원문 = 번역이므로 기존 사전 방식만 적용
