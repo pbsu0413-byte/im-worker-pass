@@ -1125,7 +1125,17 @@ const I18N = {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ lang, texts: chunk }),
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+          // 서버는 실패 이유를 { detail: "..." } 로 내려준다. 지금까지는 이 값을
+          // 버리고 "HTTP 502"만 남겨서 콘솔로는 진짜 원인(할당량 초과/타임아웃/키 오류 등)을
+          // 알 수 없었다. 읽을 수 있으면 읽어서 함께 로그로 남긴다.
+          let detail = "";
+          try {
+            const body = await res.json();
+            detail = body && body.detail ? body.detail : "";
+          } catch (e) {}
+          throw new Error(`HTTP ${res.status}${detail ? " — " + detail : ""}`);
+        }
         const data = await res.json();
         allTranslated.push(...data.translations);
       }
