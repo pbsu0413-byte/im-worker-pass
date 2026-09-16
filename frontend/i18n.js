@@ -1096,7 +1096,12 @@ const I18N = {
       const allTranslated = [];
       for (let i = 0; i < unique.length; i += CHUNK) {
         const chunk = unique.slice(i, i + CHUNK);
-        const res = await fetch(`${window.API_BASE_URL || ""}/api/translate`, {
+        // config.js는 `const API_BASE_URL = ...`로 선언한다 — 일반 <script>의 최상위
+        // const/let은 window의 프로퍼티가 되지 않으므로 window.API_BASE_URL은 항상
+        // undefined다. 다른 화면의 모든 fetch가 쓰는 것과 동일하게 식별자를 직접
+        // 참조해야 실제 백엔드(Render) 주소로 나간다.
+        const base = (typeof API_BASE_URL !== "undefined") ? API_BASE_URL : (window.API_BASE_URL || "");
+        const res = await fetch(`${base}/api/translate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ lang, texts: chunk }),
