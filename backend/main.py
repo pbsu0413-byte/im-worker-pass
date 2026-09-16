@@ -7,8 +7,10 @@ iM Worker Pass - Prototype Backend (FastAPI) + Blockchain Web3
 3. 관리자 (체류자격 취소 시 블록체인 revoke 트랜잭션 발생 및 온체인 즉시 거부)
 """
 
+import asyncio
 import base64
 import json
+import logging
 import os
 import uuid
 import hashlib
@@ -50,6 +52,9 @@ from agency_api import PURPOSE_AGENCIES, coverage as agency_coverage, run_lookup
 import translation_cache as tr_cache
 
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("im-worker-pass")
 
 ISSUER_SECRET = os.environ.get("ISSUER_SECRET", "dev-only-change-me")
 
@@ -1494,7 +1499,7 @@ async def translate_texts(req: TranslateRequest):
         f"Texts to translate:\n{json.dumps(still_missing, ensure_ascii=False)}"
     )
 
-    try:
+    def _call_gemini():
         import google.generativeai as genai
         genai.configure(api_key=gemini_key)
         model = genai.GenerativeModel("gemini-2.0-flash")
@@ -1508,15 +1513,31 @@ async def translate_texts(req: TranslateRequest):
 
         translated = json.loads(raw)
         if not isinstance(translated, list) or len(translated) != len(still_missing):
-            raise ValueError("Unexpected response shape from Gemini.")
+            raise ValueError(f"Unexpected response shape from Gemini (got {len(translated) if isinstance(translated, list) else type(translated)} items, expected {len(still_missing)}).")
+        return translated
+
+    try:
+        # generate_content()는 동기(blocking) 호출이라 그대로 두면 이 요청이 끝날 때까지
+        # 서버 전체(이벤트 루프)가 다른 요청을 처리하지 못한다. 별도 스레드로 돌리고,
+        # 행(hang) 상태로 서버 전체를 물고 늘어지지 않도록 타임아웃도 건다.
+        translated = await asyncio.wait_for(asyncio.to_thread(_call_gemini), timeout=25.0)
+
+    except asyncio.TimeoutError as e:
+        logger.exception("[/api/translate] Gemini 호출 타임아웃 (lang=%s, %d개 항목)", lang_code, len(still_missing))
+        if cached:
+            return {"translations": result}
+        raise HTTPException(status_code=504, detail="LLM translation timed out after 25s.")
 
     except Exception as e:
+        # 실패 원인을 서버 로그(Render 대시보드 Logs 탭)에 반드시 남긴다.
+        # 지금까지는 detail 문자열로만 내려가서 프론트가 버리면 원인이 영영 안 보였다.
+        logger.exception("[/api/translate] Gemini 호출 실패 (lang=%s, %d개 항목): %s", lang_code, len(still_missing), e)
         # 캐시로 채운 부분이라도 있으면 그건 살려서 돌려준다 (전부 실패 처리하지 않는다)
         if cached:
             return {"translations": result}
         raise HTTPException(
             status_code=502,
-            detail=f"LLM translation failed: {str(e)}"
+            detail=f"LLM translation failed: {type(e).__name__}: {str(e)}"
         )
 
     # 새로 번역된 것을 캐시에 저장 — 다음 사람부터는 이 문장에 대해 LLM을 다시 안 부른다
