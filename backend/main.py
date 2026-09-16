@@ -1419,7 +1419,7 @@ async def _no_cache(request, call_next):
 
 
 # ─────────────────────────────────────────────────────────────
-# /api/translate — LLM 기반 UI 번역 (Gemini gemini-2.0-flash)
+# /api/translate — LLM 기반 UI 번역 (Gemini gemini-3.6-flash)
 # 프론트에서 텍스트 배열과 목적 언어를 받아 Gemini API로 번역 후 배열로 돌려준다.
 # GEMINI_API_KEY 환경변수가 없으면 503을 반환해 프론트가 기존 사전으로 폴백하도록 한다.
 # ─────────────────────────────────────────────────────────────
@@ -1436,7 +1436,7 @@ _LANG_NAMES = {
 @app.post("/api/translate")
 async def translate_texts(req: TranslateRequest):
     """
-    화면 텍스트 배열을 Gemini gemini-2.0-flash로 번역한다.
+    화면 텍스트 배열을 Gemini gemini-3.6-flash로 번역한다.
     - 요청: { lang: "en", texts: ["안녕", "근로자", ...] }
     - 응답: { translations: ["Hello", "Worker", ...] }
     - ko 요청 또는 빈 배열은 원문 그대로 반환(API 호출 없음).
@@ -1502,7 +1502,7 @@ async def translate_texts(req: TranslateRequest):
     def _call_gemini():
         import google.generativeai as genai
         genai.configure(api_key=gemini_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        model = genai.GenerativeModel("gemini-3.6-flash")
         response = model.generate_content(prompt)
         raw = response.text.strip()
 
