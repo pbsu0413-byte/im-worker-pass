@@ -1144,7 +1144,18 @@ const I18N = {
       const trMap = new Map(unique.map((orig, i) => [orig, allTranslated[i]]));
 
       // DOM 텍스트 노드 교체
-      nodes.forEach(n => {
+      //
+      // 주의: 위에서 만든 `nodes`는 API를 부르기 *전*(Gemini 응답을 몇 초씩 기다리기
+      // 전) 시점의 스냅샷이다. 그 사이에 이 페이지 자신이 "imwp-lang-change" 이벤트를
+      // 받아 동적 영역(지갑 카드, 스캔 결과 등)을 다시 그려버리면, 그 순간 `nodes`가
+      // 가리키던 텍스트 노드는 이미 화면에서 떨어져나간(교체된) 옛 노드가 된다.
+      // 그 옛 노드에 번역을 넣어봐야 화면엔 아무 변화가 없다 — 에러 없이 조용히
+      // 실패하는 것처럼 보이고, 새로고침(F5)하면 sessionStorage 캐시가 경쟁할 시간 없이
+      // 바로 적용되니 그제서야 되는 것처럼 보이는 원인이 바로 이거였다.
+      //
+      // 해결: 적용 직전에 DOM을 다시 한번 훑어서(최신 노드 기준으로) 매칭한다.
+      const freshNodes = this._collectTextNodes();
+      freshNodes.forEach(n => {
         const trimmed = n.nodeValue.trim();
         const translated = trMap.get(trimmed);
         if (translated && translated !== trimmed) {
