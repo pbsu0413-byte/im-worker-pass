@@ -975,6 +975,31 @@ const I18N = {
   _SKIP_CLASSES: ["lang-picker-box", "lang-select-dropdown", "lang-flag", "no-translate"],
 
   /**
+   * 텍스트 노드 -> "이 노드에서 최초로 관찰된 한국어 원문" 매핑.
+   *
+   * 왜 필요한가: 언어를 A -> B -> C로 새로고침 없이 연속으로 바꾸면, C로
+   * 바꾸는 시점의 DOM에는 이미 B의 번역 결과가 들어있다. 이때 "지금 DOM에
+   * 보이는 값"을 원문으로 삼아버리면(예전 방식) 그 값은 한국어가 아니라
+   * B 언어라서, 캐시 매칭도 새 LLM 요청도 전부 엉뚱한 값을 기준으로 돌게
+   * 된다 — 결과적으로 아무것도 안 바뀌고 조용히 실패한다.
+   *
+   * 해결: 각 텍스트 노드를 "처음 만나는 순간"의 값을 WeakMap에 딱 한 번
+   * 기록해둔다. 페이지가 막 로드된 시점이든, 스캔 결과처럼 나중에 새로
+   * 생성된 노드든, 처음 보는 시점의 값은 항상 한국어(서버가 원래 내려주는
+   * 언어)이므로 이 값이 진짜 원문이다. 이후 몇 번을 다른 언어로 바꿔도
+   * 이 기록된 원문을 기준으로 삼는다.
+   */
+  _originalMap: new WeakMap(),
+
+  /** 노드의 "진짜" 한국어 원문을 반환한다 (처음 보는 노드면 지금 값을 원문으로 기록). */
+  _getOriginal(node) {
+    if (!this._originalMap.has(node)) {
+      this._originalMap.set(node, node.nodeValue.trim());
+    }
+    return this._originalMap.get(node);
+  },
+
+  /**
    * 개인정보·건강정보 격리:
    * 실명·계좌번호·외국인등록번호·체류자격·증상 진술 등 사용자별 동적 값은
    * 절대 LLM(Gemini) 번역 API로 보내지 않는다. 해당 값을 렌더링하는 요소에
@@ -1016,10 +1041,17 @@ const I18N = {
     return nodes;
   },
 
-  /** sessionStorage 캐시 키 생성 */
+  /**
+   * sessionStorage 캐시 키 생성.
+   * "v2"는 버전 태그다 — 이전 버전은 "지금 화면에 보이는 값"을 원문으로
+   * 잘못 캐시하는 버그가 있었다. 버전을 올려서 그 시절 오염된 캐시(예: uz
+   * 키인데 원문이 인도네시아어로 박혀있는 것)를 자동으로 무시하게 만든다.
+   * 이 태그가 없으면 이미 버그 있는 캐시가 저장된 브라우저 탭은 이 수정을
+   * 배포해도 세션이 끝날 때까지 계속 그 오염된 캐시를 읽게 된다.
+   */
   _cacheKey(lang) {
     const path = location.pathname.replace(/\//g, "_").replace(/\.html$/, "") || "root";
-    return `imwp_tr_${path}_${lang}`;
+    return `imwp_tr_v2_${path}_${lang}`;
   },
 
   /** 스피너를 언어 선택기 옆에 표시/숨김 */
@@ -1085,10 +1117,13 @@ const I18N = {
         if (cached) {
           const { originals, translations } = JSON.parse(cached);
           const nodes = this._collectTextNodes();
-          // 원문 매칭으로 캐시 적용
+          // 원문 매칭으로 캐시 적용 — 반드시 "기록된 한국어 원문" 기준으로 찾는다.
+          // (여기서 n.nodeValue.trim()을 그대로 쓰면, 화면이 이미 다른 언어로
+          // 바뀌어 있을 때 원문이 아닌 값으로 조회하게 되어 매칭이 실패한다.)
           const origMap = new Map(originals.map((o, i) => [o, translations[i]]));
           nodes.forEach(n => {
-            const t = origMap.get(n.nodeValue.trim());
+            const orig = this._getOriginal(n);
+            const t = origMap.get(orig);
             if (t) n.nodeValue = t;
           });
           this.apply(lang); // data-i18n 사전도 함께 적용
@@ -1100,9 +1135,9 @@ const I18N = {
     // 기존 사전 우선 적용 (즉각 반응)
     this.apply(lang);
 
-    // 텍스트 노드 수집
+    // 텍스트 노드 수집 — 반드시 "기록된 한국어 원문" 기준으로 모은다 (위 설명 참고)
     const nodes = this._collectTextNodes();
-    const originals = nodes.map(n => n.nodeValue.trim());
+    const originals = nodes.map(n => this._getOriginal(n));
     const unique = [...new Set(originals.filter(Boolean))];
 
     if (unique.length === 0) return;
@@ -1156,10 +1191,13 @@ const I18N = {
       // 해결: 적용 직전에 DOM을 다시 한번 훑어서(최신 노드 기준으로) 매칭한다.
       const freshNodes = this._collectTextNodes();
       freshNodes.forEach(n => {
-        const trimmed = n.nodeValue.trim();
-        const translated = trMap.get(trimmed);
-        if (translated && translated !== trimmed) {
-          n.nodeValue = n.nodeValue.replace(trimmed, translated);
+        // 조회는 "기록된 한국어 원문" 기준, 치환은 "지금 화면에 있는 값" 기준.
+        // (조회 키를 현재 값으로 하면 이미 다른 언어로 바뀐 노드는 매칭이 안 된다.)
+        const orig = this._getOriginal(n);
+        const translated = trMap.get(orig);
+        const current = n.nodeValue.trim();
+        if (translated && translated !== current) {
+          n.nodeValue = n.nodeValue.replace(current, translated);
         }
       });
 
