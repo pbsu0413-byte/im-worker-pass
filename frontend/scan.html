@@ -86,6 +86,20 @@
      한 줄로 고정한다. */
   .ks-top-bar .acts { display: inline-flex; align-items: center; gap: 12px; flex-wrap: nowrap; white-space: nowrap; }
   .ks-top-bar #langSelectorArea { display: inline-flex; align-items: center; vertical-align: middle; }
+
+  /* 언어 선택기 — home.html 등 다른 화면과 동일한 모양으로 맞춘다.
+     이 CSS가 없으면 브라우저 기본 select 스타일(크고 테두리 없는 모양)로 나온다. */
+  .lang-picker-box {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--im-surface-soft, #f1f5f9); border: 1px solid var(--im-line, #e2e8f0);
+    padding: 3px 8px; border-radius: var(--radius-chip, 999px);
+  }
+  .lang-picker-box .lang-flag { font-size: 13px; line-height: 1; }
+  .lang-select-dropdown {
+    background: transparent; border: none; outline: none;
+    font-size: 11.5px; font-weight: 600; color: var(--im-text, #0f172a);
+    cursor: pointer; padding: 0; margin: 0; font-family: inherit;
+  }
 </style>
 </head>
 <body class="role-kiosk">
