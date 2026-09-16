@@ -80,6 +80,12 @@
   .rx-bad { color: #b91c1c; font-weight: 700; }
   .rx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
   @media (max-width: 520px) { .rx-grid { grid-template-columns: 1fr; } }
+
+  /* 데스크톱 헤더(.ks-top-bar)는 좁은 폰 목업(.ph-top-bar)과 CSS 처리가 달라
+     언어 선택기가 줄바꿈되어 위로 튕겨 나가는 문제가 있었다. 여기서 확실하게
+     한 줄로 고정한다. */
+  .ks-top-bar .acts { display: inline-flex; align-items: center; gap: 12px; flex-wrap: nowrap; white-space: nowrap; }
+  .ks-top-bar #langSelectorArea { display: inline-flex; align-items: center; vertical-align: middle; }
 </style>
 </head>
 <body class="role-kiosk">
