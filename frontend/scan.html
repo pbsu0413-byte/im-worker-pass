@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
 <title>iM Worker Pass - 스캐너 (회사/병원/보험)</title>
-<link rel="stylesheet" href="ui.css" />
+<link rel="stylesheet" href="ui.css?v=3" />
+<script src="i18n.js?v=3"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
   .onchain-badge {
@@ -54,65 +57,76 @@
     gap: 6px;
   }
 
-  /* ── 병원 접수 패널: 4블록 고정 ── */
-  .rx-panel { margin-top: 12px; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; background: #fff; }
-  .rx-head { display: flex; justify-content: space-between; align-items: center; gap: 8px;
-             padding: 8px 12px; background: #1e293b; color: #fff; font-size: 13px; font-weight: 600; }
-  .rx-block { border-top: 1px solid #e2e8f0; padding: 12px; }
+  /* ── 병원 접수 패널: 4블록 고정 ──
+     주의: ui.css의 button 기본값이 width:100% / min-height:54px 이다.
+     이 패널의 작은 버튼(.rx-mini)은 반드시 그 값을 되돌려야 값 칸이 눌리지 않는다. */
+  .rx-panel { margin-top: var(--space-3); border: 1px solid var(--im-line);
+              border-radius: var(--radius-card); overflow: hidden; background: var(--im-surface); }
+  .rx-head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2);
+             padding: 11px var(--space-4); background: var(--im-navy); color: #fff;
+             font-size: var(--font-caption); font-weight: 600; }
+  .rx-block { border-top: 1px solid var(--im-line); padding: var(--space-4); }
   .rx-block:first-of-type { border-top: none; }
-  .rx-btitle { display: flex; justify-content: space-between; align-items: center;
-               font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 8px; }
+  .rx-btitle { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2);
+               font-weight: 700; font-size: var(--font-caption); color: var(--im-black);
+               margin-bottom: var(--space-3); }
   /* 환자 진술 = 기관 증명이 아님 → 배경색으로 시각 분리 */
-  .rx-selfdecl { background: #fffbeb; border-left: 4px solid #f59e0b; }
-  .rx-insurance { background: #f8fafc; }
-  .rx-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 13px; }
-  .rx-label { flex: 0 0 116px; color: #64748b; }
-  .rx-val { flex: 1; font-weight: 600; color: #0f172a; word-break: break-all; }
-  .rx-note { font-size: 11.5px; color: #64748b; margin-top: 8px; line-height: 1.5; }
-  .rx-warn { font-size: 11.5px; color: #b45309; margin-top: 6px; }
-  .rx-mini { border: 1px solid #cbd5e1; background: #fff; border-radius: 5px;
-             font-size: 11px; padding: 2px 7px; cursor: pointer; color: #334155; }
-  .rx-mini:hover { background: #f1f5f9; }
-  .rx-foot { padding: 9px 12px; background: #f8fafc; border-top: 1px solid #e2e8f0;
-             font-size: 11.5px; color: #64748b; line-height: 1.5; }
-  .rx-ok { color: #15803d; font-weight: 700; }
-  .rx-bad { color: #b91c1c; font-weight: 700; }
-  .rx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+  .rx-selfdecl { background: var(--im-orange-light); border-left: 4px solid var(--im-orange); }
+  .rx-insurance { background: var(--im-surface-soft); }
+
+  /* 라벨 | 값 | 동작 — 값이 줄어들지 않게 min-width:0 과 자연스러운 줄바꿈을 준다 */
+  .rx-row { display: flex; align-items: baseline; gap: var(--space-3);
+            padding: 6px 0; font-size: 14px; }
+  .rx-label { flex: 0 0 126px; color: var(--im-subtext); font-size: var(--font-caption); }
+  .rx-val { flex: 1 1 auto; min-width: 0; font-weight: 600; color: var(--im-black);
+            word-break: keep-all; overflow-wrap: anywhere; line-height: 1.5; }
+  .rx-act { flex: 0 0 auto; display: inline-flex; gap: 6px; }
+  .rx-note { font-size: var(--font-micro); color: var(--im-subtext); margin-top: var(--space-2); line-height: 1.6; }
+  .rx-warn { font-size: var(--font-micro); color: #B45309; margin-top: 6px; }
+  .rx-mini {
+    width: auto; margin: 0; min-height: 0;
+    border: 1px solid var(--im-line); background: var(--im-surface);
+    border-radius: 8px; font-size: var(--font-micro); font-weight: 600;
+    padding: 5px 10px; cursor: pointer; color: var(--im-text);
+  }
+  .rx-mini:hover { background: var(--im-surface-soft); border-color: var(--im-disabled); }
+  .rx-foot { padding: 12px var(--space-4); background: var(--im-surface-soft);
+             border-top: 1px solid var(--im-line);
+             font-size: var(--font-micro); color: var(--im-subtext); line-height: 1.6; }
+  .rx-ok { color: var(--im-mint-dark); font-weight: 700; }
+  .rx-bad { color: var(--im-red); font-weight: 700; }
+  .rx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--space-6); }
   @media (max-width: 520px) { .rx-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body class="role-kiosk">
   <div class="ks-top-bar">
-    <span class="ph-brand"><span class="nm">iM PASS</span><span class="role">사업자</span></span>
+    <span class="ph-brand"><svg class='mark' viewBox='0 0 26 23' fill='none' xmlns='http://www.w3.org/2000/svg' aria-hidden='true'><path d='M3 19.5V8.2c0-1.9 2.4-2.8 3.6-1.3L13 14.8l6.4-7.9C20.6 5.4 23 6.3 23 8.2v11.3' stroke='#00C7A9' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg><span class="nm">iM PASS</span><span class="role">사업자</span></span>
     <span class="acts">
+        <div id="langSelectorArea"></div>
       <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='12' r='3.2'/><path d='M4.8 15.4a1.7 1.7 0 0 0-.4 1.9l.6 1a1.7 1.7 0 0 0 1.7.8l1.3-.2 1.6.9.5 1.2a1.7 1.7 0 0 0 1.6 1h1.2a1.7 1.7 0 0 0 1.6-1l.5-1.2 1.6-.9 1.3.2a1.7 1.7 0 0 0 1.7-.8l.6-1a1.7 1.7 0 0 0-.4-1.9l-.9-1v-1.8l.9-1a1.7 1.7 0 0 0 .4-1.9l-.6-1a1.7 1.7 0 0 0-1.7-.8l-1.3.2-1.6-.9-.5-1.2a1.7 1.7 0 0 0-1.6-1h-1.2a1.7 1.7 0 0 0-1.6 1l-.5 1.2-1.6.9-1.3-.2a1.7 1.7 0 0 0-1.7.8l-.6 1a1.7 1.7 0 0 0 .4 1.9l.9 1v1.8l-.9 1Z'/></svg>
       <a href="home.html" class="btn-switch-service"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
     </span>
   </div>
 
   <div class="ks-head">
-    <h1>근로자 자격 확인</h1>
-    <span class="site">제출된 QR을 읽어 근무 가능 여부를 바로 확인해요</span>
+    <h1 id="ksTitle">근로자 자격 확인</h1>
+    <span class="site" id="ksSub">제출된 QR을 읽어 근무 가능 여부를 바로 확인해요</span>
   </div>
   <div class="orgbar">
-    <a href="scan.html" class="on">자격 확인</a>
+    <a href="scan.html" id="navWork">자격 확인</a>
     <a href="attendance.html">근태 등록</a>
+    <a href="scan.html?mode=hospital" id="navHosp">병원 진료</a>
   </div>
   <div class="ks-wrap">
 
-  <div class="stat-grid business-stats" aria-label="이번 사용 현황">
-    <div class="stat accent"><div class="k">이번 사용에서 확인</div><div class="v" id="sessionTotal">0건</div><div class="s">브라우저를 연 뒤 확인한 건수</div></div>
-    <div class="stat"><div class="k">정상 확인</div><div class="v" id="sessionPass">0건</div><div class="s">근무 가능 자격</div></div>
-    <div class="stat warn"><div class="k">확인 필요</div><div class="v" id="sessionFail">0건</div><div class="s">불일치·만료·철회 포함</div></div>
-  </div>
 
-
-  <div class="card">
-    <label>확인하는 곳</label>
+  <div class="card" id="verifierCard">
+    <label id="verifierLabel">확인하는 곳</label>
     <select id="verifierId" onchange="onVerifierChange()">
-      <option value="company_A">A제조공장 · 이직 서류 확인과 급여계좌 등록</option>
-      <option value="company_B">B제조공장 · 다른 곳으로 제출된 QR 확인</option>
-      <option value="hospital_1">거점 병원 · 신원 확인과 진료 접수</option>
+      <option value="company_A" data-mode="work">A제조공장 · 이직 서류 확인과 급여계좌 등록</option>
+      <option value="company_B" data-mode="work">B제조공장 · 다른 곳으로 제출된 QR 확인</option>
+      <option value="hospital_1" data-mode="hospital">거점 병원 · 신원 확인과 진료 접수</option>
     </select>
   </div>
 
@@ -127,26 +141,16 @@
 
   <div class="card">
     <h3>QR을 읽기 어려울 때</h3>
-    <textarea id="pastedPayload" rows="5" placeholder='제출 화면에 표시된 코드를 붙여넣어 주세요'></textarea>
+    <textarea id="pastedPayload" data-no-translate rows="5" placeholder='제출 화면에 표시된 코드를 붙여넣어 주세요'></textarea>
     <button onclick="verifyPasted()">자격 확인하기</button>
   </div>
 
   <div id="resultBox"></div>
 
-  <script src="config.js"></script>
+  <script src="config.js?v=3"></script>
   <script>
     let html5QrCode;
     let _regNoFull = "", _regNoShown = false, _regNoTimer = null;
-    let sessionTotal = 0, sessionPass = 0, sessionFail = 0;
-
-    function paintSessionStats(isPass) {
-      sessionTotal += 1;
-      if (isPass) sessionPass += 1;
-      else sessionFail += 1;
-      document.getElementById("sessionTotal").textContent = sessionTotal + "건";
-      document.getElementById("sessionPass").textContent = sessionPass + "건";
-      document.getElementById("sessionFail").textContent = sessionFail + "건";
-    }
 
     function esc(v) {
       return String(v == null ? "" : v).replace(/[&<>"']/g,
@@ -193,9 +197,47 @@
     function rxRow(label, value, copyable) {
       const v = esc(val(value));
       const btn = copyable && v !== "—"
-        ? `<button class="rx-mini" onclick="rxCopy('${v.replace(/'/g, "\\'")}', this)">복사</button>` : "";
-      return `<div class="rx-row"><span class="rx-label">${esc(label)}</span><span class="rx-val">${v}</span>${btn}</div>`;
+        ? `<span class="rx-act"><button class="rx-mini" onclick="rxCopy('${v.replace(/'/g, "\\'")}', this)">복사</button></span>` : "";
+      return `<div class="rx-row"><span class="rx-label">${esc(label)}</span><span class="rx-val" data-no-translate>${v}</span>${btn}</div>`;
     }
+
+    // ── 화면 모드 ────────────────────────────────────────────────
+    // 병원은 근무 자격을 보는 자리가 아니다. 환자 신분과 보험 가입 여부를 확인하는
+    // 전혀 다른 업무이므로 메뉴를 따로 둔다. 검증 엔진은 같은 것을 쓴다(AGENTS.md 규칙 14).
+    const SCAN_MODE =
+      new URLSearchParams(location.search).get("mode") === "hospital" ? "hospital" : "work";
+
+    (function applyMode() {
+      const isHosp = SCAN_MODE === "hospital";
+
+      document.getElementById("navWork").classList.toggle("on", !isHosp);
+      document.getElementById("navHosp").classList.toggle("on", isHosp);
+
+      document.getElementById("ksTitle").textContent =
+        isHosp ? "병원 진료 접수" : "근로자 자격 확인";
+      document.getElementById("ksSub").textContent =
+        isHosp ? "환자 신분과 보험 가입 여부를 확인해요"
+               : "제출된 QR을 읽어 근무 가능 여부를 바로 확인해요";
+      document.getElementById("verifierLabel").textContent =
+        isHosp ? "접수하는 곳" : "확인하는 곳";
+
+      // 모드에 맞지 않는 선택지는 목록에서 뺀다 — 잘못 고를 여지를 없앤다.
+      const sel = document.getElementById("verifierId");
+      [...sel.options].forEach(o => {
+        if (o.dataset.mode !== SCAN_MODE) o.remove();
+      });
+      if (sel.options.length === 1) {
+        document.getElementById("verifierCard").style.display = "none";
+      }
+      if (sel.options.length) sel.selectedIndex = 0;
+
+      if (isHosp) {
+        const btn = document.querySelector('button[onclick="verifyPasted()"]');
+        if (btn) btn.textContent = "환자 확인하기";
+        const ta = document.getElementById("pastedPayload");
+        if (ta) ta.placeholder = "환자 휴대폰에 표시된 코드를 붙여넣어 주세요";
+      }
+    })();
 
     function onVerifierChange() {
       document.getElementById("resultBox").innerHTML = "";
@@ -329,7 +371,7 @@
           <div class="rx-block">
             <details open>
               <summary class="rx-btitle" style="cursor:pointer;">
-                <span>[검증 상태]</span><span class="rx-bad">실패 ✗</span>
+                <span>검증 상태</span><span class="rx-bad">실패 ✗</span>
               </summary>
               <div style="margin-top:8px;" class="rx-grid">
                 ${rxRow("온체인 상태", val(chainName, "조회 안 됨"), false)}
@@ -359,8 +401,10 @@
       window._rxBasicTsv = [name, regNo, birth, gender, nat].join("\t");
 
       const regBtns = (regNo === "—" || !isPass) ? "" :
+        '<span class="rx-act">' +
         '<button class="rx-mini" onclick="rxToggleReg(this)">보기</button>' +
-        '<button class="rx-mini" onclick="rxCopy(\'' + esc(regNo) + '\', this)">복사</button>';
+        '<button class="rx-mini" onclick="rxCopy(\'' + esc(regNo) + '\', this)">복사</button>' +
+        '</span>';
 
       const banner = isPass ? "" : `
           <div class="rx-block" style="background:#fef2f2;border-left:4px solid #dc2626;">
@@ -400,7 +444,7 @@
 
           <div class="rx-block"${dim}>
             <div class="rx-btitle">
-              <span>[환자 기본정보]</span>
+              <span>환자 기본정보</span>
               ${isPass ? '<button class="rx-mini" onclick="rxCopyAll(this)">전체 복사</button>' : ""}
             </div>
             ${rxRow("성명", name, isPass)}
@@ -422,7 +466,7 @@
 
           <div class="rx-block rx-selfdecl"${dim}>
             <div class="rx-btitle">
-              <span>[환자 진술]</span>
+              <span>환자 진술</span>
               ${(sym && isPass) ? '<button class="rx-mini" onclick="rxCopy(\'' + esc(String(sym)).replace(/'/g, "\\'") + '\', this)">증상 복사</button>' : ""}
             </div>
             <div class="rx-warn">※ 환자 본인의 진술이며 진단이 아닙니다. 기관이 증명한 내용이 아닙니다.</div>
@@ -430,7 +474,7 @@
           </div>
 
           <div class="rx-block rx-insurance"${dim}>
-            <div class="rx-btitle"><span>[보험 확인]</span></div>
+            <div class="rx-btitle"><span>보험 확인</span></div>
             ${insBody}
             <div class="rx-note">※ 가입 사실 확인이며 병원에 대한 지급보증이 아닙니다.</div>
           </div>
@@ -438,7 +482,7 @@
           <div class="rx-block">
             <details ${(okChain && isPass) ? "" : "open"}>
               <summary class="rx-btitle" style="cursor:pointer;">
-                <span>[검증 상태]</span>
+                <span>검증 상태</span>
                 <span class="${(okChain && isPass) ? "rx-ok" : "rx-bad"}">${(okChain && isPass) ? "통과 ✓" : "실패 ✗"}</span>
               </summary>
               <div style="margin-top:8px;">
@@ -543,15 +587,12 @@
       }
 
       const proofHtml = (data.onchain_proof && verifierId !== "hospital_1") ? `
-        <details class="card fold proof-details">
-          <summary><span>분산원장 검증 상세</span><span class="chev">▾</span></summary>
-          <div class="fold-body proof-box">
-            <b>등록된 원본 정보와 일치합니다.</b><br/>
-            • 상태: <b>${data.onchain_proof.status_name.toUpperCase()} (코드: ${data.onchain_proof.status_code})</b><br/>
-            • 식별 해시: <code>${data.onchain_proof.credential_hash}</code><br/>
-            • 검증 네트워크: ${data.onchain_proof.mode === 'live_testnet' ? 'Polygon Amoy Testnet' : 'EVM On-Chain Simulator'}<br/>
-          </div>
-        </details>
+        <div class="proof-box">
+          <b><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><path d='M10.5 13.5a4 4 0 0 0 5.7 0l2.3-2.3a4 4 0 1 0-5.7-5.7L11.6 6.7'/><path d='M13.5 10.5a4 4 0 0 0-5.7 0l-2.3 2.3a4 4 0 1 0 5.7 5.7l1.2-1.2'/></svg> 블록체인 온체인 증명 (On-Chain Proof)</b><br/>
+          • 상태: <b>${data.onchain_proof.status_name.toUpperCase()} (코드: ${data.onchain_proof.status_code})</b><br/>
+          • 식별 해시: <code>${data.onchain_proof.credential_hash}</code><br/>
+          • 검증 네트워크: ${data.onchain_proof.mode === 'live_testnet' ? 'Polygon Amoy Testnet' : 'EVM On-Chain Simulator'}<br/>
+        </div>
       ` : '';
 
       let failureExpl = "";
@@ -570,18 +611,14 @@
 
       const CHK = "<svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='m5 12.5 4.5 4.5L19 7.5'/></svg>";
       const XMK = "<svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M6 6l12 12M18 6 6 18'/></svg>";
-      const agencySection = agencyHtml ? `
-        <details class="card fold verification-details">
-          <summary><span>이직 서류와 자격 항목 확인 결과</span><span class="chev">▾</span></summary>
-          <div class="fold-body">${agencyHtml}</div>
-        </details>` : "";
-      paintSessionStats(isPass);
       box.innerHTML = `
         <div class="${isPass ? "result-pass" : "result-fail"}">
           ${isPass ? CHK : XMK}
           <div style="flex:1;min-width:0;">
             <b style="display:block;font-size:19px;letter-spacing:-0.5px;">
-              ${isPass ? "근무 가능한 근로자입니다" : "현재 자격을 확인할 수 없어요"}
+              ${verifierId === "hospital_1"
+                ? (isPass ? "본인이 맞습니다, 접수하셔도 돼요" : "환자 신분을 확인할 수 없어요")
+                : (isPass ? "근무 가능한 근로자입니다" : "현재 자격을 확인할 수 없어요")}
             </b>
             <span class="badge ${isPass ? "chain" : "revoked"}" style="margin-top:8px;">
               ${isPass ? "분산원장 등록 확인됨" : "분산원장 대조 실패"}
@@ -590,11 +627,20 @@
             ${!isPass ? `<details class="fold" style="margin-top:10px;"><summary style="font-size:12px;color:var(--im-subtext);font-weight:600;"><span>자세한 검증 정보 보기</span><span class="chev">▾</span></summary><pre style="margin-top:8px;">${esc(data.reason || "UNKNOWN_ERROR")}</pre></details>` : ""}
           </div>
         </div>
-        ${agencySection}
+        ${agencyHtml}
         ${proofHtml}`;
     }
   </script>
   </div>
   <div class="rolebar"><a href="home.html"><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='m15 18-6-6 6-6'/></svg>서비스 선택으로</a></div>
+<script>
+  // 언어 선택기는 i18n.js가 그린다. setLang()이 translatePage()를 자동 호출하므로
+  // data-i18n 이 없는 문구도 번역된다. 개인정보에는 data-no-translate 를 붙여 둔다.
+  // i18n.js 가 없거나 못 뜨더라도 화면은 그대로 동작해야 한다.
+  if (window.I18N) {
+    I18N.renderSelector("langSelectorArea");
+    window.addEventListener("imwp-lang-change", () => I18N.apply());
+  }
+</script>
 </body>
 </html>

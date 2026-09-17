@@ -454,14 +454,10 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
 .phone {
   width: 100%; max-width: 420px; margin: 0 auto;
   background: var(--im-background);
-  height: 100dvh; min-height: 100vh; position: relative; padding-bottom: 0;
-  display: flex; flex-direction: column; overflow: hidden;
+  min-height: 100vh; position: relative; padding-bottom: 92px;
+  display: flex; flex-direction: column;
 }
-.phone > .ph-body {
-  flex: 1 1 auto; min-height: 0; overflow-y: auto;
-  overscroll-behavior: contain; scrollbar-width: none;
-}
-.phone > .ph-body::-webkit-scrollbar { width: 0; }
+.phone > .ph-body { flex: 1 0 auto; }
 @media (min-width: 900px) {
   .role-phone {
     display: flex; align-items: center; justify-content: center;
@@ -469,16 +465,19 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
     background: radial-gradient(1200px 600px at 50% -10%, #1D3355, var(--im-navy-dark));
   }
   .phone {
-    height: min(820px, calc(100vh - 56px)); min-height: 0; max-height: none;
-    border-radius: 44px; overflow: hidden;
+    /* min-height 는 max-height 를 이긴다. 그냥 820px 로 두면 창 높이가 890px 미만일 때
+       폰이 화면보다 커져서 페이지가 통째로 스크롤되고, 그때 고정된 팝업 마스크와
+       폰 위치가 어긋난다. min() 으로 화면을 넘지 않게 묶는다. */
+    min-height: min(820px, 92vh); max-height: 92vh; border-radius: 44px; overflow-y: auto;
     padding-bottom: 0;
     border: 10px solid #000; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
   }
+  .phone::-webkit-scrollbar { width: 0; }
 }
 
 /* 헤더 — 흰 배경, 앱 이름 왼쪽, 선형 아이콘 오른쪽 */
 .ph-top {
-  position: relative; flex: none; z-index: 10;
+  position: sticky; top: 0; z-index: 10;
   background: var(--im-surface);
   border-bottom: 1px solid var(--im-line);
   padding: 14px var(--space-5) var(--space-4);
@@ -523,13 +522,11 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
   box-shadow: 0 10px 28px rgba(40, 120, 255, 0.26);
   margin-bottom: var(--space-3);
 }
-/* 아주 옅은 광택 하나만. 그 이상 장식하지 않는다. */
 .pass-card::after {
   content: ""; position: absolute; right: -60px; top: -80px;
   width: 220px; height: 220px; border-radius: 999px;
   background: rgba(255, 255, 255, 0.07); pointer-events: none;
 }
-/* 자격이 정상이 아닐 때 — 한눈에 못 쓰는 카드로 보여야 한다 */
 .pass-card.off {
   background: linear-gradient(145deg, #59606B 0%, #3A4049 100%);
   box-shadow: 0 10px 28px rgba(23, 43, 77, 0.22);
@@ -541,7 +538,6 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
 .pass-card > * { position: relative; z-index: 1; }
 .pass-card .pc-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .pass-card .pc-issuer { font-size: var(--font-caption); font-weight: 600; letter-spacing: -0.2px; opacity: 0.92; }
-/* IC 칩 — 실물 카드라는 신호 */
 .pass-card .pc-chip {
   width: 34px; height: 25px; border-radius: 6px; flex: none;
   background: linear-gradient(145deg, #F6C560, #E0A63C);
@@ -549,7 +545,7 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
 }
 
 .pass-card .pc-main { display: flex; align-items: flex-end; gap: var(--space-4); margin-top: var(--space-5); }
-.pass-card .pc-id { flex: 1; min-width: 0; }
+.pass-card .pc-id { display: block; flex: 1; min-width: 0; margin-top: 0; }
 .pass-card .pc-label {
   font-size: 11px; font-weight: 700; letter-spacing: 0.6px;
   text-transform: uppercase; opacity: 0.72;
@@ -591,20 +587,6 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
 .pass-card .pc-expiry { opacity: 0.82; white-space: nowrap; }
 .pass-card .pc-expiry.near { color: #FFD9A0; opacity: 1; }
 
-/* 근로자 홈 상태 요약 */
-.worker-status-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
-.worker-status-head h3 { margin: 4px 0 0; font-size: 17px; }
-.worker-status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-top: var(--space-4); }
-.worker-status-grid > div { background: var(--im-blue-light); border-radius: 12px; padding: 11px 12px; }
-.worker-status-grid span, .worker-status-grid b { display: block; }
-.worker-status-grid span { font-size: var(--font-micro); color: var(--im-subtext); }
-.worker-status-grid b { margin-top: 3px; font-size: 14px; color: var(--im-text); }
-.worker-submit-link { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--im-line); }
-.worker-submit-link span, .worker-submit-link small { display: block; }
-.worker-submit-link b { font-size: 14px; color: var(--im-blue-dark); }
-.worker-submit-link small { margin-top: 2px; font-size: var(--font-micro); color: var(--im-subtext); }
-.worker-submit-link .ico { width: 20px; height: 20px; color: var(--im-blue); }
-
 /* 바로가기 4~6칸 */
 .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
 .quick a { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: var(--space-2) 0; }
@@ -612,18 +594,16 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
 
 /* 하단 내비게이션 */
 .ph-tabs {
-  position: relative; flex: none; z-index: 15;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 15;
   display: grid; grid-template-columns: repeat(3, 1fr);
   background: var(--im-surface); border-top: 1px solid var(--im-line);
-  width: 100%; max-width: none; margin: 0;
+  /* .phone이 flex 컬럼이라 margin:0 auto 만 주면 stretch가 꺼져 폭이 쪼그라든다.
+     width:100% 를 반드시 명시할 것. */
+  width: 100%; max-width: 420px; margin: 0 auto;
   padding-bottom: env(safe-area-inset-bottom);
 }
 @media (min-width: 900px) {
-  .ph-tabs {
-    position: relative; left: auto; right: auto; bottom: auto;
-    width: 100%; transform: none;
-    border-radius: 0 0 34px 34px;
-  }
+  .ph-tabs { position: sticky; bottom: 0; border-radius: 0 0 34px 34px; }
 }
 .ph-tabs a {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
@@ -656,11 +636,6 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
 .role-kiosk .ks-wrap { max-width: 1100px; margin: 0 auto; padding: 0 var(--space-6); }
 .role-kiosk .card { box-shadow: var(--shadow-card); }
 .role-kiosk .result-pass, .role-kiosk .result-fail { font-size: 17px; font-weight: 700; padding: var(--space-5); }
-.business-stats { margin-bottom: var(--space-5); }
-.business-stats .stat .v { font-size: 24px; }
-.verification-details > summary, .proof-details > summary { font-size: 15px; }
-.verification-details .fold-body { overflow-x: auto; }
-.proof-details .proof-box { margin: 0; }
 
 .role-kiosk .orgbar, .role-console .orgbar {
   max-width: 1100px; margin: 0 auto var(--space-5); padding: 0 var(--space-6);
@@ -735,10 +710,6 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
 .stat.accent .v { color: var(--im-mint-dark); }
 .stat.warn .v   { color: #B45309; }
 .stat.bad .v    { color: var(--im-red); }
-.admin-stats { margin-bottom: var(--space-6); }
-.table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.role-console .table-scroll table { min-width: 820px; }
-.role-console .table-scroll td:last-child button { white-space: nowrap; }
 
 /* 공통 상단 헤더(레거시) */
 .im-app-header {
@@ -810,6 +781,91 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
   .cs-side a { margin-bottom: 0; white-space: nowrap; }
 }
 
+/* ── 카드 헤더 · 단계 · 중첩 블록 ──────────────────────────────────────── */
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3); margin-bottom: var(--space-3);
+}
+.card-head h3 { margin: 0; display: flex; align-items: center; gap: var(--space-2); }
+.step-no {
+  width: 24px; height: 24px; border-radius: 999px; flex: none;
+  display: grid; place-items: center;
+  background: var(--role); color: #FFFFFF;
+  font-size: var(--font-micro); font-weight: 700;
+}
+
+/* 카드 안에서 숫자·항목 묶음을 한 덩어리로 보이게 하는 연회색 블록 */
+.inner {
+  background: var(--im-surface-soft);
+  border-radius: 14px; padding: var(--space-4);
+}
+.inner + .inner { margin-top: var(--space-2); }
+.inner-lab {
+  font-size: var(--font-micro); font-weight: 700; color: var(--im-subtext);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+}
+
+/* 실제로 전달되는 항목 칩 — 선택적 공개를 눈으로 보여준다 */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-3); }
+.chip-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 11px; border-radius: 10px;
+  background: var(--im-surface); border: 1px solid var(--im-line);
+  font-size: var(--font-caption); font-weight: 500; color: var(--im-text);
+}
+.chip-item .ico { width: 15px; height: 15px; color: var(--role); stroke-width: 2.2; }
+
+/* 기관 재조회 한 줄 */
+.agency-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  padding: 10px 12px; border-radius: 12px;
+  background: var(--im-surface); border: 1px solid var(--im-line);
+}
+.agency-row + .agency-row { margin-top: 6px; }
+.agency-row .nm { font-size: var(--font-caption); font-weight: 600; color: var(--im-text); }
+
+/* ── 인사 배너 ─────────────────────────────────────────────────────────
+   브랜드 인사 자리. 민트는 세 앱을 잇는 공통 색이므로 역할색 대신 민트를 쓴다.
+   멘트는 IM혜민체(.tx-brand) — 짧은 감성 문구에만 쓰기로 한 그 자리다. */
+.greet {
+  display: flex; align-items: center; gap: var(--space-3);
+  /* 민트 단색이었는데 너무 초록으로 치우쳐서, 오른쪽으로 갈수록 블루가 섞이게 했다.
+     두 색 모두 토큰(--im-mint-light / --im-blue-light)이고 중간값만 손으로 끼웠다. */
+  background: linear-gradient(105deg,
+    var(--im-mint-light) 0%, #E2F2F7 48%, var(--im-blue-light) 100%);
+  border-radius: var(--radius-card);
+  padding: 14px var(--space-4);
+  margin-bottom: var(--space-3);
+}
+.greet .mk {
+  width: 44px; height: 44px; border-radius: 999px; flex: none;
+  background: var(--im-surface); display: grid; place-items: center;
+  box-shadow: 0 2px 6px rgba(23, 43, 77, 0.06);
+}
+.greet .mk svg { width: 24px; height: 21px; }
+.greet .mk img { width: 38px; height: 38px; object-fit: contain; display: block; }
+/* 마스코트는 서 있는 포즈 말고도 소품을 든 포즈가 섞여 나오므로 자리를 조금 더 준다. */
+.greet .mk.char { width: 54px; height: 54px; background: var(--im-surface); }
+.greet .mk.char img { width: 46px; height: 46px; }
+.greet .bd { flex: 1; min-width: 0; }
+.greet .hi {
+  display: flex; align-items: center; gap: 6px;
+  /* 배경에 블루가 섞였으므로 글자색도 민트-블루 중간(#088BAB)으로 옮겼다. */
+  font-size: var(--font-micro); font-weight: 700; color: #088BAB;
+}
+.greet .hi .dot { width: 6px; height: 6px; background: currentColor; }
+.greet .msg {
+  font-size: 15.5px; color: var(--im-text); margin-top: 3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* 헤더 로고 마크 */
+.ph-brand .mark, .cs-top-bar .mark-logo { flex: none; display: block; }
+.ph-brand .mark { width: 21px; height: 18px; margin-right: 2px; }
+.ph-brand { align-items: center; }
+.cs-top-bar .wm { display: inline-flex; align-items: center; gap: 7px; }
+.cs-top-bar .mark-logo { width: 22px; height: 19px; }
+
 /* ── 바텀 시트 · 팝업 ──────────────────────────────────────────────────
    .pop-mask는 position:fixed라 데스크톱에서 폰 목업 밖으로 번진다.
    목업 안(420px 폭, 세로 92vh 중앙)에 맞춰 가둔다. */
@@ -820,3 +876,26 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
     border-radius: 34px;
   }
 }
+
+/* ── 언어 선택기 ───────────────────────────────────────────────────────
+   i18n.js(I18N.renderSelector)가 #langSelectorArea 안에 그리는 마크업에 옷을 입힌다.
+   이 스타일이 없으면 드롭다운만 디자인 시스템 밖 맨몸으로 뜬다. */
+.lang-picker-box {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--im-surface-soft); border: 1px solid var(--im-line);
+  border-radius: var(--radius-chip); padding: 3px 8px 3px 10px;
+}
+.lang-picker-box .lang-flag { font-size: 13px; line-height: 1; }
+.lang-select-dropdown {
+  width: auto; min-height: 0; padding: 2px 4px;
+  border: none; background: transparent; box-shadow: none;
+  font-family: inherit; font-size: var(--font-micro); font-weight: 600;
+  color: var(--im-subtext); cursor: pointer;
+}
+.lang-select-dropdown:focus { outline: none; box-shadow: none; color: var(--im-text); }
+/* 어두운 헤더(콘솔)에서는 반전 */
+.cs-top-bar .lang-picker-box {
+  background: rgba(255, 255, 255, 0.10); border-color: rgba(255, 255, 255, 0.18);
+}
+.cs-top-bar .lang-select-dropdown { color: #D6DEEA; }
+.cs-top-bar .lang-select-dropdown option { color: var(--im-text); }

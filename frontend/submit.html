@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
 <title>iM Worker Pass - 제출</title>
-<link rel="stylesheet" href="ui.css" />
+<link rel="stylesheet" href="ui.css?v=3" />
+<script src="i18n.js?v=3"></script>
 <style>
   .rows .row { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid #eef2f7; font-size:13px; }
   .rows .row span:first-child { color:#475569; white-space:nowrap; }
@@ -29,8 +32,9 @@
 <div class="phone">
   <header class="ph-top">
     <div class="ph-top-bar">
-      <span class="ph-brand"><span class="nm">iM PASS</span><span class="role">근로자</span></span>
+      <span class="ph-brand"><svg class='mark' viewBox='0 0 26 23' fill='none' xmlns='http://www.w3.org/2000/svg' aria-hidden='true'><path d='M3 19.5V8.2c0-1.9 2.4-2.8 3.6-1.3L13 14.8l6.4-7.9C20.6 5.4 23 6.3 23 8.2v11.3' stroke='#00C7A9' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg><span class="nm">iM PASS</span><span class="role">근로자</span></span>
       <span class="acts">
+        <div id="langSelectorArea"></div>
         <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
         <a href="home.html" class="switch-link"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
       </span>
@@ -51,18 +55,23 @@
   </div>
 
   <div id="main" style="display:none;">
-    <div id="whoBox" style="margin-bottom:12px;"></div>
+    <div id="whoBox" style="margin-bottom:12px;" data-no-translate></div>
     <div class="card">
-      <h3>1) 어디에 낼지 고르기</h3>
-      <input id="credentialId" type="hidden" />
+      <div class="card-head">
+        <h3><span class="step-no">1</span>어디에 낼지 고르기</h3>
+        <span class="badge ok">최소정보 제공</span>
+      </div>
+      <input id="credentialId" readonly hidden />
       <label>제출 대상</label>
-      <select id="targetId" onchange="toggleSymptom()">
-        <option value="company_A">company_A (A제조공장 — 이직 서류 대사 + 급여계좌 등록)</option>
-        <option value="company_B">company_B (B제조공장 — 오배송 시연용)</option>
-        <option value="hospital_1">hospital_1 (거점 병원 — 신분 + 진료접수)</option>
-        <option value="site_A">site_A (A제조 출입 스캐너 — 출퇴근)</option>
-        <option value="site_B">site_B (B제조 출입 스캐너 — 출퇴근)</option>
+      <select id="targetId" onchange="toggleSymptom(); paintItems();">
+        <option value="company_A">A제조공장 · 이직 서류 확인과 급여계좌 등록</option>
+        <option value="company_B">B제조공장 · 다른 곳으로 낸 QR 확인</option>
+        <option value="hospital_1">거점 병원 · 신분 확인과 진료 접수</option>
+        <option value="site_A">A제조공장 출입 스캐너 · 출퇴근</option>
+        <option value="site_B">B제조공장 출입 스캐너 · 출퇴근</option>
       </select>
+      <div id="itemsBox" style="margin-top:14px;"></div>
+
       <div id="symptomBox" style="display:none;margin-top:12px;">
         <label>병원에 전달할 증상</label>
         <select id="symptom">
@@ -80,25 +89,30 @@
         <b>시각은 회사 스캐너가 읽는 순간 회사 근태 시스템이 찍습니다.</b>
       </div>
       <div class="muted">
-        보험은 상품 선택이 곧 수령처 선택이라 QR이 필요 없습니다 — <a href="insurance.html">④ 보험</a> 화면에서 진행합니다.
+        보험은 상품 선택이 곧 수령처 선택이라 QR이 필요 없습니다 — <a href="insurance.html">보험 화면</a> 화면에서 진행합니다.
       </div>
-      <button onclick="createPresentation()">단말 서명 &amp; QR 생성</button>
+      <button onclick="createPresentation()">이 항목으로 QR 만들기</button>
       <div id="errBox"></div>
     </div>
 
     <div class="card" id="resultCard" style="display:none;">
-      <h3>2) 제출용 QR</h3>
+      <div class="card-head">
+        <h3><span class="step-no">2</span>제출용 안심 QR</h3>
+        <span class="badge check" id="countdown"></span>
+      </div>
       <div style="text-align:center;">
         <img id="qrImg" style="display:none;margin:0 auto;max-width:220px;" />
       </div>
-      <div id="countdown" style="font-weight:bold;color:#2563eb;margin-top:10px;text-align:center;"></div>
       <button id="renewBtn" class="secondary" style="display:none;" onclick="createPresentation()">QR 다시 생성</button>
       <div id="sigBox"></div>
       <div id="attendBox"></div>
       <div id="refreshBox"></div>
-      <p class="muted">
-        아래 payload를 복사해 <b>③ 스캐너</b>의 붙여넣기 창에 넣으면 카메라 없이도 검증을 테스트할 수 있습니다.
-        계좌번호를 한 글자 바꿔 넣으면 위변조 시연이 됩니다.
+      <details class="fold" style="margin-top:14px;">
+        <summary><span>검증용 코드 보기</span><span class="chev">▾</span></summary>
+        <div class="fold-body">
+      <p class="muted" style="margin-top:0;">
+        카메라가 없을 때는 이 코드를 사업자 화면의 붙여넣기 창에 넣어 확인할 수 있습니다.
+        한 글자만 바꿔 넣으면 바로 거절되는 것도 볼 수 있습니다.
       </p>
       <div class="payload-wrap">
         <button id="copyPayloadBtn" class="copy-ico" onclick="copyPayload(this)"
@@ -110,12 +124,14 @@
             <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
           </svg>
         </button>
-        <pre id="payloadBox"></pre>
+        <pre id="payloadBox" data-no-translate></pre>
       </div>
+        </div>
+      </details>
     </div>
   </div>
 
-  <script src="config.js"></script>
+  <script src="config.js?v=3"></script>
   <script>
     // 새로고침(F5)이면 지갑 상태를 비워 처음부터 시작한다 (wallet.html 과 동일 규칙).
     (function resetOnReload() {
@@ -177,6 +193,71 @@
     };
 
     const SITE_TARGETS = ["site_A", "site_B"];
+
+    // ── 제출 포함 항목 ────────────────────────────────────────────
+    // 수령처마다 필요한 항목이 다르다. 고른 순간 "무엇이 나가는지"를 먼저 보여주고
+    // 그다음에 [단말 서명 & QR 생성] 한 번을 받는다 (AGENTS.md 규칙 6).
+    // 목록은 scan.html이 수령처별로 실제 표시하는 값과 맞춰 둔 것이다.
+    const ICO_ID   = "<svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5' width='19' height='14' rx='3'/><circle cx='9' cy='11' r='2'/><path d='M6 15.8c.5-1.2 1.7-1.9 3-1.9s2.5.7 3 1.9'/></svg>";
+    const ICO_VISA = "<svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 3.2 19 6v6.2c0 4-2.8 7.6-7 8.6-4.2-1-7-4.6-7-8.6V6l7-2.8Z'/><path d='m9 12.2 2.2 2.2 4-4.2'/></svg>";
+    const ICO_BANK = "<svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5.5' width='19' height='13' rx='3'/><path d='M2.5 10h19'/></svg>";
+    const ICO_DOC  = "<svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M6 3.5h8l4.5 4.5v12a1.5 1.5 0 0 1-1.5 1.5H6a1.5 1.5 0 0 1-1.5-1.5v-15A1.5 1.5 0 0 1 6 3.5Z'/><path d='M13.5 3.8V8.5H18'/></svg>";
+    const ICO_MED  = "<svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 3.2 19 6v6.2c0 4-2.8 7.6-7 8.6-4.2-1-7-4.6-7-8.6V6l7-2.8Z'/><path d='M12 9.3v5.4M9.3 12h5.4'/></svg>";
+    const ICO_CLOCK= "<svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='12' r='9'/><path d='M12 7v5.3l3.2 1.9'/></svg>";
+
+    const SUBMIT_ITEMS = {
+      company_A: [
+        [ICO_ID,   "성명 · 외국인등록번호 앞자리"],
+        [ICO_VISA, "체류자격과 허가 만료일"],
+        [ICO_DOC,  "이직에 필요한 확인 서류"],
+        [ICO_BANK, "iM뱅크 급여계좌 확인"],
+      ],
+      company_B: [
+        [ICO_ID,   "성명 · 외국인등록번호 앞자리"],
+        [ICO_VISA, "체류자격과 허가 만료일"],
+        [ICO_DOC,  "이직에 필요한 확인 서류"],
+        [ICO_BANK, "iM뱅크 급여계좌 확인"],
+      ],
+      hospital_1: [
+        [ICO_ID,   "성명 · 생년월일 · 외국인등록번호 앞자리"],
+        [ICO_VISA, "체류자격과 허가 만료일"],
+        [ICO_MED,  "보험 가입 확인"],
+        [ICO_DOC,  "본인이 고른 증상"],
+      ],
+      site_A: [
+        [ICO_ID,    "성명"],
+        [ICO_VISA,  "체류자격이 유효한지"],
+        [ICO_CLOCK, "출퇴근 시각은 회사 근태 시스템이 기록"],
+      ],
+      site_B: [
+        [ICO_ID,    "성명"],
+        [ICO_VISA,  "체류자격이 유효한지"],
+        [ICO_CLOCK, "출퇴근 시각은 회사 근태 시스템이 기록"],
+      ],
+    };
+
+    function paintItems() {
+      const box = document.getElementById("itemsBox");
+      if (!box) return;
+      const t = document.getElementById("targetId").value;
+      const items = SUBMIT_ITEMS[t] || [];
+      if (!items.length) { box.innerHTML = ""; return; }
+      box.innerHTML = `
+        <div class="inner">
+          <div class="inner-lab">
+            <span>이 기관에 전달되는 항목</span>
+            <span>${items.length}개</span>
+          </div>
+          <div class="chips">
+            ${items.map(([ico, label]) =>
+              `<span class="chip-item">${ico}${esc(label)}</span>`).join("")}
+          </div>
+        </div>
+        <p class="muted" style="margin-top:10px;">
+          목록에 없는 값은 나가지 않습니다. QR에는 <b>일회용 번호 하나</b>만 담기고,
+          위 항목은 그 QR을 읽은 기관에만 전달됩니다.
+        </p>`;
+    }
 
     function toggleSymptom() {
       const v = document.getElementById("targetId").value;
@@ -260,7 +341,10 @@
       document.getElementById("payloadBox").textContent = JSON.stringify(data.qr_payload, null, 2);
 
       document.getElementById("sigBox").innerHTML = data.holder_verified
-        ? `<div class="sigline">✓ 단말 서명 검증 통과 — 이 지갑의 주인이 보낸 요청입니다.</div>`
+        ? `<div class="inner" style="margin-top:12px;display:flex;align-items:center;gap:9px;">
+             <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style="color:var(--role);"><path d='m5 12.5 4.5 4.5L19 7.5'/></svg>
+             <span style="font-size:13px;font-weight:600;">이 지갑의 주인이 만든 일회용 QR이에요</span>
+           </div>`
         : `<div class="muted">단말 키가 등록되지 않은 지갑입니다. 서명 검증을 건너뛰었습니다.</div>`;
 
       document.getElementById("attendBox").innerHTML = "";
@@ -272,28 +356,32 @@
 
       const log = data.agency_lookups || [];
       document.getElementById("refreshBox").innerHTML = !log.length ? "" : `
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-top:10px;">
-          <div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;">
-            <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='width:16px;height:16px;'><path d='M20 7v5h-5'/><path d='M4 17v-5h5'/><path d='M6.1 8.2A7 7 0 0 1 18.7 10M5.3 14A7 7 0 0 0 17.9 15.8'/></svg>
-            제출 시점 재조회 ${log.length}건
+        <div class="inner" style="margin-top:12px;">
+          <div class="inner-lab">
+            <span>제출하는 지금 다시 물어본 기관</span>
+            <span>${log.length}곳</span>
           </div>
-          <div style="font-size:12px;color:#64748b;margin-bottom:4px;">${esc(data.refreshed_at)}</div>
+          <div style="font-size:12px;color:var(--im-disabled);margin:4px 0 10px;">${esc(data.refreshed_at)} 기준</div>
           ${log.map(l => `
-            <div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12.5px;">
-              <span>${l.status === 'ok' ? '✓' : '—'} ${esc(l.agency)}</span>
-              <span class="${l.authority === 'real' ? 'badge-real' : 'badge-mock'}">
-                ${l.authority === 'real' ? '실제 발급기관' : '모의 API'}</span>
+            <div class="agency-row">
+              <span class="nm">${esc(l.agency)}</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <span class="badge ${l.authority === 'real' ? 'ok' : ''}">${l.authority === 'real' ? '실제 발급기관' : '모의 API'}</span>
+                <span class="badge ${l.status === 'ok' ? 'ok' : 'check'}">${l.status === 'ok' ? '확인됨' : '기록 없음'}</span>
+              </span>
             </div>`).join("")}
-          <div class="muted">
-            카드를 미리 받아 보관하지 않고 낼 때마다 다시 물으므로, 낡은 버전이라는 것이 존재하지 않습니다.
-            목적에 필요 없는 기관에는 묻지 않습니다.
-          </div>
+          <p class="muted" style="margin-top:10px;">
+            카드를 미리 받아 보관하지 않고 낼 때마다 다시 물어보기 때문에,
+            낡은 증명이라는 것이 존재하지 않습니다. 목적에 필요 없는 기관에는 묻지 않습니다.
+          </p>
         </div>`;
 
       const expires = new Date(data.expires_at).getTime();
       const tick = () => {
         const left = Math.max(0, Math.ceil((expires - Date.now()) / 1000));
-        document.getElementById("countdown").textContent = left > 0 ? `QR 유효시간: ${left}초` : "QR 만료됨";
+        const cd = document.getElementById("countdown");
+        cd.textContent = left > 0 ? `유효시간 ${left}초` : "만료됨";
+        cd.className = "badge " + (left <= 0 ? "revoked" : (left <= 15 ? "revoked" : "check"));
         if (left <= 0) {
           clearInterval(countdownTimer);
           img.style.display = "none";
@@ -311,6 +399,7 @@
       if (!cid) { document.getElementById("noWallet").style.display = "block"; return; }
       document.getElementById("credentialId").value = cid;
       document.getElementById("main").style.display = "block";
+      paintItems();
       // 어느 인물의 지갑인지 화면에 띄운다 — 심사에서 인물을 바꿔가며 보기 때문.
       fetch(`${API_BASE_URL}/wallet/${cid}`).then(r => r.ok && r.json()).then(w => {
         if (!w) return;
@@ -331,5 +420,14 @@
       <a href="products.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5.5' width='19' height='13' rx='3'/><path d='M2.5 10h19'/><path d='M6.5 14.6h3'/></svg>금융생활</a>
   </nav>
 </div>
+<script>
+  // 언어 선택기는 i18n.js가 그린다. setLang()이 translatePage()를 자동 호출하므로
+  // data-i18n 이 없는 문구도 번역된다. 개인정보에는 data-no-translate 를 붙여 둔다.
+  // i18n.js 가 없거나 못 뜨더라도 화면은 그대로 동작해야 한다.
+  if (window.I18N) {
+    I18N.renderSelector("langSelectorArea");
+    window.addEventListener("imwp-lang-change", () => I18N.apply());
+  }
+</script>
 </body>
 </html>
