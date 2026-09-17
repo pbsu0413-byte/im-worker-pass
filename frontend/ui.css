@@ -899,3 +899,26 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: var(--font-mic
 }
 .cs-top-bar .lang-select-dropdown { color: #D6DEEA; }
 .cs-top-bar .lang-select-dropdown option { color: var(--im-text); }
+
+/* 모바일 헤더(420px)는 자리가 빠듯하다. 선택기를 그대로 두면 브랜드명과
+   `서비스 전환`이 두 줄로 접힌다. 폰 안에서는 언어 이름을 숨기고 국기만 남긴다.
+   (select 는 폭을 0으로 줄여도 클릭 영역이 살아 있어 목록은 그대로 열린다.) */
+.ph-top .lang-picker-box { padding: 4px 7px; gap: 0; }
+.ph-top .lang-picker-box .lang-flag { font-size: 15px; }
+.ph-top .lang-select-dropdown {
+  width: 14px; padding: 0; margin-left: 1px;
+  color: transparent; text-indent: -999px;
+  -webkit-appearance: none; appearance: none;
+}
+.ph-top .lang-select-dropdown option { color: var(--im-text); text-indent: 0; }
+/* 국기 옆에 작은 화살표를 직접 그려 준다 — 누를 수 있다는 표시가 필요하다. */
+.ph-top .lang-picker-box::after {
+  content: ""; width: 0; height: 0; margin-left: -8px;
+  border-left: 3.5px solid transparent; border-right: 3.5px solid transparent;
+  border-top: 4px solid var(--im-disabled); pointer-events: none;
+}
+
+/* 헤더 요소는 절대 줄바꿈하지 않는다. */
+.ph-brand .nm, .ph-brand .role, .ph-top .switch-link { white-space: nowrap; }
+.ph-top .acts { gap: var(--space-3); flex: none; }
+.ph-brand { min-width: 0; }

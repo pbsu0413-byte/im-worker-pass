@@ -815,7 +815,10 @@
   // 언어 선택기는 i18n.js가 그린다. setLang()이 translatePage()를 자동 호출하므로
   // data-i18n 이 없는 문구도 번역된다. 개인정보에는 data-no-translate 를 붙여 둔다.
   // i18n.js 가 없거나 못 뜨더라도 화면은 그대로 동작해야 한다.
-  if (window.I18N) {
+  // i18n.js 는 최상위 `const I18N = {...}` 로 선언한다. 클래식 스크립트의 const 는
+  // 전역 렉시컬 바인딩만 만들고 window 의 속성이 되지 않으므로 `window.I18N` 은 항상 undefined 다.
+  // typeof 로 봐야 한다. 이걸 틀려서 언어 선택기가 전 화면에서 안 떴다.
+  if (typeof I18N !== "undefined") {
     I18N.renderSelector("langSelectorArea");
     window.addEventListener("imwp-lang-change", () => I18N.apply());
   }
