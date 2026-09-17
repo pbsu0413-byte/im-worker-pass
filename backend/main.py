@@ -7,8 +7,10 @@ iM Worker Pass - Prototype Backend (FastAPI) + Blockchain Web3
 3. 관리자 (체류자격 취소 시 블록체인 revoke 트랜잭션 발생 및 온체인 즉시 거부)
 """
 
+import asyncio
 import base64
 import json
+import logging
 import os
 import uuid
 import hashlib
@@ -33,6 +35,7 @@ from models import (
     PensionAllocationRequest,
     PresentationRequest,
     SavingsEnrollRequest,
+    TranslateRequest,
     VerifyRequest,
     WalletRegisterRequest,
 )
@@ -46,8 +49,12 @@ import settlement as stl
 import pension as pen
 from blockchain_client import get_blockchain_client, CredentialStatus
 from agency_api import PURPOSE_AGENCIES, coverage as agency_coverage, run_lookups
+import translation_cache as tr_cache
 
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("im-worker-pass")
 
 ISSUER_SECRET = os.environ.get("ISSUER_SECRET", "dev-only-change-me")
 
@@ -713,8 +720,6 @@ def wallet_status(credential_id: str):
         "credential_id": credential_id,
         "worker_name": cred.get("worker_name"),
         "nationality": cred.get("nationality"),
-        # 지갑 화면의 인사 배너가 마스코트를 고르는 데 쓴다(여=단디 / 남=똑디 / 그 외=우디).
-        "gender": cred.get("gender"),
         "visa_type": cred.get("visa_type"),
         "visa_valid_until": cred.get("visa_valid_until"),
         "account_bank": cred.get("account_bank"),
@@ -1410,6 +1415,147 @@ async def _no_cache(request, call_next):
         if h in response.headers:
             del response.headers[h]
     return response
+
+
+
+# ─────────────────────────────────────────────────────────────
+# /api/translate — LLM 기반 UI 번역 (Gemini gemini-3.6-flash)
+# 프론트에서 텍스트 배열과 목적 언어를 받아 Gemini API로 번역 후 배열로 돌려준다.
+# GEMINI_API_KEY 환경변수가 없으면 503을 반환해 프론트가 기존 사전으로 폴백하도록 한다.
+# ─────────────────────────────────────────────────────────────
+_LANG_NAMES = {
+    "en": "English",
+    "vi": "Vietnamese",
+    "th": "Thai",
+    "id": "Indonesian (Bahasa Indonesia)",
+    "uz": "Uzbek (Oʻzbekcha)",
+    "zh": "Simplified Chinese",
+    "ko": "Korean",
+}
+
+@app.post("/api/translate")
+async def translate_texts(req: TranslateRequest):
+    """
+    화면 텍스트 배열을 Gemini gemini-3.6-flash로 번역한다.
+    - 요청: { lang: "en", texts: ["안녕", "근로자", ...] }
+    - 응답: { translations: ["Hello", "Worker", ...] }
+    - ko 요청 또는 빈 배열은 원문 그대로 반환(API 호출 없음).
+    - 이미 번역해둔 (원문, 언어) 조합은 캐시에서 즉시 반환하고, LLM은
+      한 번도 본 적 없는 문장에 대해서만 호출한다 (translation_cache.py).
+    - GEMINI_API_KEY 미설정 시 503 반환 → 프론트가 기존 사전 폴백 사용.
+    """
+    texts = req.texts
+    lang_code = req.lang.lower()
+
+    # 한국어 요청이거나 빈 배열이면 원문 그대로
+    if lang_code == "ko" or not texts:
+        return {"translations": texts}
+
+    # 최대 200개 제한 (토큰 폭증 방지)
+    if len(texts) > 200:
+        raise HTTPException(status_code=400, detail="Too many texts (max 200 per request).")
+
+    # 빈 문자열·공백만 있는 항목은 건너뛰고 위치 기억
+    indices_to_translate = [i for i, t in enumerate(texts) if t and t.strip()]
+    texts_to_translate = [texts[i] for i in indices_to_translate]
+
+    if not texts_to_translate:
+        return {"translations": texts}
+
+    # ── 캐시 조회: 이미 번역해둔 것부터 채운다 ──────────────────────
+    result = list(texts)
+    cached = tr_cache.get_many(lang_code, texts_to_translate)
+    still_missing = [t for t in texts_to_translate if t not in cached]
+
+    for idx, original in zip(indices_to_translate, texts_to_translate):
+        if original in cached:
+            result[idx] = cached[original]
+
+    # 전부 캐시에 있었으면 LLM을 아예 부르지 않고 바로 반환
+    if not still_missing:
+        return {"translations": result}
+
+    # ── 캐시에 없는 것만 LLM에 보낸다 ────────────────────────────────
+    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not gemini_key:
+        # 캐시로 채울 수 있는 만큼은 채워서 반환하고, 나머지는 원문 유지
+        # (프론트가 사전 폴백으로 마저 처리한다)
+        raise HTTPException(
+            status_code=503,
+            detail="GEMINI_API_KEY not configured. Falling back to dictionary."
+        )
+
+    lang_name = _LANG_NAMES.get(lang_code, lang_code)
+
+    prompt = (
+        f"You are a UI localization expert. Translate the following Korean app UI texts to {lang_name}.\n"
+        "Rules:\n"
+        "- Return ONLY a valid JSON array of translated strings.\n"
+        "- Preserve the exact count and order.\n"
+        "- Keep proper nouns and brand names unchanged: iM뱅크, iM PASS, iM Worker Pass, Worker Pass.\n"
+        "- Keep numbers, dates, currency symbols, and HTML tags unchanged.\n"
+        "- Use natural, short UI-friendly phrasing (buttons, labels, short sentences).\n"
+        "- Do NOT add explanations, markdown, or extra text outside the JSON array.\n\n"
+        f"Texts to translate:\n{json.dumps(still_missing, ensure_ascii=False)}"
+    )
+
+    def _call_gemini():
+        import google.generativeai as genai
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel("gemini-3.6-flash")
+        response = model.generate_content(prompt)
+        raw = response.text.strip()
+
+        # Gemini가 ```json ... ``` 블록으로 감싸는 경우 처리
+        if raw.startswith("```"):
+            lines = raw.split("\n")
+            raw = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+
+        translated = json.loads(raw)
+        if not isinstance(translated, list) or len(translated) != len(still_missing):
+            raise ValueError(f"Unexpected response shape from Gemini (got {len(translated) if isinstance(translated, list) else type(translated)} items, expected {len(still_missing)}).")
+        return translated
+
+    try:
+        # generate_content()는 동기(blocking) 호출이라 그대로 두면 이 요청이 끝날 때까지
+        # 서버 전체(이벤트 루프)가 다른 요청을 처리하지 못한다. 별도 스레드로 돌리고,
+        # 행(hang) 상태로 서버 전체를 물고 늘어지지 않도록 타임아웃도 건다.
+        translated = await asyncio.wait_for(asyncio.to_thread(_call_gemini), timeout=60.0)
+
+    except asyncio.TimeoutError as e:
+        logger.exception("[/api/translate] Gemini 호출 타임아웃 (lang=%s, %d개 항목)", lang_code, len(still_missing))
+        if cached:
+            return {"translations": result}
+        raise HTTPException(status_code=504, detail="LLM translation timed out after 60s.")
+
+    except Exception as e:
+        # 실패 원인을 서버 로그(Render 대시보드 Logs 탭)에 반드시 남긴다.
+        # 지금까지는 detail 문자열로만 내려가서 프론트가 버리면 원인이 영영 안 보였다.
+        logger.exception("[/api/translate] Gemini 호출 실패 (lang=%s, %d개 항목): %s", lang_code, len(still_missing), e)
+        # 캐시로 채운 부분이라도 있으면 그건 살려서 돌려준다 (전부 실패 처리하지 않는다)
+        if cached:
+            return {"translations": result}
+        raise HTTPException(
+            status_code=502,
+            detail=f"LLM translation failed: {type(e).__name__}: {str(e)}"
+        )
+
+    # 새로 번역된 것을 캐시에 저장 — 다음 사람부터는 이 문장에 대해 LLM을 다시 안 부른다
+    new_mapping = dict(zip(still_missing, translated))
+    tr_cache.set_many(lang_code, new_mapping)
+
+    # 번역 결과를 원래 위치에 합치기 (캐시 히트분 + 새로 번역한 분)
+    for idx, original in zip(indices_to_translate, texts_to_translate):
+        if original in new_mapping:
+            result[idx] = new_mapping[original]
+
+    return {"translations": result}
+
+
+@app.get("/api/translate/cache-stats")
+def translate_cache_stats():
+    """지금까지 캐시에 쌓인 번역이 언어별로 몇 개인지 (모니터링/디버그용)."""
+    return tr_cache.stats()
 
 
 if os.path.isdir(_frontend_dir):

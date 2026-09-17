@@ -99,3 +99,10 @@ class PensionAllocationRequest(BaseModel):
 
     credential_id: str
     fund_id: str
+
+
+class TranslateRequest(BaseModel):
+    """LLM 번역 요청. 프론트에서 텍스트 배열과 목적 언어 코드를 받아 Gemini API로 번역한다."""
+
+    lang: str            # 목적 언어 코드 (en, vi, th, id, uz, zh 등)
+    texts: list[str]     # 번역할 텍스트 배열

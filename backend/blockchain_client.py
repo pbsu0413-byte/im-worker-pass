@@ -17,6 +17,24 @@ class CredentialStatus(IntEnum):
     VALID = 1     # 유효
     REVOKED = 2   # 철회 (체류자격 취소)
 
+
+def _raw_tx_bytes(signed_tx) -> bytes:
+    """
+    web3.py v6까지는 signed_tx.rawTransaction(카멜케이스), v7부터는
+    signed_tx.raw_transaction(스네이크케이스)로 속성명이 바뀌었다.
+    requirements.txt가 web3>=7.0.0로 상한선 없이 열려있어 나중에 또 바뀔 수 있으니,
+    둘 다 시도해서 있는 쪽을 쓰도록 방어한다.
+    """
+    raw = getattr(signed_tx, "raw_transaction", None)
+    if raw is None:
+        raw = getattr(signed_tx, "rawTransaction", None)
+    if raw is None:
+        raise AttributeError(
+            "signed_tx has neither 'raw_transaction' nor 'rawTransaction' — "
+            "check the installed web3.py version's SignedTransaction shape."
+        )
+    return raw
+
 # CredentialRegistry ABI
 REGISTRY_ABI = [
     {
@@ -145,7 +163,7 @@ class BlockchainRegistryClient:
                 "gasPrice": self.w3.eth.gas_price,
             })
             signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=self.admin_private_key)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            tx_hash = self.w3.eth.send_raw_transaction(_raw_tx_bytes(signed_tx))
             tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
             tx_hash_hex = tx_hash.hex()
             return {
@@ -189,7 +207,7 @@ class BlockchainRegistryClient:
                 "gasPrice": self.w3.eth.gas_price,
             })
             signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=self.admin_private_key)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            tx_hash = self.w3.eth.send_raw_transaction(_raw_tx_bytes(signed_tx))
             tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
             tx_hash_hex = tx_hash.hex()
             return {
@@ -238,7 +256,7 @@ class BlockchainRegistryClient:
                 "gasPrice": self.w3.eth.gas_price,
             })
             signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=self.admin_private_key)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            tx_hash = self.w3.eth.send_raw_transaction(_raw_tx_bytes(signed_tx))
             tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
             tx_hash_hex = tx_hash.hex()
             return {
