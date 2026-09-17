@@ -720,6 +720,8 @@ def wallet_status(credential_id: str):
         "credential_id": credential_id,
         "worker_name": cred.get("worker_name"),
         "nationality": cred.get("nationality"),
+        # 지갑 화면의 인사 배너가 마스코트를 고르는 데 쓴다(남=단디 / 여=똑디 / 그 외=우디).
+        "gender": cred.get("gender"),
         "visa_type": cred.get("visa_type"),
         "visa_valid_until": cred.get("visa_valid_until"),
         "account_bank": cred.get("account_bank"),
