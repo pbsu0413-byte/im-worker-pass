@@ -2,7 +2,7 @@
   "_agency": "제휴 사업장 급여시스템",
   "_agency_id": "PAYROLL",
   "_authority": "mock",
-  "_note": "시급·소정근로시간은 프로토타입 가정값이다. 실제 급여는 회사 급여명세가 기준이며, 이 값으로 계산한 예상 급여는 공제 전 세전 총액이다.",
+  "_note": "시급·소정근로시간은 프로토타입 가정값이다. 실제 급여는 회사 급여명세가 기준이며, 이 값으로 계산한 예상 급여는 공제 전 세전 총액이다. 사업장(site_id)은 seeds/eps.json 의 고용이력, attendance.py 의 SITES 와 반드시 일치시킨다.",
   "_assumed_min_wage": 10320,
   "records": [
     {
@@ -25,8 +25,8 @@
     },
     {
       "worker_name": "LI CHUNHUA",
-      "site_id": "BIZ-001",
-      "job_title": "품질 검사",
+      "site_id": "BIZ-003",
+      "job_title": "조리 보조",
       "hourly_wage": 11500,
       "daily_hours": 8,
       "workdays_per_week": 5,
@@ -40,6 +40,15 @@
       "daily_hours": 8,
       "workdays_per_week": 5,
       "joined_date": "2024-08-05"
+    },
+    {
+      "worker_name": "MICHAEL BRENNAN",
+      "site_id": "BIZ-001",
+      "job_title": "생산기술 엔지니어",
+      "hourly_wage": 26000,
+      "daily_hours": 8,
+      "workdays_per_week": 5,
+      "joined_date": "2024-11-04"
     }
   ]
 }

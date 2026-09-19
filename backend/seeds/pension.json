@@ -2,7 +2,7 @@
   "_agency": "iM뱅크 퇴직연금",
   "_agency_id": "PENSION",
   "_authority": "real",
-  "_note": "DC형 퇴직연금 가입 현황. 사업장이 iM과 제휴할 때 DC 제도를 도입한 것으로 보고 근로자는 모두 가입 상태다. 근로자가 하는 선택은 적립금 운용상품뿐이다. started_months_ago 는 상대값이라 달이 바뀌어도 재현된다. fund 가 null 이면 아직 고르지 않아 대기성 예금에 머물러 있는 상태다.",
+  "_note": "DC형 퇴직연금 가입 현황. **고용허가제(E-9·H-2)는 퇴직급여가 출국만기보험으로 쌓이므로 DC 대상이 아니다**(외국인근로자의 고용 등에 관한 법률 제13조). 사업장이 DC를 운영해도 마찬가지다. 그래서 E-9·H-2 는 dc_enrolled=false 이고, 퇴직연금 운용 선택 화면은 E-7 전문인력처럼 퇴직급여법이 그대로 적용되는 사람에게만 뜬다. 근로자가 하는 선택은 적립금 운용상품뿐이며 언제든 바꿀 수 있다. started_months_ago 는 상대값이라 달이 바뀌어도 재현된다. fund 가 null 이면 아직 고르지 않아 사전지정운용(디폴트) 상태다.",
   "funds": [
     {
       "id": "stable",
@@ -30,26 +30,32 @@
   "records": [
     {
       "worker_name": "NGUYEN VAN A",
-      "dc_enrolled": true,
+      "dc_enrolled": false,
       "started_months_ago": 30,
       "fund": null
     },
     {
       "worker_name": "SITI RAHAYU",
-      "dc_enrolled": true,
+      "dc_enrolled": false,
       "started_months_ago": 20,
-      "fund": "stable"
+      "fund": null
     },
     {
       "worker_name": "LI CHUNHUA",
-      "dc_enrolled": true,
+      "dc_enrolled": false,
       "started_months_ago": 28,
-      "fund": "growth"
+      "fund": null
     },
     {
       "worker_name": "NGUYEN THI E",
-      "dc_enrolled": true,
+      "dc_enrolled": false,
       "started_months_ago": 14,
+      "fund": null
+    },
+    {
+      "worker_name": "MICHAEL BRENNAN",
+      "dc_enrolled": true,
+      "started_months_ago": 21,
       "fund": null
     }
   ]

@@ -43,6 +43,16 @@
       "visa_type": "H-2",
       "visa_valid_until": "2026-11-20",
       "visa_status": "유효"
+    },
+    {
+      "worker_name": "MICHAEL BRENNAN",
+      "nationality": "미국",
+      "reg_no": "900218-5000011",
+      "birth_date": "1990-02-18",
+      "gender": "남",
+      "visa_type": "E-7-1",
+      "visa_valid_until": "2028-06-30",
+      "visa_status": "유효"
     }
   ]
 }

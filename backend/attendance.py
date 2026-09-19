@@ -19,9 +19,12 @@ from datetime import datetime, timedelta, timezone
 
 OPEN_SHIFT_HOURS = 16      # 야간 교대: 출근이 열려 있으면 다음 스캔은 무조건 퇴근
 
+# 스캐너는 사업장마다 입구에 하나씩 있다. 근로자의 payroll.site_id 와 짝이 맞아야
+# 근태가 자기 사업장에 찍힌다 — 한쪽만 추가하면 식당 근로자가 공장에 출근한 것이 된다.
 SITES = {
     "SCANNER-BIZ-001": {"site_id": "BIZ-001", "site_name": "A제조 (주)대구정밀"},
     "SCANNER-BIZ-002": {"site_id": "BIZ-002", "site_name": "B제조 (주)구미사출"},
+    "SCANNER-BIZ-003": {"site_id": "BIZ-003", "site_name": "G식당 (주)수성푸드빌"},
 }
 
 _records = {}      # record_id -> 근태 기록 (회사 근태 시스템)

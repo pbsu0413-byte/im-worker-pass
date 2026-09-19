@@ -16,8 +16,13 @@
     },
     {
       "worker_name": "LI CHUNHUA",
-      "safety_training_name": "제조업 정기 안전보건교육",
+      "safety_training_name": "음식점업 정기 안전보건교육",
       "safety_training_date": "2026-03-12"
+    },
+    {
+      "worker_name": "MICHAEL BRENNAN",
+      "safety_training_name": "제조업 정기 안전보건교육",
+      "safety_training_date": "2026-03-11"
     }
   ]
 }

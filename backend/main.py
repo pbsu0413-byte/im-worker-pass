@@ -46,6 +46,7 @@ import employer as emp
 import payroll as pay
 import savings as sav
 import settlement as stl
+import departure as dep
 import pension as pen
 from blockchain_client import get_blockchain_client, CredentialStatus
 from agency_api import PURPOSE_AGENCIES, coverage as agency_coverage, run_lookups
@@ -185,9 +186,14 @@ def _days_left(date_str: str | None, days: int):
 # 체류자격마다 이직 규정이 다르다. 이 표가 대사표의 분기 근거다.
 # 규정은 제도 개정이 잦으므로 발표 자료에 수치를 박기 전 원문을 재확인할 것.
 _VISA_RULES = {
+    # eps_program : 고용허가제(외고법) 적용 자격인가.
+    #   True  → 퇴직급여가 출국만기보험으로 쌓이고, 입사 전 건강진단이 채용 요건이다.
+    #   False → 퇴직급여법이 그대로 적용되고, 건강진단은 고용허가제 요건이 아니다.
+    # 이 값으로 화면 문구를 가른다. 없는 자격은 E-9 규칙으로 떨어지므로 True 가 기본이다.
     "E-9": {
         "label": "비전문취업 (고용허가제)",
         "change_rule": "사업장 변경 3회 제한 · 계약 종료 후 1개월 내 신청 · 구직기간 3개월",
+        "eps_program": True,
         "count_limited": True,
         "deadline_days": 30,
         "search_days": 90,
@@ -195,6 +201,15 @@ _VISA_RULES = {
     "H-2": {
         "label": "방문취업 (동포 특례고용)",
         "change_rule": "특례고용 — 사업장 변경 횟수 제한 없음 · 근무개시 15일 내 신고",
+        "eps_program": True,
+        "count_limited": False,
+        "deadline_days": None,
+        "search_days": None,
+    },
+    "E-7-1": {
+        "label": "특정활동 — 전문인력",
+        "change_rule": "근무처 변경 사전허가 대상 · 변경 횟수 제한 없음",
+        "eps_program": False,
         "count_limited": False,
         "deadline_days": None,
         "search_days": None,
@@ -202,6 +217,7 @@ _VISA_RULES = {
     "E-7-4": {
         "label": "숙련기능인력 (점수제)",
         "change_rule": "근무처 변경 사전허가 대상 · 최소 근무기간 또는 사용자 귀책 요건 충족 필요",
+        "eps_program": False,
         "count_limited": False,
         "deadline_days": None,
         "search_days": None,
@@ -209,11 +225,58 @@ _VISA_RULES = {
     "F-6": {
         "label": "결혼이민",
         "change_rule": "취업활동 제한 없음 · 사업장 변경 신고 불필요",
+        "eps_program": False,
         "count_limited": False,
         "deadline_days": None,
         "search_days": None,
     },
 }
+
+
+# ── 근로자 본인에게 띄우는 알림 ────────────────────────────────────────
+# 지금은 **체류 만료 임박 하나뿐**이다. 늘릴 때는 아래 원칙을 먼저 볼 것.
+#
+#   은행이 절차를 대행하지 않는다. 지갑이 **이미 아는 날짜**를 본인에게 돌려주고,
+#   어디로 가야 하는지까지만 말한다. 대신 신청해 주거나 될지 안 될지를 판단하지 않는다.
+#   체류자격의 법적 결과("불법체류가 됩니다" 같은 말)도 단정하지 않는다 — 그건 출입국이 정한다.
+#   (같은 기준으로 국민연금 반환일시금은 범위 밖으로 뒀다 — settlement.py 참조.)
+#
+# 체류기간 연장 허가는 만료 4개월 전부터 신청할 수 있다. 그 창이 열리는 시점에
+# 알리는 것이 가장 쓸모 있어서 120일을 기준으로 잡았다. 30일 이하는 급한 단계로 올린다.
+VISA_ALERT_DAYS = 120
+VISA_ALERT_URGENT_DAYS = 30
+
+
+def _worker_alerts(cred: dict) -> list:
+    until = cred.get("visa_valid_until")
+    if not until:
+        return []
+    try:
+        left = (datetime.strptime(until, "%Y-%m-%d").date()
+                - datetime.now(timezone.utc).date()).days
+    except Exception:
+        return []
+    if left > VISA_ALERT_DAYS:
+        return []
+
+    if left < 0:
+        title = f"체류기간이 {-left}일 지났어요"
+        body = ("등록된 체류기간이 지난 것으로 보여요. 출입국·외국인관서나 회사에 "
+                "지금 바로 확인해 주세요.")
+    else:
+        title = f"체류기간이 {left}일 남았어요"
+        body = ("체류기간 연장 허가는 만료 4개월 전부터 신청하실 수 있어요. "
+                "회사와 상의해 만료일 전에 신청을 마쳐 주세요.")
+
+    return [{
+        "id": "visa_expiry",
+        "level": "urgent" if (left < 0 or left <= VISA_ALERT_URGENT_DAYS) else "warn",
+        "title": title,
+        "body": body,
+        "valid_until": until,
+        "days_left": left,
+        "where": "하이코리아(hikorea.go.kr) 전자민원 · 외국인종합안내센터 1345",
+    }]
 
 
 def _visa_rule(cred: dict):
@@ -237,6 +300,17 @@ def _build_job_change_dossier(cred: dict) -> dict:
         {
             "name": "이직 규정",
             "value": rule["change_rule"],
+            "issuer": "체류자격별 적용 규정",
+        },
+        # 채용하는 사업장이 알아야 하는 의무가 자격마다 다르다.
+        {
+            "name": "퇴직급여",
+            "value": (
+                "출국만기보험 — 사업주가 월 통상임금의 8.3%를 납입해야 합니다 "
+                "(외국인근로자의 고용 등에 관한 법률 제13조)"
+                if rule["eps_program"] else
+                "근로자퇴직급여 보장법 적용 — 사업장의 퇴직금 또는 퇴직연금 제도를 따릅니다"
+            ),
             "issuer": "체류자격별 적용 규정",
         },
     ]
@@ -285,7 +359,9 @@ def _build_job_change_dossier(cred: dict) -> dict:
         })
         if expired:
             notice.append(f"건강진단 기한 경과({until}) — 입사 전 재검진 필요")
-    else:
+    elif rule["eps_program"]:
+        # 입사 전 건강진단은 고용허가제 채용 절차의 요건이다.
+        # E-7 같은 자격에는 해당하지 않으므로 경고로 띄우지 않는다.
         notice.append("건강진단 기록 없음 — 입사 전 검진 필요")
 
     # 한국어 — 자격마다 요구되는 시험이 다르다
@@ -371,7 +447,9 @@ def _build_job_change_dossier(cred: dict) -> dict:
         except Exception:
             pass
     if cred.get("visa_status") not in (None, "유효"):
-        notice.insert(0, f"체류자격 {cred['visa_status']} — 고용할 수 없습니다")
+        # "고용할 수 없습니다"는 사람을 거르는 말로 읽힌다. 우리가 할 수 있는 판단은
+        # 지갑을 발급할 수 있느냐까지다. 고용 가능 여부는 출입국이 정한다.
+        notice.insert(0, f"지갑을 발급할 수 없습니다 (사유: 체류자격 {cred['visa_status']})")
 
     return {
         "visa_type": cred.get("visa_type"),
@@ -449,7 +527,13 @@ def issue_credential(req: CredentialIssueRequest):
     # 1. 블록체인 스마트 컨트랙트에 등록 (keccak256 해시값만 전송)
     bc_res = bc.issue(cid)
 
-    row = {
+    # 기관이 돌려준 값을 **먼저 통째로 깔고**, 아래에서 명시한 항목으로 덮는다.
+    # 예전에는 아래 목록에 적힌 항목만 담아서, 살아 있는 발급 흐름으로 만든 지갑에는
+    # 안전보건교육·취업교육·국가기술자격·EPS-TOPIK·industry·visa_status 가 빠졌다.
+    # 서버가 미리 만들어 두는 두 명(_init_dummy_data)은 row.update(values) 로 전부 담아서,
+    # **같은 사람도 발급 경로에 따라 다른 지갑이 나왔다.** 그 차이를 없앤다.
+    row = {k: v for k, v in agency_values.items() if k != "account_verified"}
+    row.update({
         "credential_id": cid,
         "worker_name": req.worker_name,
         "nationality": req.nationality,
@@ -478,7 +562,7 @@ def issue_credential(req: CredentialIssueRequest):
         "is_existing": False,
         "chain_mode": bc_res.get("mode"),
         "message": "신규 자격증 발급 및 블록체인 등록 완료"
-    }
+    })
 
     # Supabase 또는 로컬 DB 저장
     if sb:
@@ -662,13 +746,15 @@ def pension_allocation(req: PensionAllocationRequest):
         raise HTTPException(status_code=403, detail="CREDENTIAL_NOT_VALID")
 
     name = cred.get("worker_name")
-    if not pen.status(req.credential_id, name, cred.get("visa_valid_until")).get("enrolled"):
+    if not pen.status(req.credential_id, name, cred.get("visa_valid_until"),
+                      cred.get("visa_type")).get("enrolled"):
         raise HTTPException(status_code=409, detail="DC_NOT_ENROLLED")
-    if not pen.choose_fund(req.credential_id, req.fund_id):
+    if not pen.choose_fund(req.credential_id, req.fund_id, name):
         raise HTTPException(status_code=400, detail="UNKNOWN_FUND")
 
     return {"result": "ok",
-            "pension": pen.status(req.credential_id, name, cred.get("visa_valid_until"))}
+            "pension": pen.status(req.credential_id, name, cred.get("visa_valid_until"),
+                                  cred.get("visa_type"))}
 
 
 @app.get("/fx/quote/{credential_id}")
@@ -731,6 +817,8 @@ def wallet_status(credential_id: str):
         "tx_hash": cred.get("tx_hash"),
         "explorer_url": cred.get("explorer_url") if chain["mode"] == "live_testnet" else None,
         "agency_lookups": cred.get("agency_lookups", []),
+        # 근로자 본인용 알림. 지금은 체류 만료 임박 하나뿐이다.
+        "alerts": _worker_alerts(cred),
         "holder_registered": bool(holder),
         "wallet": holder and {k: holder[k] for k in ("verified_by", "bank_name", "id_document", "registered_at")},
         "dossier": _build_job_change_dossier(cred),
@@ -788,7 +876,10 @@ def passport_home(credential_id: str):
         # 환율 보장 송금 안내. 근로자에게는 등급 이름이 아니라 예상비용·보호범위만 보여준다.
         "hedge": prod.hedge_tier(cred),
         # DC형 퇴직연금. 가입은 회사가 하고, 근로자는 운용상품을 고른다.
-        "pension": pen.status(credential_id, name, cred.get("visa_valid_until")),
+        "pension": pen.status(credential_id, name, cred.get("visa_valid_until"),
+                              cred.get("visa_type")),
+        # 고용허가제(E-9·H-2)의 퇴직급여는 퇴직연금이 아니라 출국만기보험이다.
+        "departure": dep.status(name, cred.get("visa_type"), cred.get("visa_valid_until")),
         # 보험 가입 여부는 손보사 원천 기록에서 읽는다 (카드로 쌓지 않는다).
         "insurance": _insurance_db.get(credential_id) and {
             "product": _insurance_db[credential_id]["product"],

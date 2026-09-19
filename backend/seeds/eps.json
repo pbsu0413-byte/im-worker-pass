@@ -2,7 +2,7 @@
   "_agency": "고용노동부 고용센터 (EPS)",
   "_agency_id": "eps",
   "_authority": "mock",
-  "_note": "고용이력. 사업장 변경 횟수는 E-9에만 적용된다. 갓 입국한 근로자와 취업 제한이 없는 자격(F-6)은 기록이 없는 것이 정상이다.",
+  "_note": "고용이력. 사업장 변경 횟수는 E-9에만 적용된다. 갓 입국한 근로자와 취업 제한이 없는 자격(F-6)은 기록이 없는 것이 정상이다. E-7 전문인력은 근무처 변경이 사전허가 대상이라 횟수 개념이 없으므로 job_change_* 를 null 로 둔다.",
   "records": [
     {
       "worker_name": "NGUYEN VAN A",
@@ -44,6 +44,17 @@
       "job_category": "조리 보조",
       "employment_from": "2022-04-01",
       "employment_to": "2026-08-31"
+    },
+    {
+      "worker_name": "MICHAEL BRENNAN",
+      "employer_name": "A제조 (주)대구정밀",
+      "industry": "제조업",
+      "job_category": "생산기술",
+      "employment_from": "2024-11-04",
+      "employment_to": "2028-06-30",
+      "job_change_used": null,
+      "job_change_limit": null,
+      "job_change_excluded": null
     }
   ]
 }

@@ -9,6 +9,12 @@
 
 이자 계산식은 products.py 와 같은 것을 쓴다. 두 화면이 다른 숫자를 말하면
 심사에서 바로 드러난다.
+
+### ⛔ 프로토타입 범위 — 이자소득세를 빼고 계산한다
+국내 예적금 이자에는 **이자소득세 15.4%**(소득세 14% + 지방소득세 1.4%)가 원천징수된다.
+여기서는 넣지 않으므로 `expected_total` 은 **세전 금액**이고 실제 수령액보다 크다.
+귀국정산(settlement.py)이 이 값을 그대로 쓰므로 본국 통화 환산액도 같이 부풀려진다.
+시연 범위 밖이라 의도적으로 뺐고, 화면 문구로 그 사실을 밝힌다.
 """
 
 import json
@@ -99,7 +105,7 @@ def status(credential_id: str, worker_name: str, visa_valid_until: str | None):
         "fx_guard": bool(rec.get("fx_guard")),
         "rate": SAVINGS_RATE,
         "authority": "real",
-        "notice": "이자율과 금액은 시연용 예시입니다.",
+        "notice": "이자율과 금액은 시연용 예시입니다. 이자소득세(15.4%)를 빼기 전 금액입니다.",
     }
     if maturity and months_total:
         factor = 1 + SAVINGS_RATE * (months_total + 1) / 24

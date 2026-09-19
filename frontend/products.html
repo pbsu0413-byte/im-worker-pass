@@ -119,6 +119,14 @@
   .dc .why { background:#fffbeb; border:1px solid #fcd34d; color:#b45309;
     border-radius:10px; padding:10px 12px; font-size:12.5px; line-height:1.65; margin-top:10px; }
   .dc .desc { font-size:12px; color:#64748b; line-height:1.65; margin-top:8px; }
+  /* 귀국 시점 예상액 — 운용지시를 바꾸면 여기가 움직인다. 현재 잔액은 안 움직인다. */
+  .dc .proj { margin-top:11px; background:#f8fafc; border:1px solid #e8edf3;
+    border-radius:10px; padding:11px 13px; }
+  .dc .proj .lab { font-size:11.5px; color:#64748b; }
+  .dc .proj .amt { font-size:19px; font-weight:700; letter-spacing:-.5px; margin-top:3px; }
+  .dc .proj .cmp { font-size:12px; color:#475569; margin-top:5px; line-height:1.6; }
+  .dc .proj .cmp b { color:#047857; }
+  .dc .hint { font-size:11.5px; color:#94a3b8; line-height:1.65; margin-top:8px; }
   .pop .opt { display:flex; align-items:center; gap:8px; font-size:13px; margin-top:8px; }
   .pop .opt input { width:auto; }
   .pop .note { font-size:11.5px; color:#94a3b8; line-height:1.65; margin-top:10px; }
@@ -168,11 +176,14 @@
 <div class="phone">
   <header class="ph-top">
     <div class="ph-top-bar">
-      <span class="ph-brand"><svg class='mark' viewBox='0 0 26 23' fill='none' xmlns='http://www.w3.org/2000/svg' aria-hidden='true'><path d='M3 19.5V8.2c0-1.9 2.4-2.8 3.6-1.3L13 14.8l6.4-7.9C20.6 5.4 23 6.3 23 8.2v11.3' stroke='#00C7A9' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg><span class="nm">iM PASS</span><span class="role">근로자</span></span>
+      <span class="ph-brand"><svg class='mark' viewBox='0 0 26 23' fill='none' xmlns='http://www.w3.org/2000/svg' aria-hidden='true'><path d='M3 19.5V8.2c0-1.9 2.4-2.8 3.6-1.3L13 14.8l6.4-7.9C20.6 5.4 23 6.3 23 8.2v11.3' stroke='#00C7A9' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg><span class="nm" data-i18n="app_title">iM PASS</span><span class="role" data-i18n="worker_role">근로자</span></span>
       <span class="acts">
         <div id="langSelectorArea"></div>
-        <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
-        <a href="home.html" class="switch-link"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
+        <button type="button" class="bell-btn" data-lock-bell aria-label="알림">
+          <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
+          <span class="bell-dot" hidden></span>
+        </button>
+        <a href="home.html" class="switch-link"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg data-i18n="switch_service">서비스 전환</a>
       </span>
     </div>
     <h1>금융생활</h1>
@@ -186,8 +197,8 @@
     <div id="prodBox" class="prod-empty">불러오는 중…</div>
   </main>
   <nav class="ph-tabs">
-      <a href="wallet.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5' width='19' height='14' rx='3'/><circle cx='9' cy='11' r='2'/><path d='M6 15.8c.5-1.2 1.7-1.9 3-1.9s2.5.7 3 1.9'/><path d='M15.5 10.2h3.2M15.5 13.6h2.4'/></svg>내 패스</a>
-      <a href="submit.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 15.5V4'/><path d='m8 7.6 4-3.6 4 3.6'/><path d='M4.5 14v4.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V14'/></svg>제출</a>
+      <a href="wallet.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5' width='19' height='14' rx='3'/><circle cx='9' cy='11' r='2'/><path d='M6 15.8c.5-1.2 1.7-1.9 3-1.9s2.5.7 3 1.9'/><path d='M15.5 10.2h3.2M15.5 13.6h2.4'/></svg data-i18n="tab_mypass">내 패스</a>
+      <a href="submit.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 15.5V4'/><path d='m8 7.6 4-3.6 4 3.6'/><path d='M4.5 14v4.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V14'/></svg data-i18n="tab_submit">제출</a>
       <a href="products.html" class="active"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5.5' width='19' height='13' rx='3'/><path d='M2.5 10h19'/><path d='M6.5 14.6h3'/></svg>금융생활</a>
   </nav>
 </div>
@@ -252,6 +263,36 @@
     }
 
 
+    // 고용허가제(E-9·H-2)의 퇴직급여는 출국만기보험이다.
+    // 보험이라 근로자가 고를 상품이 없다 — 그래서 선택 버튼이 없는 것이 맞다.
+    // 이 화면이 하는 일은 얼마가 쌓였고 귀국할 때 언제 어떻게 받는지를 알려 주는 것이다.
+    // 법정 퇴직금과의 차액은 **계산하지 않는다**(backend/departure.py 머리말 참조).
+    function departureBlock(dp) {
+      if (!dp || !dp.applies) return "";
+      const yrs = (dp.months / 12).toFixed(1);
+      return `
+        <div class="dc">
+          <div class="hd">
+            <span class="ttl">출국만기보험</span>
+            <span class="yr">근속 ${dp.months}개월 · ${yrs}년</span>
+          </div>
+          <div class="bal">${won(dp.balance)}</div>
+          <div class="ln"><span>회사가 매달 넣는 금액</span><b>${won(dp.monthly_premium)}</b></div>
+          <div class="ln"><span>원금 · 이자</span>
+            <b>${won(dp.principal)} · ${won(dp.interest)}</b></div>
+          ${dp.projected_balance != null ? `
+            <div class="proj">
+              <div class="lab">귀국하실 때 받을 금액 (앞으로 ${dp.months_to_leave}개월 더 적립)</div>
+              <div class="amt">${won(dp.projected_balance)}</div>
+              <div class="cmp">${esc(dp.pay_notice)}</div>
+            </div>` : ""}
+          ${dp.under_one_year ? `<div class="why">${esc(dp.under_one_year_notice)}</div>` : ""}
+          <div class="desc">${esc(dp.basis_notice || "")}</div>
+          <div class="hint">${esc(dp.how_notice)}</div>
+          <div class="desc" style="color:#94a3b8;">${esc(dp.notice)}</div>
+        </div>`;
+    }
+
     function pensionBlock(pn) {
       if (!pn) return "";
       if (!pn.enrolled) {
@@ -267,6 +308,19 @@
                 onclick="chooseFund('${esc(f.id)}')">${esc(f.name)}
           <i>연 ${(f.rate * 100).toFixed(1)}% · 위험 ${esc(f.risk)}</i></button>`).join("");
 
+      // 비교는 전부 "지금부터 귀국까지" 기준이다. 이미 지나간 기간의 수익은
+      // 운용지시를 바꿔도 달라지지 않으므로, 과거로 소급한 숫자를 보여 주지 않는다.
+      const left = pn.months_to_leave;
+      const span = left == null ? "" : `앞으로 ${left}개월`;
+      const proj = left == null ? "" : `
+        <div class="proj">
+          <div class="lab">귀국하실 때 예상 금액 (${span} 더 적립)</div>
+          <div class="amt">${won(pn.projected_balance)}</div>
+          ${pn.chosen
+            ? `<div class="cmp">그대로 두었을 때보다 <b>${won(pn.gain_vs_idle)}</b> 많습니다.</div>`
+            : `<div class="cmp">지금 고르면 최대 <b>${won(pn.gain_vs_idle_max)}</b>까지 더 받으실 수 있어요.</div>`}
+        </div>`;
+
       return `
         <div class="dc">
           <div class="hd">
@@ -277,17 +331,12 @@
           <div class="ln"><span>회사가 매달 넣는 금액</span><b>${won(pn.monthly_contribution)}</b></div>
           <div class="ln"><span>원금 · 운용수익</span>
             <b>${won(pn.principal)} · ${won(pn.interest)}</b></div>
+          ${proj}
           <div class="pick">${picks}</div>
-          ${pn.chosen ? `
-            <div class="desc">
-              <b>${esc(pn.fund.name)}</b> — ${esc(pn.fund.desc)}
-              고르지 않고 두었을 때보다 ${won(pn.gain_vs_idle)} 많습니다.
-            </div>`
-          : `
-            <div class="why">
-              아직 운용상품을 고르지 않아 적립금이 <b>대기성 예금</b>에 있습니다.
-              지금 고르면 그동안 쌓인 금액 기준으로 최대 ${won(pn.gain_vs_idle_max || 0)}까지 차이가 납니다.
-            </div>`}
+          ${pn.chosen
+            ? `<div class="desc"><b>${esc(pn.fund.name)}</b> — ${esc(pn.fund.desc)}</div>`
+            : `<div class="why">${esc(pn.idle_notice || "")}</div>`}
+          <div class="hint">${esc(pn.switch_notice || "")}</div>
           <div class="desc" style="color:#94a3b8;">${esc(pn.notice)}</div>
         </div>`;
     }
@@ -302,6 +351,9 @@
         });
       } catch (e) { res = null; }
       if (!res || !res.ok) { alert("운용상품 변경에 실패했습니다."); return; }
+      // 실제로는 기존 상품을 정리하고 새 상품을 사기까지 영업일이 걸린다.
+      // 화면에서 잔액이 즉시 바뀌지 않는 것도 그래서다 — 바뀌는 건 귀국 예상액이다.
+      if (window.imwpNotify) imwpNotify("운용지시를 접수했어요. 반영까지 영업일이 걸릴 수 있어요.");
       loadProducts(currentCid);
     }
 
@@ -509,9 +561,10 @@
       mask.className = "pop-mask";
       mask.innerHTML = `
         <div class="pop">
+          <!-- 등급(A/B/C)은 화면에 내보내지 않는다. 국적으로 금융 조건에 급을 매기는 것으로
+               읽히기 때문이다. 판정은 뒤에서만 쓰고 사용자에게는 비용과 보호 범위만 말한다. -->
           <span class="pop-kind" style="${card.tier === "C"
             ? "background:#f1f5f9;color:#64748b;" : ""}">${esc(card.kind)}</span>
-          ${card.tier ? `<span class="pop-kind" style="background:#f8fafc;color:#94a3b8;margin-left:4px;">등급 ${esc(card.tier)}</span>` : ""}
           <h3>${esc(card.title)}</h3>
           <div class="lead">${esc(card.lead)}</div>
           <div class="why">${esc(card.why)}</div>
@@ -638,7 +691,9 @@
         <div class="sec" id="secGoal"></div>
         <div class="sec">
           <div class="sec-no">② 회사가 넣어주는 돈</div>
-          ${pensionBlock(p.pension)}
+          ${p.departure && p.departure.applies
+              ? departureBlock(p.departure)
+              : pensionBlock(p.pension)}
         </div>
         <div class="sec">
           <div class="sec-no">③ 내가 넣는 돈</div>
@@ -666,7 +721,9 @@
       const start = (p.hedge && p.hedge.monthly_remit) || 500000;
       const maxRemit = Math.max(1000000, Math.round((wage || 1000000) / 100000) * 100000);
 
+      const dp = p.departure || {};
       const held = [
+        dp.applies ? "출국만기보험" : null,
         pn.enrolled ? `퇴직연금 ${pn.fund ? pn.fund.name : "운용 미선택"}` : null,
         sv.enrolled ? `적금 월 ${won(sv.monthly)}` : null,
         p.insurance ? `보험 ${p.insurance.product}` : null,
@@ -702,10 +759,14 @@
         </label>
 
         <div class="stack">
-          ${wage ? `<div class="ln"><span>이번 달 예상 급여 (공제 전)</span><b>${won(wage)}</b></div>` : ""}
+          ${wage ? `<div class="ln"><span>이번 달 예상 급여 (어림값)</span><b>${won(wage)}</b></div>` : ""}
           <div class="ln"><span>본국 송금</span><b id="gSend">—</b></div>
           <div class="ln" id="gFeeLine"><span>환율 보장 수수료</span><b id="gFee">—</b></div>
           <div class="ln tot"><span>한국에서 쓰고 남는 돈</span><b id="gLeft">—</b></div>
+          <div class="hint" style="margin-top:8px;">
+            주휴수당과 4대보험·세금 공제를 넣지 않은 어림값이에요.
+            실제 금액은 회사 급여명세를 확인해 주세요.
+          </div>
         </div>
         <div id="gAdvice" class="advice"></div>`;
 
@@ -815,10 +876,7 @@
   // 언어 선택기는 i18n.js가 그린다. setLang()이 translatePage()를 자동 호출하므로
   // data-i18n 이 없는 문구도 번역된다. 개인정보에는 data-no-translate 를 붙여 둔다.
   // i18n.js 가 없거나 못 뜨더라도 화면은 그대로 동작해야 한다.
-  // i18n.js 는 최상위 `const I18N = {...}` 로 선언한다. 클래식 스크립트의 const 는
-  // 전역 렉시컬 바인딩만 만들고 window 의 속성이 되지 않으므로 `window.I18N` 은 항상 undefined 다.
-  // typeof 로 봐야 한다. 이걸 틀려서 언어 선택기가 전 화면에서 안 떴다.
-  if (typeof I18N !== "undefined") {
+  if (window.I18N) {
     I18N.renderSelector("langSelectorArea");
     window.addEventListener("imwp-lang-change", () => I18N.apply());
   }

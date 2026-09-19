@@ -142,15 +142,18 @@
 <div class="phone">
   <header class="ph-top">
     <div class="ph-top-bar">
-      <span class="ph-brand"><svg class='mark' viewBox='0 0 26 23' fill='none' xmlns='http://www.w3.org/2000/svg' aria-hidden='true'><path d='M3 19.5V8.2c0-1.9 2.4-2.8 3.6-1.3L13 14.8l6.4-7.9C20.6 5.4 23 6.3 23 8.2v11.3' stroke='#00C7A9' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg><span class="nm">iM PASS</span><span class="role">근로자</span></span>
+      <span class="ph-brand"><svg class='mark' viewBox='0 0 26 23' fill='none' xmlns='http://www.w3.org/2000/svg' aria-hidden='true'><path d='M3 19.5V8.2c0-1.9 2.4-2.8 3.6-1.3L13 14.8l6.4-7.9C20.6 5.4 23 6.3 23 8.2v11.3' stroke='#00C7A9' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/></svg><span class="nm" data-i18n="app_title">iM PASS</span><span class="role" data-i18n="worker_role">근로자</span></span>
       <span class="acts">
         <div id="langSelectorArea"></div>
-        <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
-        <a href="home.html" class="switch-link"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg>서비스 전환</a>
+        <button type="button" class="bell-btn" data-lock-bell aria-label="알림">
+          <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
+          <span class="bell-dot" hidden></span>
+        </button>
+        <a href="home.html" class="switch-link"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true' style='width:13px;height:13px;stroke-width:2.4;'><path d='M4 8.5h13M13.5 5 17 8.5 13.5 12'/><path d='M20 15.5H7M10.5 12 7 15.5 10.5 19'/></svg data-i18n="switch_service">서비스 전환</a>
       </span>
     </div>
-    <h1>내 디지털 지갑</h1>
-    <div class="who">체류·취업 자격 및 금융 패스포트</div>
+    <h1 data-i18n="wallet_heading">내 디지털 지갑</h1>
+    <div class="who" data-i18n="wallet_subheading">체류·취업 자격 및 금융 패스포트</div>
   </header>
   <main class="ph-body">
 
@@ -163,50 +166,54 @@
   <div id="setupView">
     <div id="pickedBanner" style="display:none;"></div>
     <div class="card">
-      <h3>1) 은행 창구 본인확인</h3>
+      <h3 data-i18n="step1_title">1) 은행 창구 본인확인</h3>
       <p style="font-size:12.5px;color:#666;margin-top:0;">
         카카오 인증서가 통신사 본인확인 위에 세워지듯, 이 지갑은 <b>은행 실명확인</b> 위에 세워집니다.
         외국인 근로자는 급여 계좌를 만들며 여권·외국인등록증 대조를 이미 거치므로 절차가 늘지 않습니다.
         은행이 보증하는 것은 <b>"이 지갑이 이 사람의 것"</b> 하나뿐입니다.
       </p>
-      <label>근로자 이름</label>
+      <label data-i18n="label_worker_name">근로자 이름</label>
       <select id="workerName">
         <optgroup label="E-9 비전문취업 (고용허가제)">
           <option value="NGUYEN VAN A">NGUYEN VAN A · 베트남 · 제조(금속가공) — 표준</option>
           <option value="SITI RAHAYU">SITI RAHAYU · 인도네시아 · 제조(식품) — 표준 2</option>
-          <option value="NGUYEN THI E">NGUYEN THI E · 베트남 · 제조(전자) — 체류자격 말소 <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><circle cx='12' cy='12' r='9'/><path d='M12 7.5v5.2M12 16.2v.2'/></svg></option>
+          <option value="NGUYEN THI E">NGUYEN THI E · 베트남 · 제조(전자) — 체류자격 확인이 필요한 사례 <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><circle cx='12' cy='12' r='9'/><path d='M12 7.5v5.2M12 16.2v.2'/></svg></option>
         </optgroup>
         <optgroup label="H-2 방문취업 (동포 특례고용)">
-          <option value="LI CHUNHUA">LI CHUNHUA · 중국 · 음식점 — 체류 만료 임박</option>
+          <option value="LI CHUNHUA">LI CHUNHUA · 중국 · 음식점 조리 보조 — 체류 만료 임박</option>
+        </optgroup>
+        <optgroup label="E-7 특정활동 (전문인력)">
+          <option value="MICHAEL BRENNAN">MICHAEL BRENNAN · 미국 · 생산기술 — 퇴직연금(DC) 대상</option>
         </optgroup>
       </select>
       <small>
         계좌번호는 입력하지 않습니다. 은행이 자기 명단에서 찾아 돌려주는 값입니다.
         체류자격마다 이직 규정이 다르고, 요구되는 한국어 시험과 교육도 다릅니다.
-        <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><circle cx='12' cy='12' r='9'/><path d='M12 7.5v5.2M12 16.2v.2'/></svg> 표시된 사람은 체류자격이 말소되어 2단계에서 막힙니다.
+        퇴직급여도 갈립니다 — E-9·H-2는 출국만기보험, E-7은 퇴직연금입니다.
+        <svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><circle cx='12' cy='12' r='9'/><path d='M12 7.5v5.2M12 16.2v.2'/></svg> 표시된 사람은 체류자격 확인이 필요해 2단계에서 지갑이 발급되지 않습니다.
       </small>
-      <button onclick="bankVerify()">창구 실명확인</button>
+      <button onclick="bankVerify()" data-i18n="btn_bank_verify">창구 실명확인</button>
       <div id="verifyBox"></div>
     </div>
 
     <div class="card" id="registerCard" style="display:none;">
-      <h3>2) 지갑 등록</h3>
+      <h3 data-i18n="step2_title">2) 지갑 등록</h3>
       <div class="step">
-        <h4>단말 키 생성</h4>
+        <h4 data-i18n="step2_key_title">단말 키 생성</h4>
         <div class="desc">
           이 브라우저에서 키 한 쌍을 만듭니다. <b>개인키는 단말에 남고 서버로 전송되지 않습니다.</b>
           앞으로 제출할 때마다 이 키로 서명하고, 서버는 공개키로 검증합니다.
         </div>
       </div>
       <div class="step">
-        <h4>출입국 조회 (필수)</h4>
+        <h4 data-i18n="step2_immi_title">출입국 조회 (필수)</h4>
         <div class="desc">
           체류 기록이 없으면 지갑을 발급하지 않습니다. 은행 실명확인만으로는 잡히지 않는
-          위조·말소 외국인등록증이 여기서 걸립니다.
+          등록증만으로는 알 수 없는 체류자격 상태를 여기서 확인합니다.
         </div>
       </div>
       <div class="step">
-        <h4>나머지 기관 조회 · 블록체인 등록</h4>
+        <h4 data-i18n="step2_etc_title">나머지 기관 조회 · 블록체인 등록</h4>
         <div class="desc">
           고용센터·의료기관·교육원은 기록이 없어도 빈칸으로 두고 발급은 진행합니다.
           체인에는 이때 한 번만 기록합니다.
@@ -324,7 +331,7 @@
             <b><svg class='ico ico-sm' viewBox='0 0 24 24' aria-hidden='true' style='display:inline-block;vertical-align:-3px;width:16px;height:16px;'><circle cx='12' cy='12' r='9'/><path d='M12 7.5v5.2M12 16.2v.2'/></svg> 2단계 차단 — 출입국 확인 실패</b><br/>
             ${esc(data.detail)}<br/>
             <span style="font-size:12px;">
-              은행 실명확인만으로는 잡히지 않는 체류자격 말소·기록 부재가 여기서 걸립니다.
+              은행 실명확인만으로는 알 수 없는 체류자격 상태와 기록 유무를 여기서 확인합니다.
               두 관문이 각각 다른 일을 합니다.
             </span>
           </div>`;
@@ -424,8 +431,9 @@
     // 귀국정산 — 돌아갈 때 손에 쥐는 돈.
     // 남은 기간의 급여는 생활비로 쓰이므로 더하지 않는다. 부풀리지 않는 것이 핵심이다.
 
-    // DC형 퇴직연금 — 가입은 회사가 이미 해두었고, 근로자가 하는 선택은 운용상품이다.
-    // 고르지 않으면 대기성 예금에 머문다. 그 차액을 숫자로 보여주는 것이 이 카드의 목적이다.
+    // 퇴직급여 — 체류자격에 따라 갈린다. E-9·H-2 는 출국만기보험이고,
+    // 퇴직연금 DC 운용 선택은 퇴직급여법이 그대로 적용되는 자격(E-7 등)에만 해당한다.
+    // 실제 카드는 products.html 의 ② 구획에서 그린다.
 
 
     // 귀국 목표 적금 — 가입 기록은 은행이 갖고, 지갑은 읽어서 보여주기만 한다.
@@ -555,6 +563,8 @@
       document.getElementById("setupView").style.display = "none";
       const view = document.getElementById("walletView");
       view.style.display = "block";
+      // 방금 발급한 경우를 대비해 잠금화면 알림을 다시 읽는다 (config.js 가 그린다).
+      if (window.imwpLock) imwpLock.reload();
       view.innerHTML = `
         ${renderGreeting(w.worker_name, w.gender)}
         ${renderPassCard(w)}
@@ -718,19 +728,17 @@
   </script>
   </main>
   <nav class="ph-tabs">
-      <a href="wallet.html" class="active"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5' width='19' height='14' rx='3'/><circle cx='9' cy='11' r='2'/><path d='M6 15.8c.5-1.2 1.7-1.9 3-1.9s2.5.7 3 1.9'/><path d='M15.5 10.2h3.2M15.5 13.6h2.4'/></svg>내 패스</a>
+      <a href="wallet.html" class="active"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5' width='19' height='14' rx='3'/><circle cx='9' cy='11' r='2'/><path d='M6 15.8c.5-1.2 1.7-1.9 3-1.9s2.5.7 3 1.9'/><path d='M15.5 10.2h3.2M15.5 13.6h2.4'/></svg data-i18n="tab_mypass">내 패스</a>
       <a href="submit.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 15.5V4'/><path d='m8 7.6 4-3.6 4 3.6'/><path d='M4.5 14v4.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V14'/></svg>제출</a>
-      <a href="products.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5.5' width='19' height='13' rx='3'/><path d='M2.5 10h19'/><path d='M6.5 14.6h3'/></svg>금융생활</a>
+      <a href="products.html"><svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><rect x='2.5' y='5.5' width='19' height='13' rx='3'/><path d='M2.5 10h19'/><path d='M6.5 14.6h3'/></svg data-i18n="tab_finance">금융생활</a>
   </nav>
+
 </div>
 <script>
   // 언어 선택기는 i18n.js가 그린다. setLang()이 translatePage()를 자동 호출하므로
   // data-i18n 이 없는 문구도 번역된다. 개인정보에는 data-no-translate 를 붙여 둔다.
   // i18n.js 가 없거나 못 뜨더라도 화면은 그대로 동작해야 한다.
-  // i18n.js 는 최상위 `const I18N = {...}` 로 선언한다. 클래식 스크립트의 const 는
-  // 전역 렉시컬 바인딩만 만들고 window 의 속성이 되지 않으므로 `window.I18N` 은 항상 undefined 다.
-  // typeof 로 봐야 한다. 이걸 틀려서 언어 선택기가 전 화면에서 안 떴다.
-  if (typeof I18N !== "undefined") {
+  if (window.I18N) {
     I18N.renderSelector("langSelectorArea");
     window.addEventListener("imwp-lang-change", () => I18N.apply());
   }

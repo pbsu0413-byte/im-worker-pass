@@ -55,6 +55,17 @@
       ],
       "late": [],
       "overtime": []
+    },
+    {
+      "worker_name": "MICHAEL BRENNAN",
+      "absent": [],
+      "late": [],
+      "overtime": [
+        {
+          "i": 5,
+          "hours": 2
+        }
+      ]
     }
   ]
 }

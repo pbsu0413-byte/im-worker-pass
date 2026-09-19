@@ -9,17 +9,6 @@
 <link rel="stylesheet" href="ui.css?v=3" />
 <script src="i18n.js?v=3"></script>
 <style>
-  .lang-picker-box {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: var(--im-surface-soft, #f1f5f9); border: 1px solid var(--im-line, #e2e8f0);
-    padding: 3px 8px; border-radius: var(--radius-chip, 999px);
-  }
-  .lang-picker-box .lang-flag { font-size: 13px; line-height: 1; }
-  .lang-select-dropdown {
-    background: transparent; border: none; outline: none;
-    font-size: 11.5px; font-weight: 600; color: var(--im-text, #0f172a);
-    cursor: pointer; padding: 0; margin: 0; font-family: inherit;
-  }
   .trust {
     margin-top: 40px;
     background: var(--im-surface);
@@ -44,35 +33,22 @@
   .trust-step .t { display: block; font-size: 14px; font-weight: 600; color: var(--im-text); }
   .trust-step .d { display: block; font-size: var(--font-caption); color: var(--im-subtext); line-height: 1.6; margin-top: 3px; }
   @media (max-width: 860px) { .trust-steps { grid-template-columns: 1fr; } }
-
-  /* iM뱅크 실제 헤더(#main_header26) 스펙 그대로 */
-  .launcher-top {
-    position: relative;
-    z-index: 10;
-    font-family: 'noto-m', 'Malgun Gothic', sans-serif;
-    background: #009d8a; /* 그라데이션 미지원 폴백 */
-    background: linear-gradient(90deg, #009d8a 41.83%, #8add79 100%);
-    padding: 14px 24px;
-  }
-  .launcher-top .im-logo img { height: 22px; display: block; }
-  .launcher-top .acts svg.ico { stroke: #fff; color: #fff; }
-  .launcher-top .lang-picker-box {
-    background: #fff; border-color: rgba(255,255,255,.5);
-  }
-  .launcher-top .lang-picker-box .lang-select-dropdown { color: #0f172a; }
 </style>
 </head>
 <body class="launcher">
 
 <header class="launcher-top">
   <span class="im-logo">
-    <img src="data:image/png;base64,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" alt="iM뱅크" />
+    <svg viewBox="0 0 26 23" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M3 19.5V8.2c0-1.9 2.4-2.8 3.6-1.3L13 14.8l6.4-7.9C20.6 5.4 23 6.3 23 8.2v11.3"
+            stroke="#00C7A9" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="wm">iM뱅크</span>
   </span>
   <span class="acts">
         <div id="langSelectorArea"></div>
     <svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5'/></svg>
-    <svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5Z'/><path d='M10.3 19a2 2 0 0 0 3.4 0'/></svg>
-    <svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 7h16M4 12h16M4 17h16'/></svg>
+        <svg class='ico' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 7h16M4 12h16M4 17h16'/></svg>
   </span>
 </header>
 
@@ -166,10 +142,7 @@
   // 언어 선택기는 i18n.js가 그린다. setLang()이 translatePage()를 자동 호출하므로
   // data-i18n 이 없는 문구도 번역된다. 개인정보에는 data-no-translate 를 붙여 둔다.
   // i18n.js 가 없거나 못 뜨더라도 화면은 그대로 동작해야 한다.
-  // i18n.js 는 최상위 `const I18N = {...}` 로 선언한다. 클래식 스크립트의 const 는
-  // 전역 렉시컬 바인딩만 만들고 window 의 속성이 되지 않으므로 `window.I18N` 은 항상 undefined 다.
-  // typeof 로 봐야 한다. 이걸 틀려서 언어 선택기가 전 화면에서 안 떴다.
-  if (typeof I18N !== "undefined") {
+  if (window.I18N) {
     I18N.renderSelector("langSelectorArea");
     window.addEventListener("imwp-lang-change", () => I18N.apply());
   }

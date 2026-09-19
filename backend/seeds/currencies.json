@@ -128,6 +128,16 @@
       "swing_6m_pct": 16.9,
       "unit_per_krw": 0.0605,
       "own_vol_pct": 14.7
+    },
+    {
+      "nationality": "미국",
+      "currency": "USD",
+      "currency_name": "미국 달러",
+      "tier": "A",
+      "usd_linked": true,
+      "swing_6m_pct": 6.0,
+      "unit_per_krw": 0.00072,
+      "own_vol_pct": 0.0
     }
   ]
 }
