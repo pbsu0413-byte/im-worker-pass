@@ -12,6 +12,12 @@
 </p>
 
 <p align="center">
+  🌐 <a href="https://im-worker-pass.vercel.app/"><b>Web 모델 바로가기 (시연 권장)</b></a>
+  &nbsp;·&nbsp; 💻 로컬 모델: <code>run_all.bat</code> 실행 후 <code>http://127.0.0.1:8000/home.html</code>
+  <br><sub>Web 모델은 무료 서버라 첫 접속에 40~60초 걸릴 수 있습니다</sub>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/공모전-2026_AI_Blockchain_Challenge-00C7A9?style=for-the-badge&logo=blockchaindotcom&logoColor=white" alt="Challenge Badge" />
   <img src="https://img.shields.io/badge/주관-(주)아이엠뱅크-1F4E78?style=for-the-badge&logo=building&logoColor=white" alt="iM Bank Badge" />
   <img src="https://img.shields.io/badge/블록체인-Polygon_Amoy-8247E5?style=for-the-badge&logo=polygon&logoColor=white" alt="Polygon Badge" />
@@ -26,8 +32,53 @@
 
 ---
 
+## 🚀 먼저 읽어 주세요 — Web 모델 · 로컬 모델
+
+iM PASS는 **같은 서비스를 두 가지 방식**으로 제공합니다. **실제 시연은 Web 모델을 권장합니다.** 다만 Web 모델은 무료 도메인·무료 API 한도 위에서 돌아가 지연이 생길 수 있어, 언제든 바로 실행할 수 있는 **로컬 모델**도 함께 제출합니다.
+
+| 구분 | 🌐 **Web 모델** (시연 권장) | 💻 **로컬 모델** (백업) |
+|:---|:---|:---|
+| 접속 | **[https://im-worker-pass.vercel.app/](https://im-worker-pass.vercel.app/)** | 제출 폴더의 `run_all.bat` 실행 → `http://127.0.0.1:8000/home.html` |
+| 성격 | 실제 구현 — GitHub `main` 저장소 배포 (화면: Vercel · API 서버: Render) | 제출한 프로토타입 파일을 내 PC에서 실행 |
+| 블록체인 | **Polygon Amoy 테스트넷 실거래** (`/health` → `live_testnet`), Polygonscan에서 기록 조회 가능 | 기본은 **로컬 시뮬레이터** (`.env`에 RPC·컨트랙트를 넣으면 테스트넷 연결) |
+| 번역 | Gemini API 번역 + 캐시 | 키가 없으면 내장 사전 번역(주요 문구) |
+| 속도 | 무료 서버·API 한도 때문에 **지연 발생 가능** | 네트워크와 무관하게 즉시 동작 |
+| 쓰는 때 | 심사·발표 시연 | Web 접속이 느리거나 안 될 때 |
+
+### 🔌 두 모델의 API 호출은 무엇이 다른가
+
+**API 목록과 코드는 같습니다.** Web 모델(GitHub `main`)과 로컬 모델(제출 파일)의 백엔드는 같은 코드이고, 엔드포인트(`/wallet/*`, `/credentials`, `/presentations/secure`, `/verify`, `/fx/quote`, `/api/translate` 등)도 똑같습니다. 달라지는 것은 **화면이 어느 서버를 부르는지**와 **서버에 외부 API 키가 설정돼 있는지**입니다.
+
+| API 호출 | 🌐 Web 모델 | 💻 로컬 모델 |
+|:---|:---|:---|
+| **호출 대상 서버** | Vercel 화면 → Render API 서버 (im-worker-pass.onrender.com) | 내 PC의 로컬 서버 (127.0.0.1:8000) |
+| **블록체인 기록**<br>`POST /credentials` 발급 · `POST /admin/credentials/{id}/revoke·restore` 철회·복구 · `/verify` 상태 조회 | **Polygon Amoy 테스트넷 RPC를 실제로 호출** — 트랜잭션이 생기고 Polygonscan 링크가 표시됨. 블록 확정을 기다리느라 **수 초 소요** | **로컬 시뮬레이터** — 네트워크 호출 없이 메모리에서 즉시 처리, 트랜잭션 링크 없음 (`backend/.env`에 `RPC_URL`·`CONTRACT_ADDRESS`·`ADMIN_PRIVATE_KEY`를 넣으면 Web과 같은 테스트넷 호출로 바뀜) |
+| **다국어 번역**<br>`POST /api/translate` | 번역 캐시에 없는 문구만 **Gemini API를 호출** — 처음 보는 화면·언어는 수 초 걸리고, 한 번 번역된 문구는 캐시에서 바로 나옴 | `GEMINI_API_KEY`가 없으면 서버가 503을 돌려주고, 화면은 **내장 사전으로만 번역**(제목·버튼 등 주요 문구). 키를 넣으면 Web과 같이 전체 번역 |
+| **발급기관 8곳 조회**<br>(출입국·고용센터·iM뱅크 등) | 모의 API — `backend/seeds/*.json` 조회 | 동일 (모의 API) |
+| **데이터 저장** | 서버 메모리 — 무료 서버가 잠들었다 깨면 **발급한 지갑이 초기화될 수 있음** | 서버 메모리 — 서버 창을 닫으면 초기화 |
+
+> ⚠️ **로컬 모델은 반드시 `run_all.bat`로 서버를 켠 뒤 `http://127.0.0.1:8000/home.html`로 접속**해 주세요. HTML 파일을 더블클릭해서 열면 주소가 `127.0.0.1`이 아니게 되어, 화면이 로컬 서버 대신 **Web 서버(Render)를 호출**합니다 (`frontend/config.js`가 접속 주소로 호출 대상을 고름).
+
+### ⏱️ Web 모델 지연 안내
+
+* API 서버(Render)가 무료 플랜이라 한동안 접속이 없으면 잠듭니다. **첫 접속에 40~60초**가 걸릴 수 있습니다.
+* 블록체인 기록(발급·철회)과 다국어 번역은 외부 API를 거치므로 **요청마다 수 초**가 걸릴 수 있습니다.
+* 화면이 멈춘 것처럼 보여도 잠시 기다려 주세요. 시연 직전에 API 서버 주소 **[https://im-worker-pass.onrender.com/health](https://im-worker-pass.onrender.com/health)** 를 한 번 열어 깨워 두면 지연이 줄어듭니다.
+* 지연이 심하거나 접속이 되지 않으면 같은 기능을 갖춘 **로컬 모델**로 시연해 주세요.
+
+### 💻 로컬 모델 실행 (Windows)
+
+1. Python 3 설치 확인 (`py --version`)
+2. 제출 폴더의 **`run_all.bat`** 더블클릭 — 가상환경 생성·패키지 설치·서버 실행을 자동으로 합니다.
+3. 브라우저에서 **`http://127.0.0.1:8000/home.html`** 접속
+
+> Web 모델은 GitHub 최신본, 로컬 모델은 제출 시점 파일이라 화면 문구가 일부 다를 수 있습니다. 아래 화면 캡처는 로컬 모델에서 찍었습니다.
+
+---
+
 ## 🧭 목차 (Table of Contents)
 
+0. [먼저 읽어 주세요 — Web 모델 · 로컬 모델](#-먼저-읽어-주세요--web-모델--로컬-모델)
 1. [기획 배경 및 문제 인식](#1-기획-배경-및-문제-인식)
 2. [iM뱅크가 이 혁신의 중심에 서는 이유](#2-im뱅크가-이-혁신의-중심에-서는-이유)
 3. [전체 시스템 아키텍처 & 흐름도](#3-전체-시스템-아키텍처--흐름도)
@@ -172,7 +223,7 @@ iM PASS는 iM뱅크 브랜드 정체성을 담은 3가지 전용 역할을 제�
 
 > 종이·PDF 증명서는 발급 뒤 자격이 취소돼도 받는 쪽이 알 수 없습니다. iM PASS는 제출될 때마다 블록체인의 상태를 대조하므로, 기관이 철회하는 순간 이미 근로자 손에 있는 지갑으로도 더는 통과할 수 없습니다.
 
-> 📸 모든 화면은 로컬 서버(`http://127.0.0.1:8000`, 블록체인 시뮬레이터 모드)에서 시드 인물 NGUYEN VAN A · NGUYEN THI E로 실제 조작해 캡처했습니다.
+> 📸 모든 화면은 **로컬 모델**(`http://127.0.0.1:8000`, 블록체인 시뮬레이터 모드)에서 시드 인물 NGUYEN VAN A · NGUYEN THI E로 실제 조작해 캡처했습니다.
 
 ---
 
@@ -249,6 +300,8 @@ iM PASS 프로토타입은 실제 공공기관 연계 시 발생할 수 있는 �
 
 ## 도메인 서버에서 실행 (api 및 블록체인 온라인 구현)
 https://im-worker-pass.vercel.app/
+
+> 🌐 **Web 모델로 바로 시연:** [https://im-worker-pass.vercel.app/](https://im-worker-pass.vercel.app/) — 첫 접속은 40~60초 걸릴 수 있습니다. 아래는 **로컬 모델** 실행 방법입니다.
 
 ### 🚀 원클릭 실행 (Windows)
 ```bash
