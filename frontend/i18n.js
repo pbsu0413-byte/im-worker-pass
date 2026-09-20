@@ -1086,7 +1086,25 @@ const I18N = {
     if (this._inFlight && this._inFlight.lang === lang) {
       return this._inFlight.promise;
     }
-    const promise = this._doTranslatePage(lang, force);
+
+    // 세대(generation) 번호 발급.
+    //
+    // 문제: 언어를 빠르게 연달아 바꾸면(예: id → uz), 두 개의 서로 다른
+    // _doTranslatePage 호출이 동시에 진행 중일 수 있다. 네트워크 응답은
+    // "요청을 보낸 순서"가 아니라 "먼저 도착한 순서"로 처리되므로, 나중에
+    // 선택한 언어(uz)의 응답이 먼저 와서 화면에 반영된 뒤, 뒤늦게 도착한
+    // 이전 언어(id)의 응답이 아무 확인 없이 화면을 덮어써버릴 수 있다.
+    // 사용자 입장에서는 "우즈베크어를 골랐는데 다시 인니어로 보이네? 안
+    // 바뀌네?"로 보이고, 새로고침하면 캐시에서 최신 언어만 곧장 불러오니
+    // 그제서야 맞는 것처럼 보인다.
+    //
+    // 해결: 매 요청마다 증가하는 번호를 매기고, 응답이 왔을 때 그 사이에 더
+    // 최신 요청이 시작되지는 않았는지 확인해서, 아니라면(내가 최신이 아니면)
+    // 화면에 반영하지 않고 조용히 버린다.
+    this._gen = (this._gen || 0) + 1;
+    const myGen = this._gen;
+
+    const promise = this._doTranslatePage(lang, force, myGen);
     this._inFlight = { lang, promise };
     try {
       return await promise;
@@ -1099,8 +1117,10 @@ const I18N = {
    * LLM으로 현재 페이지 전체를 번역한다.
    * @param {string} lang - 목적 언어 코드 (en, vi, th, id, uz, zh)
    * @param {boolean} force - true면 캐시 무시하고 재번역
+   * @param {number} myGen - 이 호출의 세대 번호. 응답 도착 시 this._gen과 달라져
+   *   있으면(그 사이 더 최신 언어 전환이 시작됐으면) 화면 반영을 건너뛴다.
    */
-  async _doTranslatePage(lang, force = false) {
+  async _doTranslatePage(lang, force = false, myGen) {
     if (!lang) lang = this.getLang();
 
     // 한국어는 원문 = 번역이므로 기존 사전 방식만 적용
@@ -1115,6 +1135,9 @@ const I18N = {
       try {
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
+          // 이 사이 더 최신 언어 전환이 시작됐다면(캐시 조회는 동기라 실제로는
+          // 거의 안 일어나지만 방어적으로) 화면 반영을 건너뛴다.
+          if (myGen !== undefined && myGen !== this._gen) return;
           const { originals, translations } = JSON.parse(cached);
           const nodes = this._collectTextNodes();
           // 원문 매칭으로 캐시 적용 — 반드시 "기록된 한국어 원문" 기준으로 찾는다.
@@ -1173,6 +1196,11 @@ const I18N = {
         }
         const data = await res.json();
         allTranslated.push(...data.translations);
+
+        // 이 청크가 도착한 사이에 더 최신 언어 전환이 시작됐다면, 나머지 청크
+        // 요청도 마저 보낼 필요 없이 여기서 그냥 중단한다 (낭비되는 API 호출도
+        // 줄이고, 뒤에서 화면을 잘못 덮어쓸 일도 원천적으로 막는다).
+        if (myGen !== undefined && myGen !== this._gen) return;
       }
 
       // 번역 맵 구성 (원문 → 번역)
@@ -1250,14 +1278,6 @@ const I18N = {
     });
   },
 };
-
-// I18N은 위에서 const로 선언되어 있어 이 스크립트 안(같은 렉시컬 스코프)에서는
-// 그냥 "I18N"이라는 이름으로 잘 보인다. 하지만 const/let 최상위 선언은
-// window 객체의 속성으로는 올라가지 않는다 — 그래서 다른 <script> 블록에서
-// "window.I18N이 있는지"로 로드 여부를 안전하게 검사하려는 코드(다른 화면들에
-// 실제로 있다)는 i18n.js가 정상 로드돼도 항상 undefined를 보게 되어 조용히
-// 실패한다. window.I18N에도 명시적으로 걸어 두어 이 문제를 원천 차단한다.
-window.I18N = I18N;
 
 // DOM 로드 완료 시 자동 적용
 // 저장된 언어가 한국어이면 사전 방식, 외국어이면 LLM 번역 시작
