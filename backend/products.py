@@ -6,8 +6,12 @@
 **이미 있는 상품을 외국인 근로자 상황에 맞게 엮는다.**
 
 ① 환율 보장 송금
-   근로자는 "다음 달 1,400원 보장"만 본다. 뒤에서는 같은 달 같은 통화로 나갈
-   송금을 한 덩어리로 묶어 헷지 포지션을 잡는다. 개인 50만원은 최소 계약
+   근로자는 "다음 달에도 같은 금액이 도착합니다"만 본다. 뒤에서는 같은 달 같은 통화로 나갈
+   송금을 한 덩어리로 묶어 헷지 포지션을 잡는다.
+   헷지 대상은 **원화와 근로자 본국 통화 사이의 환율**이다(베트남 근로자라면 원화-동화).
+   본국 통화의 선물환 시장이 얕아 직접 헷지가 어려우면 움직임이 비슷한 통화로 대신
+   헷지한다(프록시 헷징 — 예: 베트남 동 대신 태국 바트).
+   헷징은 이런 방식이 가능하다는 **사례**로만 보여주며, 하나의 고정된 방법으로 정하지 않는다. 개인 50만원은 최소 계약
    단위도 안 되지만 수백 명이면 규모가 나온다. **그 수요 예측이 지갑에서 나온다.**
    근로자는 파생 계약 당사자가 아니라 은행과 단순 예약 계약을 맺는다 —
    파생은 지주 내부(iM증권)에 머문다.
@@ -29,7 +33,7 @@ _fx_cache = None
 
 
 def _currencies():
-    """국적별 송금 통화와 헷지 등급."""
+    """국적별 송금 통화, 시장 깊이, 헷지 등급."""
     global _fx_cache
     if _fx_cache is None:
         with open(os.path.join(SEED_DIR, "currencies.json"), encoding="utf-8") as f:
@@ -45,7 +49,7 @@ def currency_of(nationality: str):
 
 # 헷지 수수료 (등급별). 시연용 가정값.
 HEDGE_FEE = {"A": 10000, "B": 20000}
-MIN_REMIT_FOR_HEDGE = 300000      # 이보다 적게 보내면 기대 절감이 수수료보다 작다
+MIN_REMIT_FOR_HEDGE = 300000      # 이보다 적게 보내면 막아 주는 변동 폭이 수수료보다 작다
 DEFAULT_MONTHLY_REMIT = 800000    # 월 송금액 가정 (E-9 평균 소득의 절반 남짓)
 
 PAYDAY = 25                  # 급여일 가정
@@ -81,9 +85,12 @@ def _days_to_payday():
 def hedge_tier(cred: dict, monthly_remit: int = DEFAULT_MONTHLY_REMIT):
     """
     3단계 판정.
-      A : 자국통화가 달러에 붙어 있다 -> 원화-달러만 고정해도 사실상 완전 헷지. 싸다.
-      B : 자국통화가 따로 움직인다 -> 달러만 고정하면 절반만 막힌다. 크로스 보장이 필요하고 비싸다.
-      C : 송금액이 작아 기대 절감이 수수료보다 작다 -> 권하지 않는다.
+      기준은 하나다 — "국내 은행간 외환시장에서 원화와 직접 거래되는 통화인가?"
+      (근거와 출처는 seeds/currencies.json 의 _tier_rule)
+      A : 예 (달러·위안) -> 원화-본국통화를 한 번의 거래로 헷지한다. 싸다.
+      B : 아니오 -> 원화-달러, 달러-본국통화 두 구간으로 나눠 막는다. 거래가 두 번이라 비싸다.
+          달러-본국통화 구간이 얕으면 움직임이 비슷한 통화로 대신 헷지한다(프록시 헷징).
+      C : 송금액이 작아 막아 주는 변동 폭이 수수료보다 작다 -> 권하지 않는다. (계산으로 정함)
 
     **안 팔아야 할 사람에게 안 파는 것**이 이 판정의 핵심이다.
     """
@@ -91,7 +98,9 @@ def hedge_tier(cred: dict, monthly_remit: int = DEFAULT_MONTHLY_REMIT):
     if not fx:
         return None
 
-    # 기대 절감 = 송금액 × 변동폭의 절반 (한 방향으로 벗어날 기대치)
+    # 막아 주는 변동 폭(예상) = 송금액 × 변동폭의 절반 (한 방향으로 벗어날 때의 평균 크기).
+    # 기대 이익이 아니다 — 헷지는 돈을 벌어 주는 게 아니라 이 흔들림을 없앤다.
+    # 필드 이름(expected_saving)은 화면·API 호환 때문에 유지한다.
     expected_saving = int(monthly_remit * (fx["swing_6m_pct"] / 100) / 2)
     tier = fx["tier"]
     fee = HEDGE_FEE.get(tier, 0)
@@ -104,9 +113,9 @@ def hedge_tier(cred: dict, monthly_remit: int = DEFAULT_MONTHLY_REMIT):
         "fee": fee,
         "currency": fx["currency"],
         "currency_name": fx["currency_name"],
-        "usd_linked": fx["usd_linked"],
+        "market": fx.get("market"),
+        "proxy_example": fx.get("proxy_example"),
         "swing_6m_pct": fx["swing_6m_pct"],
-        "own_vol_pct": fx["own_vol_pct"],
         "unit_per_krw": fx["unit_per_krw"],
         "monthly_remit": monthly_remit,
         "expected_saving": expected_saving,
@@ -154,20 +163,31 @@ def _remittance_card(cred, force=False):
     if h["tier"] != "C":
         rows.append({"label": "보장 수수료", "value": f"{h['fee']:,}원"})
 
+    def _j(word, pair):
+        """받침에 맞는 조사 (은/는, 을/를, 와/과)."""
+        ch = word[-1]
+        has = 0xAC00 <= ord(ch) <= 0xD7A3 and (ord(ch) - 0xAC00) % 28 != 0
+        return word + (pair[0] if has else pair[1])
+
     if h["tier"] == "A":
         detail = (
-            f"{cur}는 달러에 거의 붙어 움직입니다(대달러 변동 {h['own_vol_pct']}%). "
-            "받는 금액이 흔들리는 것은 대부분 원화가 움직이기 때문이며, "
-            "원화-달러 사이만 고정하면 사실상 전부 막힙니다. 시장이 깊어 수수료가 낮습니다."
+            f"가족이 받는 금액을 흔드는 것은 원화와 {cur} 사이의 환율입니다. "
+            f"{_j(cur, '은는')} 국내 은행간 시장에서 원화와 직접 거래되는 통화라 "
+            "한 번의 거래로 헷지할 수 있고, 그래서 수수료가 낮습니다."
         )
     elif h["tier"] == "B":
+        px = next((r for r in _currencies()["records"]
+                   if r["currency"] == h.get("proxy_example")), None)
+        px_txt = (f"예를 들어 {px['nationality']} {px['currency_name']}처럼 비슷하게 움직이는 통화를 씁니다. "
+                  if px else "")
         detail = (
-            f"{cur}는 달러와 따로 움직입니다(대달러 변동 {h['own_vol_pct']}%). "
-            "달러만 고정하면 원화-달러 구간만 막히고 "
-            f"달러-{cur} 구간은 그대로 열려 있어 절반만 막히는 셈입니다. "
-            "그래서 원화-{cur} 직접 보장이 필요하며, 시장이 얕아 수수료가 높습니다. "
-            "같은 국적 송금 예정자를 모아 처리하므로 개인 단가가 낮아집니다."
-        ).replace("{cur}", cur)
+            f"가족이 받는 금액을 흔드는 것은 원화와 {cur} 사이의 환율입니다. "
+            f"{_j(cur, '은는')} 국내에 원화와 직접 거래되는 시장이 없어 "
+            f"원화-달러, 달러-{cur} 두 구간으로 나눠 막습니다. "
+            f"달러-{cur} 구간의 시장이 얕으면 움직임이 비슷한 통화로 대신 헷지합니다(프록시 헷징). {px_txt}"
+            "어떤 통화·방식을 쓸지는 하나로 정해두지 않고 그때의 시장 상황으로 정합니다. "
+            "거래가 두 번이라 수수료가 높지만, 같은 국적 송금 예정자를 모아 처리하므로 개인 단가가 낮아집니다."
+        )
     else:
         detail = (
             f"{cur}의 최근 6개월 변동폭이 작고 송금액도 크지 않아, "
@@ -184,13 +204,15 @@ def _remittance_card(cred, force=False):
         "rows": rows,
         "detail": detail,
         "note": (
-            "보장 환율은 현재 환율보다 다소 불리하게 제시됩니다. 오를 때의 이익을 포기하는 대신 "
-            "내릴 때의 손실을 막는 구조입니다. 근로자는 파생상품이 아니라 은행과 예약 계약을 맺습니다."
+            "보장 조건은 현재 환율보다 다소 불리하게 제시될 수 있으며, 환율이 유리하게 움직일 때의 "
+            "이익 일부를 포기하는 대신 불리하게 움직일 때의 손실을 막습니다. "
+            "근로자는 파생상품이 아니라 은행과 예약 계약을 맺습니다."
             if h["tier"] != "C" else
             "판정은 국적별 통화 성격과 송금액으로 계산됩니다. 필요하지 않을 때는 권하지 않습니다."
         ),
         "engine": (
             "같은 달 같은 통화로 나갈 송금을 모아 iM증권이 합산 포지션으로 처리합니다. "
+            "헷지 대상은 원화와 본국 통화 사이의 환율이며, 헷지 방식은 하나로 고정하지 않습니다. "
             "개인 단위로는 최소 계약 규모가 나오지 않지만, 지갑이 재직 인원·급여일·체류 잔여기간을 "
             "알고 있어 다음 달 송금 규모를 예측할 수 있습니다."
         ),

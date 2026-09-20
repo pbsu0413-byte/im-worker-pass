@@ -5,3 +5,9 @@ __pycache__/
 .env
 venv/
 .venv/
+
+# 제안서 작업물은 리포에 올리지 않는다
+*.docx
+~$*
+build_proposal*.py
+docx_render_check/

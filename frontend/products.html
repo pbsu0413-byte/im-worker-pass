@@ -250,7 +250,7 @@
             환율이 불리하게 움직여도 받는 금액이 줄지 않습니다.
           </div>
           <div class="sub" style="color:#94a3b8;">
-            최근 6개월 변동폭 ${h.swing_6m_pct}% 기준 예상 절감 ${won(h.expected_saving)} ·
+            막아 주는 변동 폭(예상) ${won(h.expected_saving)} · 최근 6개월 변동폭 ${h.swing_6m_pct}% 기준 ·
             적용 기간은 다음 급여일 송금 1회분입니다.
           </div>
         </div>`;
@@ -814,7 +814,7 @@
           lastFee = h ? h.fee : 0;
           lastTier = h ? h.tier : null;
           if (h && h.tier !== "C") {
-            feeHint.textContent = `수수료 ${won(h.fee)} · 예상 절감 ${won(h.expected_saving)}`;
+            feeHint.textContent = `수수료 ${won(h.fee)} · 막아 주는 변동 폭(예상) ${won(h.expected_saving)}`;
             optWrap.style.display = "flex";
           } else {
             optWrap.style.display = "none";   // 권하지 않는 구간에서는 선택지를 내리지 않는다
@@ -852,15 +852,15 @@
         if (h.tier === "C") {
           adv.className = "advice";
           adv.innerHTML = `이 금액에서는 <b>환율 보장을 권해 드리지 않습니다.</b>
-            아껴지는 금액보다 수수료가 크기 때문입니다.
+            막아 주는 변동 폭보다 수수료가 크기 때문입니다.
             <span class="hint">송금액이 늘면 자동으로 다시 안내합니다.</span>`;
           return;
         }
         const net = h.expected_saving - h.fee;
         adv.className = net > 0 ? "advice ok" : "advice";
         adv.innerHTML = `환율 보장 수수료 <b>${won(h.fee)}</b> ·
-          최근 6개월 변동폭 기준 예상 절감 <b>${won(h.expected_saving)}</b>
-          ${net > 0 ? `(순이득 <b>${won(net)}</b>)` : ""}
+          막아 주는 변동 폭(예상) <b>${won(h.expected_saving)}</b>
+          <span class="hint">최근 6개월 변동폭 기준으로, 환율이 한쪽으로 움직였을 때 받는 금액이 흔들리는 크기입니다. 이익을 내는 상품이 아니라 이 흔들림을 없애는 상품입니다.</span>
           ${wage ? `<span class="hint">남는 돈으로 ③ 적금을 채우면 귀국할 때 목돈이 됩니다.</span>` : ""}`;
       }, 180);
     }

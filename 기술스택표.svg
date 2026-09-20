@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1500" viewBox="0 0 2200 1500">
+  <style>
+    .k{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;fill:#222}.title{font-size:40px;font-weight:900}.sub{font-size:19px;fill:#555}.head{font-size:19px;font-weight:900;fill:#fff}.cell{font-size:18px}.small{font-size:15px;fill:#555}.mono{font-family:Consolas,'Courier New',monospace;font-size:16px;fill:#333}
+  </style>
+  <rect width="2200" height="1500" fill="#fff"/>
+  <text x="80" y="72" class="k title">iM PASS 기술 스택 (Tech Stack Table)</text>
+  <text x="82" y="108" class="k sub">현재 저장소의 실제 코드·requirements.txt·시드 데이터·스마트 컨트랙트·테스트를 기준으로 정리한 구현 기술 명세</text>
+
+  <!-- table -->
+  <rect x="80" y="160" width="2040" height="1050" fill="#fff" stroke="#444" stroke-width="3"/>
+  <rect x="80" y="160" width="310" height="70" fill="#333"/><rect x="390" y="160" width="680" height="70" fill="#333"/><rect x="1070" y="160" width="1050" height="70" fill="#333"/>
+  <text x="235" y="204" text-anchor="middle" class="k head">구분</text><text x="730" y="204" text-anchor="middle" class="k head">사용 기술</text><text x="1595" y="204" text-anchor="middle" class="k head">프로젝트 내 적용 범위 / 근거</text>
+
+  <!-- row helper: horizontal lines -->
+  <g stroke="#777" stroke-width="2"><path d="M80 230 H2120"/><path d="M80 350 H2120"/><path d="M80 490 H2120"/><path d="M80 655 H2120"/><path d="M80 820 H2120"/><path d="M80 985 H2120"/><path d="M80 1120 H2120"/><path d="M80 1210 H2120"/><path d="M390 160 V1210"/><path d="M1070 160 V1210"/></g>
+
+  <text x="105" y="278" class="k cell" font-weight="900">언어</text>
+  <text x="415" y="270" class="k cell">Python 3 · JavaScript · HTML5 · CSS3 · Solidity 0.8.20 · SQL</text>
+  <text x="1095" y="268" class="k cell">백엔드 API와 도메인 로직: Python</text><text x="1095" y="296" class="k cell">프론트엔드: 빌드 도구 없는 정적 HTML/CSS/JS</text><text x="1095" y="324" class="k cell">스마트 컨트랙트: contracts/CredentialRegistry.sol</text>
+
+  <text x="105" y="398" class="k cell" font-weight="900">프레임워크<br/>런타임</text>
+  <text x="415" y="385" class="k cell">FastAPI ≥0.115 · Uvicorn ≥0.30 · Pydantic ≥2.10</text>
+  <text x="415" y="420" class="k cell">Web3.py ≥7 · 정적 파일 서빙(StaticFiles)</text>
+  <text x="1095" y="385" class="k cell">backend/main.py가 API 라우팅과 프론트엔드 정적 파일을 함께 제공</text><text x="1095" y="415" class="k cell">/docs Swagger 문서 · /health 연동 상태 확인</text><text x="1095" y="445" class="k cell">models.py의 요청/응답 스키마 검증</text>
+
+  <text x="105" y="545" class="k cell" font-weight="900">라이브러리</text>
+  <text x="415" y="535" class="k cell">cryptography · qrcode[pil] · python-dotenv</text><text x="415" y="570" class="k cell">supabase-py · google-generativeai · openpyxl</text><text x="415" y="605" class="k cell">pytest · eth-tester(PyEVM, 테스트 환경)</text>
+  <text x="1095" y="535" class="k cell">ECDSA P-256 서명/검증 · QR 이미지 생성 · .env 로딩</text><text x="1095" y="570" class="k cell">Supabase 선택 연동 · Gemini 번역 폴백 및 캐시</text><text x="1095" y="605" class="k cell">테스트: 시뮬레이터 단위 테스트 + 로컬 EVM 접근 제어 검증</text>
+
+  <text x="105" y="705" class="k cell" font-weight="900">DB / 저장소</text>
+  <text x="415" y="695" class="k cell">로컬 인메모리 dict · Supabase(PostgreSQL) 선택 연동</text><text x="415" y="730" class="k cell">JSON seed 파일 · 브라우저 단말 개인키</text><text x="1095" y="695" class="k cell">_local_db · _presentation_sessions · _insurance_db</text><text x="1095" y="730" class="k cell">backend/schema.sql에 credentials 테이블 정의</text><text x="1095" y="765" class="k cell">개인키는 단말에 남기고, 서버는 공개키/서명 검증 정보만 사용</text>
+
+  <text x="105" y="870" class="k cell" font-weight="900">블록체인</text>
+  <text x="415" y="860" class="k cell">EVM · Solidity · Web3.py · 로컬 시뮬레이터</text><text x="415" y="895" class="k cell">Polygon Amoy / Sepolia 등 RPC 선택 연동</text>
+  <text x="1095" y="860" class="k cell">CredentialRegistry: issue / revoke / restore / getStatus</text><text x="1095" y="895" class="k cell">credential_id의 keccak256 해시와 Valid/Revoked 상태만 온체인 기록</text><text x="1095" y="930" class="k cell">onlyOwner 접근 제어와 이벤트(Issued/Revoked/Restored)</text>
+
+  <text x="105" y="1035" class="k cell" font-weight="900">데이터셋</text>
+  <text x="415" y="1025" class="k cell">backend/seeds/*.json (14개)</text><text x="415" y="1060" class="k cell">기관 Mock API · 시연 인물 5명</text>
+  <text x="1095" y="1025" class="k cell">출입국·고용·은행 KYC·의료·교육·자격·안전보건 원천 데이터 모사</text><text x="1095" y="1060" class="k cell">bank_kyc, employers, attendance, payroll, pension, savings, insurance 등</text><text x="1095" y="1090" class="k cell">목적별 조회: employer 8곳 · insurance 3곳 · hospital 2곳</text>
+
+  <text x="105" y="1165" class="k cell" font-weight="900">테스트·배포</text>
+  <text x="415" y="1155" class="k cell">pytest · run_all.bat · Render</text>
+  <text x="1095" y="1155" class="k cell">test_blockchain_registry.py · test_onchain_access_control.py · test_api_flow.py</text><text x="1095" y="1183" class="k cell">.env 미설정 시 시뮬레이터, RPC/컨트랙트 설정 시 테스트넷</text>
+
+  <!-- verified source strip -->
+  <rect x="80" y="1260" width="2040" height="150" rx="8" fill="#f7f7f7" stroke="#555" stroke-width="2"/>
+  <text x="110" y="1300" class="k cell" font-weight="900">확인한 근거 파일</text>
+  <text x="110" y="1333" class="k mono">backend/requirements.txt · backend/main.py · backend/blockchain_client.py · backend/crypto_utils.py</text>
+  <text x="110" y="1362" class="k mono">backend/schema.sql · backend/seeds/*.json · backend/tests/*.py · contracts/CredentialRegistry.sol</text>
+  <text x="110" y="1391" class="k mono">frontend/*.html · frontend/*.js · frontend/*.css · README.md</text>
+</svg>

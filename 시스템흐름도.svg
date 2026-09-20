@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1400" viewBox="0 0 2400 1400">
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M0 0 L14 7 L0 14 z" fill="#555"/></marker>
+    <style>
+      .k{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;fill:#222}
+      .title{font-size:38px;font-weight:900}.sub{font-size:19px;fill:#555}
+      .box{fill:#fff;stroke:#555;stroke-width:3}.dark{fill:#333;stroke:#222;stroke-width:3}.light{fill:#f8f8f8;stroke:#555;stroke-width:3}
+      .bt{font-size:19px;font-weight:900}.tx{font-size:15px;fill:#444}.sm{font-size:13px;fill:#666}
+      .lane{font-size:20px;font-weight:900}.label{font-size:14px;fill:#555;font-weight:700}
+    </style>
+  </defs>
+  <rect width="2400" height="1400" fill="#fff"/>
+  <text x="70" y="62" class="k title">iM PASS 서비스 흐름 및 구현 진행도</text>
+  <text x="72" y="94" class="k sub">검정 박스와 연결선을 기준으로 표현한 전체 사용자 여정 · API 처리 · 기관 조회 · 블록체인 상태 흐름</text>
+
+  <!-- main spine -->
+  <rect x="80" y="135" width="190" height="64" rx="8" class="dark"/><text x="175" y="174" text-anchor="middle" class="k" style="fill:#fff;font-size:20px;font-weight:900">서비스 시작</text>
+  <path d="M270 167 H335" stroke="#555" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="350" y="135" width="230" height="64" rx="8" class="box"/><text x="465" y="163" text-anchor="middle" class="k bt">런처</text><text x="465" y="185" text-anchor="middle" class="k tx">home.html · 언어 선택</text>
+  <path d="M580 167 H645" stroke="#555" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="660" y="135" width="270" height="64" rx="8" class="box"/><text x="795" y="163" text-anchor="middle" class="k bt">사용자 역할 선택</text><text x="795" y="185" text-anchor="middle" class="k tx">근로자 / 사업자 / 은행·기관</text>
+  <path d="M930 167 H995" stroke="#555" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="1010" y="135" width="290" height="64" rx="8" class="dark"/><text x="1155" y="163" text-anchor="middle" class="k" style="fill:#fff;font-size:19px;font-weight:900">FastAPI 진입</text><text x="1155" y="185" text-anchor="middle" class="k" style="fill:#ddd;font-size:14px">main.py · Uvicorn :8000</text>
+
+  <!-- phase line -->
+  <path d="M80 235 H2320" stroke="#888" stroke-width="2"/>
+  <text x="80" y="225" class="k label">구현 단계</text>
+  <g class="k" style="font-size:15px;font-weight:900;fill:#333">
+    <text x="210" y="225">P0 문제정의</text><text x="490" y="225">P1 기관/데이터 모델</text><text x="840" y="225">P2 지갑 발급</text><text x="1150" y="225">P3 선택공개 QR</text><text x="1480" y="225">P4 검증/운영</text><text x="1800" y="225">P5 금융 확장</text><text x="2110" y="225">P6 테스트/배포</text>
+  </g>
+
+  <!-- branch from role -->
+  <path d="M795 200 V280 H405 V330" stroke="#555" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <path d="M795 200 V280 H1160 V330" stroke="#555" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <path d="M795 200 V280 H1945 V330" stroke="#555" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <text x="425" y="270" class="k label">근로자</text><text x="1165" y="270" class="k label">사업자</text><text x="1950" y="270" class="k label">은행·기관</text>
+
+  <!-- worker detailed flow -->
+  <rect x="80" y="330" width="650" height="790" rx="10" class="light"/>
+  <text x="105" y="365" class="k lane">근로자 지갑 발급 → 제출 → 금융</text>
+  <rect x="115" y="395" width="250" height="64" rx="8" class="box"/><text x="240" y="423" text-anchor="middle" class="k bt">은행 실명확인</text><text x="240" y="445" text-anchor="middle" class="k tx">POST /wallet/bank-verify</text>
+  <path d="M365 427 H410" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="425" y="395" width="250" height="64" rx="8" class="box"/><text x="550" y="423" text-anchor="middle" class="k bt">단말 키 생성</text><text x="550" y="445" text-anchor="middle" class="k tx">ECDSA P-256 · 개인키 보관</text>
+  <path d="M550 459 V500" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="180" y="515" width="370" height="70" rx="8" class="dark"/><text x="365" y="545" text-anchor="middle" class="k" style="fill:#fff;font-size:19px;font-weight:900">출입국 체류자격 조회</text><text x="365" y="568" text-anchor="middle" class="k" style="fill:#ddd;font-size:14px">필수 게이트 · 말소/미등록이면 중단</text>
+  <path d="M365 585 V625" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="125" y="640" width="240" height="82" rx="8" class="box"/><text x="245" y="670" text-anchor="middle" class="k bt">발급 중단</text><text x="245" y="694" text-anchor="middle" class="k tx">NGUYEN THI E 사례</text><text x="245" y="712" text-anchor="middle" class="k sm">체류자격 말소</text>
+  <path d="M365 666 H410" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="425" y="625" width="250" height="82" rx="8" class="box"/><text x="550" y="655" text-anchor="middle" class="k bt">기관별 추가 조회</text><text x="550" y="679" text-anchor="middle" class="k tx">고용·계좌·건강·교육·자격</text><text x="550" y="699" text-anchor="middle" class="k sm">agency_api.py · 8개 기관</text>
+  <path d="M550 707 V748" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="180" y="763" width="370" height="70" rx="8" class="dark"/><text x="365" y="793" text-anchor="middle" class="k" style="fill:#fff;font-size:19px;font-weight:900">지갑/자격 발급 완료</text><text x="365" y="816" text-anchor="middle" class="k" style="fill:#ddd;font-size:14px">POST /credentials → 온체인 issue</text>
+  <path d="M365 833 V875" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="125" y="890" width="240" height="82" rx="8" class="box"/><text x="245" y="920" text-anchor="middle" class="k bt">제출 목적 선택</text><text x="245" y="944" text-anchor="middle" class="k tx">사업장 · 병원 · 은행 · 보험</text><text x="245" y="963" text-anchor="middle" class="k sm">필요 항목만 선택</text>
+  <path d="M365 931 H410" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="425" y="875" width="250" height="82" rx="8" class="box"/><text x="550" y="905" text-anchor="middle" class="k bt">서명 QR 생성</text><text x="550" y="929" text-anchor="middle" class="k tx">payload · ECDSA · 60초</text><text x="550" y="948" text-anchor="middle" class="k sm">POST /presentations/secure</text>
+  <path d="M550 957 V995" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="180" y="1010" width="370" height="70" rx="8" class="box"/><text x="365" y="1040" text-anchor="middle" class="k bt">금융 패스포트 확인</text><text x="365" y="1063" text-anchor="middle" class="k tx">근태 · 급여 · 퇴직급여 · 송금 · 적금</text>
+
+  <!-- employer flow -->
+  <rect x="805" y="330" width="650" height="790" rx="10" class="light"/>
+  <text x="830" y="365" class="k lane">사업자 현장 검증 및 근태</text>
+  <rect x="840" y="395" width="250" height="64" rx="8" class="box"/><text x="965" y="423" text-anchor="middle" class="k bt">QR/payload 수신</text><text x="965" y="445" text-anchor="middle" class="k tx">scan.html</text>
+  <path d="M1090 427 H1135" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1150" y="395" width="250" height="64" rx="8" class="box"/><text x="1275" y="423" text-anchor="middle" class="k bt">수령처 검증 요청</text><text x="1275" y="445" text-anchor="middle" class="k tx">POST /verify</text>
+  <path d="M1275 459 V505" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="920" y="520" width="430" height="72" rx="8" class="dark"/><text x="1135" y="550" text-anchor="middle" class="k" style="fill:#fff;font-size:19px;font-weight:900">서명 · 대상 · 만료 · 철회 검사</text><text x="1135" y="574" text-anchor="middle" class="k" style="fill:#ddd;font-size:14px">verify_signature → getStatus</text>
+  <path d="M1135 592 V630" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1135 630 H950 V670" stroke="#555" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <path d="M1135 630 H1320 V670" stroke="#555" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <text x="965" y="650" class="k label">통과</text><text x="1305" y="650" class="k label">실패</text>
+  <rect x="840" y="685" width="220" height="68" rx="8" class="box"/><text x="950" y="714" text-anchor="middle" class="k bt">검증 통과</text><text x="950" y="737" text-anchor="middle" class="k tx">근로자 자격 확인</text>
+  <rect x="1210" y="685" width="300" height="100" rx="8" class="box"/><text x="1360" y="714" text-anchor="middle" class="k bt">검증 실패 분기</text><text x="1360" y="738" text-anchor="middle" class="k tx">SIGNATURE_INVALID</text><text x="1360" y="758" text-anchor="middle" class="k tx">TARGET_MISMATCH · REVOKED · EXPIRED</text>
+  <path d="M950 753 V820" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="840" y="835" width="220" height="72" rx="8" class="box"/><text x="950" y="865" text-anchor="middle" class="k bt">출근 처리</text><text x="950" y="888" text-anchor="middle" class="k tx">POST /attendance/scan</text>
+  <path d="M950 907 V948" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="840" y="963" width="220" height="72" rx="8" class="box"/><text x="950" y="993" text-anchor="middle" class="k bt">퇴근 처리</text><text x="950" y="1017" text-anchor="middle" class="k tx">두 번째 스캔</text>
+  <path d="M1060 999 H1135" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1150" y="963" width="250" height="72" rx="8" class="box"/><text x="1275" y="993" text-anchor="middle" class="k bt">급여/근태 집계</text><text x="1275" y="1017" text-anchor="middle" class="k tx">payroll.py · passport</text>
+
+  <!-- admin flow -->
+  <rect x="1530" y="330" width="790" height="790" rx="10" class="light"/>
+  <text x="1555" y="365" class="k lane">은행·기관 운영 / 금융 서비스 / 온체인</text>
+  <rect x="1565" y="395" width="260" height="70" rx="8" class="box"/><text x="1695" y="425" text-anchor="middle" class="k bt">관리자 자격 관리</text><text x="1695" y="449" text-anchor="middle" class="k tx">admin.html · revoke/restore</text>
+  <path d="M1825 430 H1870" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1885" y="395" width="380" height="70" rx="8" class="dark"/><text x="2075" y="425" text-anchor="middle" class="k" style="fill:#fff;font-size:19px;font-weight:900">CredentialRegistry 상태 변경</text><text x="2075" y="449" text-anchor="middle" class="k" style="fill:#ddd;font-size:14px">revoke() / restore() · onlyOwner</text>
+  <path d="M2075 465 V510" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1700" y="525" width="420" height="72" rx="8" class="box"/><text x="1910" y="555" text-anchor="middle" class="k bt">보험 접수·심사</text><text x="1910" y="579" text-anchor="middle" class="k tx">POST /insurance/submissions</text>
+  <path d="M1910 597 V640" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1700" y="655" width="420" height="72" rx="8" class="box"/><text x="1910" y="685" text-anchor="middle" class="k bt">체류 만료 알림</text><text x="1910" y="709" text-anchor="middle" class="k tx">120일 기준 · wallet 응답에 포함</text>
+  <path d="M1700 691 H1600 V770" stroke="#555" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <rect x="1565" y="785" width="260" height="92" rx="8" class="box"/><text x="1695" y="817" text-anchor="middle" class="k bt">E-9 / H-2</text><text x="1695" y="841" text-anchor="middle" class="k tx">출국만기보험</text><text x="1695" y="860" text-anchor="middle" class="k sm">departure.py</text>
+  <path d="M1825 831 H1870" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1885" y="785" width="260" height="92" rx="8" class="box"/><text x="2015" y="817" text-anchor="middle" class="k bt">E-7 등</text><text x="2015" y="841" text-anchor="middle" class="k tx">DC 퇴직연금</text><text x="2015" y="860" text-anchor="middle" class="k sm">pension.py</text>
+  <path d="M2145 831 H2190" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="2205" y="785" width="80" height="92" rx="8" class="box"/><text x="2245" y="823" text-anchor="middle" class="k bt" style="font-size:16px">금융</text><text x="2245" y="847" text-anchor="middle" class="k tx" style="font-size:13px">products</text>
+  <path d="M1910 727 V750" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1700" y="925" width="585" height="100" rx="8" class="box"/><text x="1992" y="957" text-anchor="middle" class="k bt">송금·적금·귀국정산</text><text x="1992" y="983" text-anchor="middle" class="k tx">환율 보장 견적 · savings.py · settlement.py</text><text x="1992" y="1006" text-anchor="middle" class="k sm">GET /fx/quote · POST /savings/enroll</text>
+
+  <!-- bottom data layer -->
+  <rect x="80" y="1170" width="2240" height="165" rx="10" class="light"/>
+  <text x="105" y="1205" class="k lane">기관 데이터 · 저장소 · 배포/검증</text>
+  <rect x="105" y="1230" width="300" height="75" rx="8" class="box"/><text x="255" y="1260" text-anchor="middle" class="k bt">14개 시드 JSON</text><text x="255" y="1283" text-anchor="middle" class="k tx">backend/seeds/*.json</text>
+  <path d="M405 1267 H455" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="470" y="1230" width="300" height="75" rx="8" class="box"/><text x="620" y="1260" text-anchor="middle" class="k bt">인메모리 DB</text><text x="620" y="1283" text-anchor="middle" class="k tx">Supabase 선택 연동</text>
+  <path d="M770 1267 H820" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="835" y="1230" width="350" height="75" rx="8" class="dark"/><text x="1010" y="1260" text-anchor="middle" class="k" style="fill:#fff;font-size:18px;font-weight:900">블록체인 레지스트리</text><text x="1010" y="1283" text-anchor="middle" class="k" style="fill:#ddd;font-size:14px">keccak256 해시만 기록</text>
+  <path d="M1185 1267 H1235" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1250" y="1230" width="300" height="75" rx="8" class="box"/><text x="1400" y="1260" text-anchor="middle" class="k bt">pytest 검증</text><text x="1400" y="1283" text-anchor="middle" class="k tx">registry · API flow · access</text>
+  <path d="M1550 1267 H1600" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1615" y="1230" width="300" height="75" rx="8" class="box"/><text x="1765" y="1260" text-anchor="middle" class="k bt">실행 모드</text><text x="1765" y="1283" text-anchor="middle" class="k tx">시뮬레이터 ↔ 테스트넷</text>
+  <path d="M1915 1267 H1965" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1980" y="1230" width="300" height="75" rx="8" class="box"/><text x="2130" y="1260" text-anchor="middle" class="k bt">Render 배포</text><text x="2130" y="1283" text-anchor="middle" class="k tx">/docs · /health</text>
+
+  <!-- right legend -->
+  <rect x="2330" y="1170" width="70" height="165" rx="10" fill="#fff" stroke="#bbb"/>
+  <text x="2365" y="1198" text-anchor="middle" class="k sm">범례</text><rect x="2345" y="1215" width="40" height="22" class="dark"/><text x="2365" y="1260" text-anchor="middle" class="k sm">핵심</text><rect x="2345" y="1275" width="40" height="22" class="box"/><text x="2365" y="1320" text-anchor="middle" class="k sm">단계</text>
+
+  <text x="80" y="1380" class="k sm">참고: 첨부 레퍼런스의 검정 박스 중심 플로우 차트 형식을 반영했으며, 본 프로젝트의 실제 파일명·API·도메인 분기·테스트·배포 단계를 연결해 표현했습니다.</text>
+</svg>
