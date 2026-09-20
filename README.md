@@ -247,6 +247,9 @@ iM PASS 프로토타입은 실제 공공기관 연계 시 발생할 수 있는 �
 
 ## 9. 빠른 실행 및 시연 가이드
 
+## 도메인 서버에서 실행 (api 및 블록체인 온라인 구현)
+https://im-worker-pass.vercel.app/
+
 ### 🚀 원클릭 실행 (Windows)
 ```bash
 run_all.bat
